@@ -9,7 +9,7 @@ app = Flask(__name__)
 def form():
     	return render_template('main_page.html')
 
-@app.route('/hello', methods=['GET', 'POST'])
+@app.route('/result', methods=['GET', 'POST'])
 def hello():
 
 	eqn=str(request.form['display'])
