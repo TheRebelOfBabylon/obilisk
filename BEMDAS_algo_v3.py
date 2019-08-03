@@ -472,9 +472,9 @@ def calculate(n,b):
 			#print(op,op1,t,n[t],length)
 			if n[t] == op:
 				
-				solution.insert(sol_cnt,n[t-1]+op+n[t+1])
 				calc = operation(float(n[t-1]),op,float(n[t+1]))
-				print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=",calc)
+				solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+n[t-1]+op+n[t+1]+" = "+str(calc))
+				print(solution[sol_cnt])
 				sol_cnt=sol_cnt+1
 				n[t-1] = str(calc)
 				del n[t:t+2]
@@ -484,9 +484,9 @@ def calculate(n,b):
 
 			elif n[t] == op1:
 
-				solution.insert(sol_cnt,n[t-1]+op1+n[t+1])
 				calc = operation(float(n[t-1]),op1,float(n[t+1]))
-				print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=",calc)
+				solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+n[t-1]+op1+n[t+1]+" = "+str(calc))
+				print(solution[sol_cnt])
 				sol_cnt=sol_cnt+1
 				n[t-1] = str(calc)
 				del n[t:t+2]
