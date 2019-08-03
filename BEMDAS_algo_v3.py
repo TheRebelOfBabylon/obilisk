@@ -469,7 +469,7 @@ def calculate(n,b):
 
 		t=0
 		while t <= length-1:
-			#print(op,op1,t,n[t],length)
+			
 			if n[t] == op:
 				
 				calc = operation(float(n[t-1]),op,float(n[t+1]))
