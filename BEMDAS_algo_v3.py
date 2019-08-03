@@ -514,6 +514,7 @@ def main(a):
 	solution=[]
 
 	solution.insert(sol_cnt,"The inputted equation is "+str(a))
+	print(solution[sol_cnt])
 	sol_cnt=sol_cnt+1
 
 	a = "(" + a + ")00000"
@@ -968,6 +969,7 @@ def main(a):
 	ans=calculate(master,0)
 	print(ans)
 	solution.insert(sol_cnt,"The final answer is "+str(ans))
+	print(solution[sol_cnt])
 	#print(solution)
 
 	return solution
