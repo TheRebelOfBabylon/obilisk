@@ -32,12 +32,7 @@ oper_dict = {
 	23 : "ACOTH",
 	24 : "LN",
 	25 : "LOG",
-	26 : "SQRT",
-	27 : "^",
-	28 : "*",
-	29 : "/",
-	30 : "+",
-	31 : "-"
+	26 : "SQRT"
 
 }
 
@@ -452,18 +447,54 @@ def calculate(n,b):
 					#print(n)
 					length=len(n)
 
-				else:
-					
-					calc = operation(float(n[t-1]),op,float(n[t+1]))
-					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+n[t-1]+" "+op+" "+n[t+1]+" = "+str(calc))
-					print(solution[sol_cnt])
-					sol_cnt=sol_cnt+1
-					n[t-1] = str(calc)
-					del n[t:t+2]
-					t=t-1 #line added to make sure all ops are performed
-					length=len(n)
-					#print(n, calc)
 			t=t+1
+
+	#After resolving complex calculations, now to resolve ^*/+-
+	for s in range (0,3):
+
+		if s == 0:
+
+			op = "^"
+			op1 = ""
+
+		elif s == 1:
+
+			op = "*"
+			op1 = "/"
+
+		elif s == 2:
+
+			op = "+"
+			op1 = "-"
+
+		t=0
+		while t <= length-1:
+			#print(op,op1,t,n[t],length)
+			if n[t] == op:
+				
+				solution.insert(sol_cnt,n[t-1]+op+n[t+1])
+				calc = operation(float(n[t-1]),op,float(n[t+1]))
+				print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=",calc)
+				sol_cnt=sol_cnt+1
+				n[t-1] = str(calc)
+				del n[t:t+2]
+				t=t-1 #line added to make sure all ops are performed
+				length=len(n)
+				#print(n, calc)
+
+			elif n[t] == op1:
+
+				solution.insert(sol_cnt,n[t-1]+op1+n[t+1])
+				calc = operation(float(n[t-1]),op1,float(n[t+1]))
+				print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=",calc)
+				sol_cnt=sol_cnt+1
+				n[t-1] = str(calc)
+				del n[t:t+2]
+				t=t-1 #line added to make sure all ops are performed
+				length=len(n)
+				#print(n, calc)
+
+			t = t+1
 
 	return calc
 
