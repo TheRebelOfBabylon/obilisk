@@ -1,5 +1,10 @@
 import math
 import cmath
+import os
+import psutil
+
+process = psutil.Process(os.getpid())
+beginning = process.memory_info().rss
 
 solution=[]
 sol_cnt=0
@@ -971,7 +976,10 @@ def main(a):
 	solution.insert(sol_cnt,"The final answer is "+str(ans))
 	print(solution[sol_cnt])
 	#print(solution)
+	the_end = process.memory_info().rss
+	mem_tot = the_end - beginning
+	print(mem_tot, "bytes", beginning, "bytes", the_end, "bytes")
 
-	return solution
+	return solution, mem_tot
 
 

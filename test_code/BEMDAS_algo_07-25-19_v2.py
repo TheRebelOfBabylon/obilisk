@@ -1,5 +1,27 @@
 import math
 import cmath
+import os
+import psutil
+import rpc_pb2 as ln
+import rpc_pb2_grpc as lnrpc
+import grpc
+import codecs
+
+with open(os.path.expanduser('/Users/paulcote/gocode/dev/alice/data/chain/bitcoin/simnet/admin.macaroon'), 'rb') as f:
+
+	macaroon_bytes = f.read()
+	macaroon = codecs.encode(macaroon_bytes, 'hex')
+
+os.environ["GRPC_SSL_CIPHER_SUITES"] = 'HIGH+ECDSA'
+
+cert = open(os.path.expanduser('/Users/paulcote/Library/Application Support/Lnd/tls.cert'), 'rb').read()
+creds = grpc.ssl_channel_credentials(cert)
+channel = grpc.secure_channel('localhost:10001', creds)
+stub = lnrpc.LightningStub(channel)
+
+process = psutil.Process(os.getpid())
+beginning = process.memory_info().rss
+print("Beginning", beginning, "bytes")
 
 print('\nEnter an equation: ')
 
@@ -996,5 +1018,20 @@ ans=calculate(master,0)
 
 
 print("The result of the above equation is",ans,"\n")
+the_end = process.memory_info().rss
+mem_tot = the_end - beginning
+print("End", the_end, "bytes", mem_tot, "bytes", psutil.cpu_freq(), "MHz")
+
+satoshi_amt = round(mem_tot*0.0000845)
+
+print("The cost is", satoshi_amt, "sats")
+
+
+response = stub.WalletBalance(ln.WalletBalanceRequest(), metadata=[('macaroon', macaroon)])
+print(response.total_balance, "Satoshis")
+
+response_two = stub.GetInfo(ln.GetInfoRequest(), metadata=[('macaroon', macaroon)])
+print(response_two)
+
 
 
