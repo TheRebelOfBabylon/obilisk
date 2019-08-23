@@ -6,6 +6,7 @@ import codecs
 import psutil
 import numpy as np 
 
+#formalities
 with open(os.path.expanduser('/Users/paulcote/gocode/dev/alice/data/chain/bitcoin/simnet/admin.macaroon'), 'rb') as f:
 
 	macaroon_bytes = f.read()
@@ -18,8 +19,6 @@ creds = grpc.ssl_channel_credentials(cert)
 channel = grpc.secure_channel('localhost:10001', creds)
 stub = lnrpc.LightningStub(channel)
 
-response = stub.WalletBalance(ln.WalletBalanceRequest(), metadata=[('macaroon', macaroon)])
-print(response.total_balance, "Satoshis")
 
 request = stub.AddInvoice(ln.Invoice(value=125, memo="yeet"), metadata=[('macaroon', macaroon)])
 print(request.payment_request)

@@ -978,8 +978,9 @@ def main(a):
 	#print(solution)
 	the_end = process.memory_info().rss
 	mem_tot = the_end - beginning
-	print(mem_tot, "bytes", beginning, "bytes", the_end, "bytes")
+	solution.insert(sol_cnt+1,mem_tot)
+	#print(mem_tot, "bytes", beginning, "bytes", the_end, "bytes")
 
-	return solution, mem_tot
+	return solution
 
 
