@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+	<title>Solution</title>
+	<style>
+
+		#sol1 {
+
+			width:850px;
+			height:auto;
+			background:white;
+			font-family:courier;
+			font-size:22px;
+			margin:0 auto;
+			border: 1px solid black;			
+
+		} .paybtn {
+			color:#212529;
+			background-color:#ffc107;
+			border-color:#ffc107;
+			margin:auto;
+			width:175px;
+			padding:10px;
+			font-size:22px;
+			border-radius:10px;
+			margin-top:5px;
+		}
+
+	</style>
+
+</head>
+
+<body style="background-color:powderblue;">
+
+		<div id="rtn_btn">
+			<input type="button" value="Return" onclick="window.location.href = 'https://localhost:5000';" class="paybtn" id="return"></input>
+		</div>
+		<br>
+		<br>
+		<br>
+		<br>
+		<div id="sol1"></div>
+
+	<script>
+
+		var solution = {{ display|tojson|safe }};
+
+		var i;
+
+		for (i=0; i<solution.length; i++) {
+
+			var sol_step = document.createElement("p");
+			sol_step.innerHTML = solution[i];
+			document.getElementById("sol1").appendChild(sol_step);
+
+		}//endfor
+
+	</script>
+
+</body>
+
+</html>
