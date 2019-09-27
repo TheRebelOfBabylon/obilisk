@@ -1,0 +1,183 @@
+import math
+import cmath
+import random
+from algebra import *
+import calculus
+import algebra
+
+"""
+
+	Finds all roots for the polynomial with real exponents by using Jenkins-Traub 		algorithm.
+
+	Assuming error bound of 10E-6
+
+"""
+def real_poly(eqn,highest_deg):
+
+	num_roots = highest_deg
+	ans = []			
+
+	#Fundamental theorem of algebra says number of of highest exponent is the number of roots
+	i = 0
+	while i != highest_deg:
+
+		root = rpoly(eqn,highest_deg)
+		ans.append(root)
+		i += 1
+		last_run = (num_roots - 1 == i)		
+
+		#if not last_run:
+
+		eqn = Poly_Func(eqn)
+		divisor = [1,-1*root]
+		#print("x+"+str(divisor[1]))
+		new_eqn = eqn.lin_divide(divisor)
+		#print(new_eqn.eqn)
+		eqn = new_eqn.eqn 
+
+		#if i == 0:
+		
+			#ans.insert(i,root)
+			#print("Root "+str(i+1)+" is",ans[i])
+			#i += 1
+	
+		#else:
+
+			#answer_found = False
+			#for n in ans:
+
+				#if (round(root.real,5) == round(n.real,5)) and (round(root.imag,5) == round(n.imag,5)):
+
+					#answer_found = True
+
+			#if answer_found == False:
+
+				#ans.insert(i,root)
+				#print("Root "+str(i+1)+" is",ans[i])
+				#i += 1
+
+	return ans
+
+def rpoly(eqn,highest_deg):
+
+	eqn = Poly_Func(eqn)
+	coeff = eqn.normalize()
+	#print(coeff.eqn)
+
+	#Stage 1: No-shift process. Assuming M = 5
+
+	K = calculus.coeff_derivative(coeff.eqn)
+	#print(K.eqn)
+
+	for i in range(0,5):
+
+		constant = -1*K.evaluate(0)/coeff.evaluate(0)
+		#print("Constant is",constant)
+		P_z = coeff.poly_multiply(constant)
+		#print("P_z",P_z.eqn)
+		K_prime = algebra.poly_add(K.eqn,P_z.eqn)
+		#print("K_prime",K_prime.eqn)
+		divisor = [1,0]
+		new_K = K_prime.lin_divide(divisor)
+		#print("new_K",new_K.eqn)
+		K = new_K
+		#print(i)
+
+	#Stage 2: Fixed-shift Process
+
+	t_curr = t_old = t_new = None
+	stage_two_success = False
+	root_found = False
+
+	while not root_found:
+	
+		while not stage_two_success:
+
+			s = get_random_root(coeff)
+			#print("s",s)
+
+			for i in range(0,100):
+				
+				constant = -1*K.evaluate(s)/coeff.evaluate(s)
+				P_z = coeff.poly_multiply(constant)
+				K_prime = algebra.poly_add(K.eqn,P_z.eqn)
+				divisor = [1,-1*s]
+				new_K = K_prime.lin_divide(divisor)
+
+				K_bar = K.normalize()
+				new_K_bar = new_K.normalize()
+
+				t_curr = s-(coeff.evaluate(s)/K_bar.evaluate(s))
+				t_new = s-(coeff.evaluate(s)/new_K_bar.evaluate(s))
+
+				if i > 0 and abs(t_curr - t_old) <= 0.5*abs(t_old) and abs(t_new - t_curr) <= 0.5*abs(t_curr):
+
+					stage_two_success = True
+					#print("break",stage_two_success,root_found)
+					break
+
+				t_old = t_curr
+				K = new_K
+				#print("Stage 2: K",K.eqn)
+
+			if not stage_two_success:
+
+				print("Retrying Stage 2")
+
+		#Stage 3: Variable-shift process
+
+		old_err = coeff.evaluate(s)
+		curr_err = 1
+		K_bar = K.normalize()
+		s = s-(coeff.evaluate(s)/K_bar.evaluate(s))
+		old_s = 0
+		stage_three_success = False
+
+		for i in range(0,10000):
+
+			if abs(coeff.evaluate(s)) < abs(10**(-7)):
+
+				stage_three_success = True
+				break
+
+			constant = -1*K.evaluate(s)/coeff.evaluate(s)
+			P_z = coeff.poly_multiply(constant)
+			K_prime = algebra.poly_add(K.eqn,P_z.eqn)
+			divisor = [1,-1*s]
+			new_K = K_prime.lin_divide(divisor)
+			new_K_bar = new_K.normalize()
+
+			s = s-(coeff.evaluate(s)/new_K_bar.evaluate(s))
+			curr_err = coeff.evaluate(s)
+
+			K = new_K
+
+			if math.isnan(s.imag) and math.isnan(s.real):
+
+				stage_three_success = False
+				break
+
+		if stage_three_success:
+
+			#print("Root is",s)
+			root_found = True
+
+		else:
+
+			stage_two_success = False
+
+	return s
+	
+def get_random_root(eqn):
+
+	cauchy_eqn = eqn.cauchy_poly()
+	#print("Cauchy",cauchy_eqn.eqn)
+	beta = cauchy_eqn.newton_raphson(10**(-7))
+	#print("beta",beta)
+	rand = random.uniform(0,1)*2*math.pi
+	root = abs(beta)*cmath.exp(1j*rand)
+	return root
+
+#def imag_poly():
+
+	
