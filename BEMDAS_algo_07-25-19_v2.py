@@ -2,23 +2,9 @@ import math
 import cmath
 import os
 import time
-import rpc_pb2 as ln
-import rpc_pb2_grpc as lnrpc
-import grpc
 import codecs
-import numpy as np
-
-with open(os.path.expanduser('/Users/paulcote/gocode/dev/alice/data/chain/bitcoin/simnet/admin.macaroon'), 'rb') as f:
-
-	macaroon_bytes = f.read()
-	macaroon = codecs.encode(macaroon_bytes, 'hex')
-
-os.environ["GRPC_SSL_CIPHER_SUITES"] = 'HIGH+ECDSA'
-
-cert = open(os.path.expanduser('/Users/paulcote/Library/Application Support/Lnd/tls.cert'), 'rb').read()
-creds = grpc.ssl_channel_credentials(cert)
-channel = grpc.secure_channel('localhost:10001', creds)
-stub = lnrpc.LightningStub(channel)
+import calculus
+import jenkins_traub
 
 start = time.time()
 
@@ -40,6 +26,9 @@ b=0
 k=0
 temp=""
 ans=0
+var_num=0
+var_index=0
+var_type=[]
 
 oper_dict = {
 	
@@ -70,6 +59,41 @@ oper_dict = {
 	24 : "LN",
 	25 : "LOG",
 	26 : "SQRT"
+
+}
+
+oper_dict_two = {
+	
+	0 : "SIN",
+	1 : "COS",
+	2 : "TAN",
+	3 : "SEC",
+	4 : "CSC",
+	5 : "COT",
+	6 : "ASIN",
+	7 : "ACOS",
+	8 : "ATAN",
+	9 : "ASEC",
+	10 : "ACSC",
+	11 : "ACOT",
+	12 : "SINH",
+	13 : "COSH",
+	14 : "TANH",
+	15 : "SECH",
+	16 : "CSCH",
+	17 : "COTH",
+	18 : "ASINH",
+	19 : "ACOSH",
+	20 : "ATANH",
+	21 : "ASECH",
+	22 : "ACSCH",
+	23 : "ACOTH",
+	24 : "LN",
+	25 : "LOG",
+	26 : "SQRT",
+	27 : "^",
+	28 : "*",
+	29 : "/"
 
 }
 
@@ -348,6 +372,7 @@ def calculate(n,b):
 
 			t=t+1
 	
+	#print(n)
 	#for loop to walk list of operations except for ^*/+-
 	for s in oper_dict.values():
 
@@ -362,7 +387,7 @@ def calculate(n,b):
 
 				calc=n[t]
 
-			if n[t] == op:
+			elif (n[t] == op):
 
 				if (n[t] == "SIN") or (n[t] == "COS") or (n[t] == "TAN") or (n[t] == "ASIN") or (n[t] == "ACOS") or (n[t] == "ATAN") or (n[t] == "SINH") or (n[t] == "COSH") or (n[t] == "TANH") or (n[t] == "SECH") or (n[t] == "CSCH") or (n[t] == "COTH") or (n[t] == "ASINH") or (n[t] == "ACOSH") or (n[t] == "ATANH") or (n[t] == "LN") or (n[t] == "SQRT"):
 
@@ -537,6 +562,2206 @@ def calculate(n,b):
 
 	return calc
 
+def simplify(eqn):
+
+	s=0
+	b=1
+	k=0
+	temp=[]
+	while s != len(eqn):
+
+		#add logic for dealing with trig operations, log, ln
+
+		if ("(" in eqn[s]) & (str(b) not in eqn[s]):
+	
+			#we are inside a bracket
+			b=b+1
+			t=s+1
+			var_check = 0
+
+			#while we aren't at the close bracket
+			while (")"+str(b)) not in eqn[t]:
+			
+				if var_check != 1:
+					
+					temp.insert(k,str(eqn[t]))
+					k=k+1
+
+				#if the variable is within the brackets
+				if (eqn[t].isalpha() == True) & (len(eqn[t]) == 1):
+
+					var_check = 1
+					temp.clear()
+
+				t=t+1
+			
+			if var_check == 0:
+
+				if len(temp) > 1:
+					
+					eqn[s]=str(calculate(temp, b))
+					del eqn[s+1:t+1]
+					b=b-1
+
+			else:
+				
+				s=t	
+				b=b-1
+
+		s=s+1
+
+	return eqn
+
+def is_number(s):
+
+	try:
+			
+		float(s)
+		return True
+
+	except ValueError:
+		
+		return False
+
+def has_numbers(s):
+
+	return any(char.isdigit() for char in s)
+
+def is_even(s):
+
+	if s % 2 == 0:
+
+		return True
+
+	else:
+
+		return False
+
+def quadratic(rear_l,var):
+
+	#a
+	temp=rear_l[1]
+	a=""
+	v=0
+	while temp[v] != var:
+
+		a=a+str(temp[v])
+		v=v+1
+
+	if a == "":
+
+		a = "1"
+
+	if a == "-":
+
+		a = "-1"
+
+	if var_type[0] in rear_l[3]:
+
+		temp=rear_l[3]
+
+		if rear_l[2] == "-":
+
+			b = "-"
+
+		else:
+
+			b=""
+
+		v=0
+		while temp[v] != var:
+
+			b=b+str(temp[v])
+			v=v+1
+
+		if b == "":
+
+			b = "1"
+
+		if b == "-":
+
+			b = "-1"
+
+		if rear_l[4] == "-":
+
+			c = "-"
+			c = c+rear_l[5]
+
+		else:
+
+			c=rear_l[5]
+
+	else:
+
+		b = 0
+
+		if rear_l[2] == "-":
+
+			c = "-"
+			c = c+rear_l[3]
+
+		else:
+
+			c=rear_l[3]
+
+	print(a,b,c)
+
+	a=float(a)
+	b=float(b)
+	c=float(c)
+
+	ans_one = ((-1*b)+((b**2)-(4*a*c))**0.5)/(2*a)
+	ans_two = ((-1*b)-((b**2)-(4*a*c))**0.5)/(2*a)
+
+	ans=[]
+	ans.insert(0,ans_one)
+	ans.insert(1,ans_two)
+		
+	#print(rear_l,simp_r)
+	return ans
+
+def cube_root(x):
+
+	print(x)
+
+	if isinstance(x, complex):
+
+		return x**(1/3)
+	
+	else:
+
+		if x >= 0.0:
+
+			return x**(1/3)
+
+		else:
+
+			return -(-x)**(1/3)
+
+def isolate(l, r, lvl):
+
+	global var_index_l, var_index_r, var_type, oper_dict_two, solution, sol_cnt
+	
+	op=""
+	op1=""
+
+	#Simplify both sides of equation
+	
+	simp_l = simplify(l)
+	simp_r = simplify(r)	
+
+	#Grouping
+	#LHS
+	s=0
+	simp_l.insert(len(simp_l),"0")
+	simp_l.insert(len(simp_l)+1,"0")
+	while s != len(simp_l)-2:
+
+		if var_type[0] in simp_l[s]:
+		
+
+			#combining x with ^ and exponents
+			if (simp_l[s+1] == "^") & (is_number(simp_l[s+2]) == True):
+
+				simp_l[s] = str(simp_l[s])+str(simp_l[s+1])+str(simp_l[s+2])
+				del simp_l[s+1:s+3]
+				s=0
+			
+			# combining x^# with constant in front of it
+			if is_number(simp_l[s-1]) == True:
+
+				simp_l[s-1] = str(simp_l[s-1])+str(simp_l[s])
+				del simp_l[s]
+				s=0
+
+			# combining x^# with constant in front of it
+			if (simp_l[s-1] == "*") & (is_number(simp_l[s-2]) == True):
+
+				simp_l[s-2] = str(simp_l[s-2])+str(simp_l[s])
+				del simp_l[s-1:s+1]
+				s=0
+
+		s=s+1
+
+	del simp_l[len(simp_l)-2:len(simp_l)]
+
+	#RHS
+	s=0
+	simp_r.insert(len(simp_r),"0")
+	simp_r.insert(len(simp_r)+1,"0")
+	while s != len(simp_r)-2:
+
+		if var_type[0] in simp_r[s]:
+
+			if (simp_r[s+1] == "^") & (is_number(simp_r[s+2]) == True):
+
+				simp_r[s] = str(simp_r[s])+str(simp_r[s+1])+str(simp_r[s+2])
+				del simp_r[s+1:s+3]
+				s=0
+			
+			if is_number(simp_r[s-1]) == True:
+
+				simp_r[s-1] = str(simp_r[s-1])+str(simp_r[s])
+				del simp_r[s]
+				s=0
+
+			
+			if (simp_r[s-1] == "*") & (is_number(simp_r[s-2]) == True):
+
+				simp_r[s-2] = str(simp_r[s-2])+str(simp_r[s])
+				del simp_r[s-1:s+1]
+				s=0
+
+		s=s+1
+
+	del simp_r[len(simp_r)-2:len(simp_r)]
+
+	print(simp_l,simp_r)
+	
+	#If there are nth order terms on RHS, move to LHS
+	v=0
+	while v != len(simp_r)-1:
+
+		if var_type[0] in simp_r[v]:
+
+			if simp_r[v-1] == "-":
+
+				if "-" in simp_r[v]:
+
+					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ + "+simp_r[v])
+					print(solution[sol_cnt],"\n")
+					sol_cnt=sol_cnt+1
+
+					simp_l.insert(len(simp_l)-1,"-")
+					simp_r[v]=simp_r[v].replace('-','')
+					simp_l.insert(len(simp_l)-1,simp_r[v])
+					del simp_r[v]
+				
+					if (simp_r[v-1] == "+") or (simp_r[v-1] == "-"):
+
+						del simp_r[v-1]
+
+					elif (simp_r[v] == "+") or (simp_r[v] == "-"):
+
+						del simp_r[v]						
+
+					v=0
+					#print(simp_l,simp_r)
+					temp=""
+					for s in range(1,len(simp_l)-1):
+
+						temp=temp+simp_l[s]
+
+					temp = temp + "="
+
+					for s in range(1,len(simp_r)-1):
+
+						temp=temp+simp_r[s]
+
+					print(temp)
+
+				else:
+
+					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ + "+simp_r[v])
+					print(solution[sol_cnt],"\n")
+					sol_cnt=sol_cnt+1
+
+					simp_l.insert(len(simp_l)-1,"+")
+					simp_l.insert(len(simp_l)-1,simp_r[v])
+					del simp_r[v]
+
+					if (simp_r[v-1] == "+") or (simp_r[v-1] == "-"):
+
+						del simp_r[v-1]
+
+					elif (simp_r[v] == "+") or (simp_r[v] == "-"):
+
+						del simp_r[v]
+
+					v=0
+					#print(simp_l,simp_r)
+					temp=""
+					for s in range(1,len(simp_l)-1):
+
+						temp=temp+simp_l[s]
+
+					temp = temp + "="
+
+					for s in range(1,len(simp_r)-1):
+
+						temp=temp+simp_r[s]
+
+					print(temp)
+
+			elif simp_r[v-1] == "+":
+
+				if "-" in simp_r[v]:
+
+					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ - "+simp_r[v])
+					print(solution[sol_cnt],"\n")
+					sol_cnt=sol_cnt+1
+
+					simp_l.insert(len(simp_l)-1,"+")
+					simp_r[v]=simp_r[v].replace('-','')
+					simp_l.insert(len(simp_l)-1,simp_r[v])
+					del simp_r[v]
+
+					if (simp_r[v-1] == "+") or (simp_r[v-1] == "-"):
+
+						del simp_r[v-1]
+
+					elif (simp_r[v] == "+") or (simp_r[v] == "-"):
+
+						del simp_r[v]
+
+					v=0
+					#print(simp_l,simp_r)
+					temp=""
+					for s in range(1,len(simp_l)-1):
+
+						temp=temp+simp_l[s]
+
+					temp = temp + "="
+
+					for s in range(1,len(simp_r)-1):
+
+						temp=temp+simp_r[s]
+
+					print(temp)
+
+				else:
+
+					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ - "+simp_r[v])
+					print(solution[sol_cnt],"\n")
+					sol_cnt=sol_cnt+1
+
+					simp_l.insert(len(simp_l)-1,"-")
+					simp_l.insert(len(simp_l)-1,simp_r[v])
+					del simp_r[v]
+
+					if (simp_r[v-1] == "+") or (simp_r[v-1] == "-"):
+
+						del simp_r[v-1]
+
+					elif (simp_r[v] == "+") or (simp_r[v] == "-"):
+
+						del simp_r[v]
+
+					v=0
+					#print(simp_l,simp_r)
+					temp=""
+					for s in range(1,len(simp_l)-1):
+
+						temp=temp+simp_l[s]
+
+					temp = temp + "="
+
+					for s in range(1,len(simp_r)-1):
+
+						temp=temp+simp_r[s]
+
+					print(temp)
+
+			else:
+				
+				if "-" in simp_r[v]:
+
+					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ - "+simp_r[v])
+					print(solution[sol_cnt],"\n")
+					sol_cnt=sol_cnt+1
+
+					simp_l.insert(len(simp_l)-1,"+")
+					simp_r[v]=simp_r[v].replace('-','')
+					simp_l.insert(len(simp_l)-1,simp_r[v])
+					del simp_r[v]
+	
+					if simp_r[v] == "+":
+
+						del simp_r[v]
+
+					else:
+
+						simp_r[v]=simp_r[v]+simp_r[v+1]
+						del simp_r[v+1]
+
+					v=0
+					#print(simp_l,simp_r)
+					temp=""
+					for s in range(1,len(simp_l)-1):
+
+						temp=temp+simp_l[s]
+
+					temp = temp + "="
+
+					for s in range(1,len(simp_r)-1):
+
+						temp=temp+simp_r[s]
+
+					print(temp)
+
+				else:
+
+					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ - "+simp_r[v])
+					print(solution[sol_cnt],"\n")
+					sol_cnt=sol_cnt+1
+
+					simp_l.insert(len(simp_l)-1,"-")
+					simp_l.insert(len(simp_l)-1,simp_r[v])
+					del simp_r[v]
+
+					if simp_r[v] == "+":
+
+						del simp_r[v]
+
+					else:
+
+						if "-" in simp_r[v+1]:
+
+							del simp_r[v]
+							simp_r[v] = simp_r[v].replace('-','')
+
+						else:
+
+							del simp_r[v]
+							simp_r[v] = "-"+simp_r[v]
+
+					v=0
+					#print(simp_l,simp_r)
+					temp=""
+					for s in range(1,len(simp_l)-1):
+
+						temp=temp+simp_l[s]
+
+					temp = temp + "="
+
+					for s in range(1,len(simp_r)-1):
+
+						temp=temp+simp_r[s]
+
+					print(temp)
+
+		v=v+1
+
+	#move constants from LHS to RHS
+
+	#print(simp_l,simp_r)
+	b=0
+	v=0
+	while v != len(simp_l)-1:
+
+		if "(" in simp_l[v]:
+
+			b=b+1
+
+		if ")" in simp_l[v]:
+
+			b=b-1
+
+		if (var_type[0] not in simp_l[v]) & (is_number(simp_l[v]) == True) & (simp_l[v-1] not in oper_dict_two.values()) & (simp_l[v+1] not in oper_dict_two.values()) & (b==lvl): #& you're not within variable bracket range
+	
+			if simp_l[v-1] == "-":
+
+				if "-" in simp_l[v]:
+
+					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ + "+simp_l[v])
+					print(solution[sol_cnt],"\n")
+					sol_cnt=sol_cnt+1
+
+					simp_r.insert(len(simp_r)-1,"-")
+					simp_l[v]=simp_l[v].replace('-','')
+					simp_r.insert(len(simp_r)-1,simp_l[v])
+					del simp_l[v]
+
+					if (simp_l[v-1] == "+") or (simp_l[v-1] == "-"):
+
+						del simp_l[v-1]
+
+					elif (simp_l[v] == "+") or (simp_l[v] == "-"):
+
+						del simp_l[v]
+
+					v=0
+					#print(simp_l,simp_r)
+					temp=""
+					for s in range(1,len(simp_l)-1):
+
+						temp=temp+simp_l[s]
+
+					temp = temp + "="
+
+					for s in range(1,len(simp_r)-1):
+
+						temp=temp+simp_r[s]
+
+					print(temp)
+
+				else:
+
+					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ + "+simp_l[v])
+					print(solution[sol_cnt],"\n")
+					sol_cnt=sol_cnt+1
+
+					if len(simp_r) == 2:
+
+						simp_r.insert(len(simp_r)-1,simp_l[v])
+						del simp_l[v]
+
+					else:
+
+						simp_r.insert(len(simp_r)-1,"+")
+						simp_r.insert(len(simp_r)-1,simp_l[v])
+						del simp_l[v]
+
+					if (simp_l[v-1] == "+") or (simp_l[v-1] == "-"):
+
+						del simp_l[v-1]
+
+					elif (simp_l[v] == "+") or (simp_l[v] == "-"):
+
+						del simp_l[v]
+
+					v=0
+					#print(simp_l,simp_r)
+					temp=""
+					for s in range(1,len(simp_l)-1):
+
+						temp=temp+simp_l[s]
+
+					temp = temp + "="
+
+					for s in range(1,len(simp_r)-1):
+
+						temp=temp+simp_r[s]
+
+					print(temp)
+
+			elif simp_l[v-1] == "+":
+
+				if "-" in simp_l[v]:
+
+					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ - "+simp_l[v])
+					print(solution[sol_cnt],"\n")
+					sol_cnt=sol_cnt+1
+
+					simp_r.insert(len(simp_r)-1,"+")
+					simp_l[v]=simp_l[v].replace('-','')
+					simp_r.insert(len(simp_r)-1,simp_l[v])
+					del simp_l[v]
+
+					if (simp_l[v-1] == "+") or (simp_l[v-1] == "-"):
+
+						del simp_l[v-1]
+
+					elif (simp_l[v] == "+") or (simp_l[v] == "-"):
+
+						del simp_l[v]
+
+					v=0
+					#print(simp_l,simp_r)
+					temp=""
+					for s in range(1,len(simp_l)-1):
+
+						temp=temp+simp_l[s]
+
+					temp = temp + "="
+
+					for s in range(1,len(simp_r)-1):
+
+						temp=temp+simp_r[s]
+
+					print(temp)
+
+				else:
+
+					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ - "+simp_l[v])
+					print(solution[sol_cnt],"\n")
+					sol_cnt=sol_cnt+1
+
+					simp_r.insert(len(simp_r)-1,"-")
+					simp_r.insert(len(simp_r)-1,simp_l[v])
+					del simp_l[v]
+
+					if (simp_l[v-1] == "+") or (simp_l[v-1] == "-"):
+
+						del simp_l[v-1]
+
+					elif (simp_l[v] == "+") or (simp_l[v] == "-"):
+
+						del simp_l[v]
+
+					v=0
+					#print(simp_l,simp_r)
+					temp=""
+					for s in range(1,len(simp_l)-1):
+
+						temp=temp+simp_l[s]
+
+					temp = temp + "="
+
+					for s in range(1,len(simp_r)-1):
+
+						temp=temp+simp_r[s]
+
+					print(temp)
+
+			else:
+						
+				if "-" in simp_l[v]:
+
+					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ - "+simp_l[v])
+					print(solution[sol_cnt],"\n")
+					sol_cnt=sol_cnt+1
+
+					simp_r.insert(len(simp_r)-1,"+")
+					simp_l[v]=simp_l[v].replace('-','')
+					simp_r.insert(len(simp_r)-1,simp_l[v])
+					del simp_l[v]
+
+					if simp_l[v] == "+":
+
+						del simp_l[v]
+
+					else:
+
+						simp_l[v]=simp_l[v]+simp_l[v+1]
+						del simp_l[v+1]
+
+					v=0
+					#print(simp_l,simp_r)
+					temp=""
+					for s in range(1,len(simp_l)-1):
+
+						temp=temp+simp_l[s]
+
+					temp = temp + "="
+
+					for s in range(1,len(simp_r)-1):
+
+						temp=temp+simp_r[s]
+
+					print(temp)
+
+				else:
+
+					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ - "+simp_l[v])
+					print(solution[sol_cnt],"\n")
+					sol_cnt=sol_cnt+1
+
+					simp_r.insert(len(simp_r)-1,"-")
+					simp_r.insert(len(simp_r)-1,simp_l[v])
+					del simp_l[v]
+
+					if simp_l[v] == "+":
+
+						del simp_l[v]
+
+					else:
+
+						simp_l[v]=simp_l[v]+simp_l[v+1]
+						del simp_l[v+1]
+
+					v=0
+					#print(simp_l,simp_r)
+					temp=""
+					for s in range(1,len(simp_l)-1):
+
+						temp=temp+simp_l[s]
+
+					temp = temp + "="
+
+					for s in range(1,len(simp_r)-1):
+
+						temp=temp+simp_r[s]
+
+					print(temp)
+
+		v=v+1				
+	
+	#list all nth order terms for LHS
+
+	lhs_n_order=[]
+	n=0
+
+	for s in range(0,len(simp_l)-1):
+
+		if var_type[0] in simp_l[s]:
+
+			if "^" in simp_l[s]:
+
+				temp=str(simp_l[s])
+				t=0
+				hat_check=0
+				temp_two=""
+				while t != len(temp):
+
+					if temp[t] == "^":
+		
+						hat_check=1
+						t=t+1
+
+					if hat_check == 1:
+
+						temp_two=temp_two+str(temp[t])
+					
+					t=t+1
+
+				if str(temp_two) not in lhs_n_order:
+
+					lhs_n_order.insert(n,str(temp_two))
+					n=n+1
+
+			else:
+
+				if "1" not in lhs_n_order:
+
+					lhs_n_order.insert(n,"1")
+					n=n+1
+
+	#Reorder lhs_n_order to numerical order
+
+	print(lhs_n_order)
+	new_n_order=[]
+	n=0
+	s=0
+	while s != len(lhs_n_order):
+
+		j=float(lhs_n_order[s])
+		k=0
+		t=0
+		while t != len(lhs_n_order):
+
+			if j < float(lhs_n_order[t]):
+
+				k=1
+
+			t=t+1
+
+		if k!=1:
+
+			new_n_order.insert(n,lhs_n_order[s])
+			n=n+1
+			del lhs_n_order[s]
+			s=-1
+
+		s=s+1
+
+	print(new_n_order)
+
+
+	#Reorder terms on LHS from largest exponent to smallest
+	rear_l=[]
+	n=0	
+	for s in range(0,len(new_n_order)):		
+
+		for t in range(0,len(simp_l)):
+
+			if int(new_n_order[s]) > 1:
+
+				if (var_type[0] in simp_l[t]) & ("^"+str(new_n_order[s]) in simp_l[t]):
+
+					print(simp_l[t])
+
+					if simp_l[t-1] == "-":
+						
+						if "-" in simp_l[t]:
+
+							if n == 0:
+
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+							else:
+
+								rear_l.insert(n,"+")
+								n=n+1
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+						else:
+
+							rear_l.insert(n,"-")
+
+							if n == 0:		
+
+								rear_l[n]=rear_l[n]+simp_l[t]
+								n=n+1
+
+							else:
+			
+								n=n+1
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+					elif simp_l[t-1] == "+":
+
+						if "-" in simp_l[t]:
+
+							if n == 0:		
+
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+							else:
+			
+								rear_l.insert(n,"-")
+								n=n+1
+								rear_l.insert(n,simp_l[t])
+								rear_l[n] = rear_l[n].replace('-','')
+								n=n+1
+
+						else:
+							
+							if n == 0:
+
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+							else:
+
+								rear_l.insert(n,"+")
+								n=n+1
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+					else:
+
+						if "-" in simp_l[t]:
+
+							if n == 0:		
+
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+							else:
+			
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+						else:
+							
+							if n == 0:
+
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+							else:
+
+								rear_l.insert(n,"+")
+								n=n+1
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+			if int(new_n_order[s]) == 1:
+
+				if (var_type[0] in simp_l[t]) & ("^" not in simp_l[t]):
+
+					print(simp_l[t])
+
+					if simp_l[t-1] == "-":
+						
+						if "-" in simp_l[t]:
+
+							if n == 0:
+
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+							else:
+
+								rear_l.insert(n,"+")
+								n=n+1
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+						else:
+
+							rear_l.insert(n,"-")
+
+							if n == 0:		
+
+								rear_l[n]=rear_l[n]+simp_l[t]
+								n=n+1
+
+							else:
+			
+								n=n+1
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+					elif simp_l[t-1] == "+":
+
+						if "-" in simp_l[t]:
+
+							rear_l.insert(n,"-")
+
+							if n == 0:		
+
+								rear_l[n]=rear_l[n]+simp_l[t]
+								n=n+1
+
+							else:
+			
+								n=n+1
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+						else:
+							
+							if n == 0:
+
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+							else:
+
+								rear_l.insert(n,"+")
+								n=n+1
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+					else:
+
+						if "-" in simp_l[t]:
+
+							rear_l.insert(n,"-")
+
+							if n == 0:		
+
+								rear_l[n]=rear_l[n]+simp_l[t]
+								n=n+1
+
+							else:
+			
+								n=n+1
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+						else:
+							
+							if n == 0:
+
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+							else:
+
+								rear_l.insert(n,"+")
+								n=n+1
+								rear_l.insert(n,simp_l[t])
+								n=n+1
+
+	rear_l.insert(0,"(1")
+	rear_l.insert(len(rear_l),")1")
+
+	print(rear_l)
+
+	for s in range(0,len(new_n_order)):		
+
+		t=0
+		while t!=len(rear_l):
+
+			if int(new_n_order[s]) > 1:
+
+				if rear_l[t] == "+":
+
+					if ("^"+str(new_n_order[s]) in rear_l[t-1]) & ("^"+str(new_n_order[s]) in rear_l[t+1]):
+
+						temp_one=str(rear_l[t-1])
+						temp_two=str(rear_l[t+1])
+						v=0
+						x=""
+						while temp_one[v] != var_type[0]:
+
+							x=x+str(temp_one[v])
+							v=v+1
+						
+						if x == "":
+
+							x = "1"
+
+						elif x == "-":
+
+							x = "-1"
+
+						if rear_l[t-2] == "-":
+
+							if "-" in x:
+
+								x = x.replace('-','')
+
+							else:
+
+								x = "-"+x
+
+						x=float(x)
+
+						v=0
+						y=""
+						while temp_two[v] != var_type[0]:
+
+							y=y+str(temp_two[v])
+							v=v+1
+
+						if y == "":
+
+							y = "1"
+
+						elif y == "-":
+
+							y = "-1"
+
+						y=float(y)
+
+						z=x+y
+						z=str(z)
+	
+						if float(z) == 0.0:
+
+							del rear_l[t-1:t+2]
+							print(rear_l,rear_l[t])
+							if (rear_l[t-1] == "-") or (rear_l[t-1] == "+"):
+
+								del rear_l[t-1]
+								t=0
+
+							elif rear_l[t] == "+":
+
+								del rear_l[t]
+								t=0
+
+						else:
+	
+							rear_l[t-1]=z+var_type[0]+"^"+str(new_n_order[s])
+							del rear_l[t:t+2]
+
+							if (rear_l[t-2] == "-") & ("-" in rear_l[t-1]):
+
+								rear_l[t-1] = rear_l[t-1].replace('-','')
+
+							t=0
+
+				if rear_l[t] == "-":
+
+					if ("^"+str(new_n_order[s]) in rear_l[t-1]) & ("^"+str(new_n_order[s]) in rear_l[t+1]):
+
+						#print(rear_l,rear_l[t])
+
+						temp_one=str(rear_l[t-1])
+						temp_two=str(rear_l[t+1])
+						v=0
+						x=""
+						while temp_one[v] != var_type[0]:
+
+							x=x+str(temp_one[v])
+							v=v+1
+
+						if x == "":
+
+							x = "1"
+
+						elif x == "-":
+
+							x = "-1"
+
+						if rear_l[t-2] == "-":
+
+							if "-" in x:
+
+								x = x.replace('-','')
+
+							else:
+
+								x = "-"+x
+
+						x=float(x)
+
+						v=0
+						y=""
+						while temp_two[v] != var_type[0]:
+
+							y=y+str(temp_two[v])
+							v=v+1
+
+						if y == "":
+
+							y = "1"
+
+						elif y == "-":
+
+							y = "-1"
+
+						y=float(y)
+
+						z=x-y
+						z=str(z)
+
+						if float(z) == 0.0:
+
+							del rear_l[t-1:t+2]
+							if (rear_l[t-1] == "-") or (rear_l[t-1] == "+"):
+
+								del rear_l[t-1]
+								t=0
+
+							elif rear_l[t] == "-":
+
+								del rear_l[t]
+								t=0
+
+						else:
+	
+							rear_l[t-1]=z+var_type[0]+"^"+str(new_n_order[s])
+							del rear_l[t:t+2]
+
+							if (rear_l[t-2] == "-") & ("-" in rear_l[t-1]):
+
+								rear_l[t-1] = rear_l[t-1].replace('-','')
+
+							t=0
+
+			if int(new_n_order[s]) == 1:
+
+				if rear_l[t] == "+":
+
+					if (var_type[0] in rear_l[t-1]) & (var_type[0] in rear_l[t+1]) & ("^" not in rear_l[t-1]) & ("^" not in rear_l[t+1]):
+
+						temp_one=str(rear_l[t-1])
+						temp_two=str(rear_l[t+1])
+						v=0
+						x=""
+						while temp_one[v] != var_type[0]:
+
+							x=x+str(temp_one[v])
+							v=v+1
+
+						if x == "":
+
+							x = "1"
+
+						elif x == "-":
+
+							x = "-1"
+
+						if rear_l[t-2] == "-":
+
+							if "-" in x:
+
+								x = x.replace('-','')
+
+							else:
+
+								x = "-"+x
+
+						x=float(x)
+
+						v=0
+						y=""
+						while temp_two[v] != var_type[0]:
+
+							y=y+str(temp_two[v])
+							v=v+1
+
+						if y == "":
+
+							y = "1"
+
+						elif y == "-":
+
+							y = "-1"
+
+						y=float(y)
+
+						z=x+y
+						z=str(z)
+	
+						if float(z) == 0.0:
+
+							del rear_l[t-1:t+2]
+							if (rear_l[t-1] == "-") or (rear_l[t-1] == "+"):
+
+								del rear_l[t-1]
+								t=0
+
+							elif rear_l[t] == "+":
+
+								del rear_l[t]
+								t=0
+
+						else:
+	
+							rear_l[t-1]=z+var_type[0]
+							del rear_l[t:t+2]
+
+							if (rear_l[t-2] == "-") & ("-" in rear_l[t-1]):
+
+								rear_l[t-1] = rear_l[t-1].replace('-','')
+
+							t=0
+
+				if rear_l[t] == "-":
+
+					if (var_type[0] in rear_l[t-1]) & (var_type[0] in rear_l[t+1]) & ("^" not in rear_l[t-1]) & ("^" not in rear_l[t+1]):
+
+						temp_one=str(rear_l[t-1])
+						temp_two=str(rear_l[t+1])
+						v=0
+						x=""
+						while temp_one[v] != var_type[0]:
+
+							x=x+str(temp_one[v])
+							v=v+1
+
+						if x == "":
+
+							x = "1"
+
+						elif x == "-":
+
+							x = "-1"
+
+						if rear_l[t-2] == "-":
+
+							if "-" in x:
+
+								x = x.replace('-','')
+
+							else:
+
+								x = "-"+x
+
+						x=float(x)
+
+						v=0
+						y=""
+						while temp_two[v] != var_type[0]:
+
+							y=y+str(temp_two[v])
+							v=v+1
+
+						if y == "":
+
+							y = "1"
+
+						elif y == "-":
+
+							y = "-1"
+
+						y=float(y)
+
+						z=x-y
+						z=str(z)
+
+						if float(z) == 0.0:
+
+							del rear_l[t-1:t+2]
+							if (rear_l[t-1] == "-") or (rear_l[t-1] == "+"):
+
+								del rear_l[t-1]
+								t=0
+
+							elif (rear_l[t-2] == "-") or (rear_l[t-2] == "+"):
+
+								del rear_l[t-2]
+								t=0
+
+							elif rear_l[t] == "-":
+
+								del rear_l[t]
+								t=0
+
+						else:
+	
+							rear_l[t-1]=z+var_type[0]
+							del rear_l[t:t+2]
+							
+							if (rear_l[t-2] == "-") & ("-" in rear_l[t-1]):
+
+								rear_l[t-1] = rear_l[t-1].replace('-','')
+
+							t=0
+
+			t=t+1
+
+	right_side=calculate(simp_r,0)
+
+	simp_r.clear()
+	simp_r.insert(0,"(1")
+	simp_r.insert(1,str(right_side))
+	simp_r.insert(2,")1")
+
+	print(rear_l,simp_r)
+
+	if len(new_n_order) == 1:
+
+		t=0
+		while t != len(rear_l):
+
+			#* first
+			if (var_type[0] in rear_l[t]) & (len(rear_l[t]) > 3):
+
+				temp=rear_l[t]
+				x=""
+				y=""
+				v=0
+				while temp[v] != var_type[0]:
+
+					x=x+str(temp[v])
+					v=v+1
+
+				while v != len(temp):
+
+					y=y+str(temp[v])
+					v=v+1
+
+				rear_l[t] = y
+
+				simp_r[1] = operation(float(simp_r[1]),"/",float(x))
+
+			#/ second
+
+			#^ third
+			if (var_type[0] in rear_l[t]) & ("^" in rear_l[t]):
+
+				temp=rear_l[t]
+				x=""
+				y=""
+				v=0
+				while temp[v] != "^":
+
+					x=x+str(temp[v])
+					v=v+1
+
+				v=v+1
+				while v != len(temp):
+
+					y=y+str(temp[v])
+					v=v+1
+
+				rear_l[t] = x
+
+				#If the required operation is square root
+				if float(y) == 2:
+
+					simp_r[1] = operation(0,"SQRT",float(simp_r[1]))
+					
+					if "0j" in str(simp_r[1]):
+	
+						simp_r[1] = str(simp_r[1]).replace('+0j','')
+						simp_r[1] = str(simp_r[1]).replace('(','')
+						simp_r[1] = str(simp_r[1]).replace(')','')
+					
+					#check_var = simp_r[1]
+
+				else:
+				
+					simp_r[1] = operation(float(simp_r[1]),"^",1/float(y))
+
+					if "0j" in str(simp_r[1]):
+	
+						simp_r[1] = str(simp_r[1]).replace('+0j','')
+						simp_r[1] = str(simp_r[1]).replace('(','')
+						simp_r[1] = str(simp_r[1]).replace(')','')
+
+				if is_even(float(y)) == True:
+
+					simp_r[1] = "+/- "+str(simp_r[1])
+			
+			t=t+1
+
+		print(rear_l,simp_r)
+		ans=[]
+		ans.insert(0,simp_r[1])
+		return ans
+
+	#What if the final equation is a 2nd order polynomial
+	elif int(new_n_order[0]) == 2:
+
+		if "-" in simp_r[1]:
+
+			simp_r[1] = simp_r[1].replace('-','')
+			rear_l.insert(len(rear_l)-1,"+")
+			rear_l.insert(len(rear_l)-1,simp_r[1])
+			simp_r[1] = "0"
+
+		else:
+
+			rear_l.insert(len(rear_l)-1,"-")
+			rear_l.insert(len(rear_l)-1,simp_r[1])
+			simp_r[1] = "0"
+
+		#Quadratic Formula
+
+		ans = quadratic(rear_l,var_type[0])
+
+		for s in range(0,len(ans)):
+
+			if "(" in str(ans[s]):
+
+				ans[s] = str(ans[s]).replace('(','')
+
+			if ")" in str(ans[s]):
+
+				ans[s] = str(ans[s]).replace('(','')		
+
+		return ans
+
+	#3rd or polynomial
+
+	elif int(new_n_order[0]) == 3:
+
+		if "-" in simp_r[1]:
+
+			simp_r[1] = simp_r[1].replace('-','')
+			rear_l.insert(len(rear_l)-1,"+")
+			rear_l.insert(len(rear_l)-1,simp_r[1])
+			simp_r[1] = "0"
+
+		else:
+
+			rear_l.insert(len(rear_l)-1,"-")
+			rear_l.insert(len(rear_l)-1,simp_r[1])
+			simp_r[1] = "0"
+
+		#Cubic Function Formula
+
+		#a
+		temp=rear_l[1]
+		a=""
+		v=0
+		while temp[v] != var_type[0]:
+
+			a=a+str(temp[v])
+			v=v+1
+
+		if a == "":
+
+			a = "1"
+
+		if a == "-":
+
+			a = "-1"
+
+		if "^2" in rear_l[3]:
+
+			temp=rear_l[3]
+
+			if rear_l[2] == "-":
+
+				b = "-"
+
+			else:
+
+				b=""
+
+			v=0
+			while temp[v] != var_type[0]:
+
+				b=b+str(temp[v])
+				v=v+1
+
+			if b == "":
+
+				b = "1"
+
+			if b == "-":
+
+				b = "-1"
+
+			if var_type[0] in rear_l[5]:
+
+				temp=rear_l[5]
+
+				if rear_l[4] == "-":
+
+					c = "-"
+
+				else:
+
+					c = ""
+
+				v=0
+				while temp[v] != var_type[0]:
+
+					c=c+str(temp[v])
+					v=v+1
+
+				if c == "":
+
+					c = "1"
+
+				if c == "-":
+
+					c= "-1"
+
+				if rear_l[6] == "-":
+
+					d = "-"
+					d = d+rear_l[7]
+
+				else:
+
+					d=rear_l[7]
+
+			#c = 0
+			else:
+
+				c = 0
+		
+				if rear_l[4] == "-":
+
+					d = "-"
+					d = d+rear_l[5]
+
+				else:
+
+					d=rear_l[5]
+
+		#b = 0
+		else:
+
+			b = 0
+
+			if var_type[0] in rear_l[3]:
+
+				temp=rear_l[3]
+
+				if rear_l[2] == "-":
+
+					c = "-"
+
+				else:
+
+					c = ""
+
+				v=0
+				while temp[v] != var_type[0]:
+
+					c=c+str(temp[v])
+					v=v+1
+
+				if c == "":
+
+					c = "1"
+
+				if c == "-":
+
+					c= "-1"
+
+				if rear_l[4] == "-":
+
+					d = "-"
+					d = d+rear_l[5]
+
+				else:
+
+					d=rear_l[5]
+
+			# c = 0
+			else:
+
+				c = 0
+
+				if rear_l[2] == "-":
+
+					d = "-"
+					d = d+rear_l[3]
+
+				else:
+
+					d=rear_l[3] 
+
+		print(a,b,c,d)
+
+		a=float(a)
+		b=float(b)
+		c=float(c)
+		d=float(d)
+
+		print("a",a,"b",b,"c",c,"d",d)
+
+		#depressed cubic
+		p = ((3*a*c)-(b**2))/(9*(a**2))
+		q = ((9*a*b*c)-(27*(a**2)*d)-(2*(b**3)))/(54*(a**3))
+
+		print(p,q)
+
+		s = cube_root((q)+(((p)**3)+((q)**2))**(1/2))
+		t = cube_root((q)-(((p)**3)+((q)**2))**(1/2))
+
+		print("s",s,"t",t)
+
+		print(1j*1j)
+
+		ans_one = s+t-(b/(3*a))
+		ans_two = (-1*((s+t)/2))-(b/(3*a))+(((1j*(3**0.5))/2)*(s-t))
+		ans_three = (-1*((s+t)/2))-(b/(3*a))-(((1j*(3**0.5))/2)*(s-t))
+
+		ans_one = str(ans_one)
+		ans_two = str(ans_two)
+		ans_three = str(ans_three)
+
+		if "(" in ans_one:
+
+			ans_one = ans_one.replace('(','')
+
+		if ")" in ans_one:
+
+			ans_one = ans_one.replace(')','')
+
+		if "(" in ans_two:
+
+			ans_two = ans_two.replace('(','')
+
+		if ")" in ans_two:
+
+			ans_two = ans_two.replace(')','')
+
+		if "(" in ans_three:
+
+			ans_three = ans_three.replace('(','')
+
+		if ")" in ans_three:
+
+			ans_three = ans_three.replace(')','')
+
+		ans=[]
+		ans.insert(0,ans_one)
+		ans.insert(1,ans_two)
+		ans.insert(2,ans_three)
+		
+		print(rear_l,simp_r)
+		return ans
+
+	#Ferrari's Method
+	elif int(new_n_order[0]) == 4:
+
+		if "-" in simp_r[1]:
+
+			simp_r[1] = simp_r[1].replace('-','')
+			rear_l.insert(len(rear_l)-1,"+")
+			rear_l.insert(len(rear_l)-1,simp_r[1])
+			simp_r[1] = "0"
+
+		else:
+
+			rear_l.insert(len(rear_l)-1,"-")
+			rear_l.insert(len(rear_l)-1,simp_r[1])
+			simp_r[1] = "0"
+
+		#a
+		temp=rear_l[1]
+		a=""
+		v=0
+		while temp[v] != var_type[0]:
+
+			a=a+str(temp[v])
+			v=v+1
+
+		if a == "":
+
+			a = "1"
+
+		if a == "-":
+
+			a = "-1"
+
+		#ax^4 + bx^3 +cx^2 +dx +e
+		if "^3" in rear_l[3]:
+
+			temp=rear_l[3]
+
+			if rear_l[2] == "-":
+
+				b = "-"
+
+			else:
+
+				b=""
+
+			v=0
+			while temp[v] != var_type[0]:
+
+				b=b+str(temp[v])
+				v=v+1
+
+			if b == "":
+
+				b = "1"
+
+			if b == "-":
+
+				b = "-1"
+
+			#ax^4 + bx^3 +cx^2 +dx +e
+			if "^2" in rear_l[5]:
+
+				temp=rear_l[5]
+
+				if rear_l[4] == "-":
+
+					c = "-"
+
+				else:
+
+					c = ""
+
+				v=0
+				while temp[v] != var_type[0]:
+
+					c=c+str(temp[v])
+					v=v+1
+
+				if c == "":
+
+					c = "1"
+
+				if c == "-":
+
+					c= "-1"
+				
+				#ax^4 + bx^3 +cx^2 +dx +e
+				if var_type[0] in rear_l[7]:
+
+					temp=rear_l[7]
+
+					if rear_l[6] == "-":
+
+						d = "-"
+
+					else:
+
+						d = ""
+
+					v=0
+					while temp[v] != var_type[0]:
+
+						d=d+str(temp[v])
+						v=v+1
+
+					if d == "":
+
+						d = "1"
+
+					if d == "-":
+
+						d = "-1"
+
+					if rear_l[8] == "-":
+
+						e = "-"
+						e = e+rear_l[9]
+
+					else:
+	
+						e = rear_l[9]
+
+				#d = 0
+				#ax^4 + bx^3 + cx^2 + e
+				else:
+					
+					d = 0
+
+					if rear_l[6] == "-":
+
+						e = "-"
+						e = e+rear_l[7]
+
+					else:
+	
+						e = rear_l[7]
+
+			#c = 0
+			#ax^4 + bx^3 + dx + e
+			else:
+
+				c = 0
+		
+				temp=rear_l[5]
+
+				if rear_l[4] == "-":
+
+					d = "-"
+
+				else:
+
+					d = ""
+
+				v=0
+				while temp[v] != var_type[0]:
+
+					d=d+str(temp[v])
+					v=v+1
+
+				if d == "":
+
+					d = "1"
+
+				if d == "-":
+
+					d = "-1"
+
+				if rear_l[6] == "-":
+
+					e = "-"
+					e = e+rear_l[7]
+
+				else:
+	
+					e = rear_l[7]
+
+		#b = 0
+		#ax^4 + cx^2 + dx + e
+		else:
+
+			b = 0
+
+			#ax^4 + cx^2 + dx + e
+			if "^2" in rear_l[3]:
+
+				temp=rear_l[3]
+
+				if rear_l[2] == "-":
+
+					c = "-"
+
+				else:
+
+					c = ""
+
+				v=0
+				while temp[v] != var_type[0]:
+
+					c=c+str(temp[v])
+					v=v+1
+
+				if c == "":
+
+					c = "1"
+
+				if c == "-":
+
+					c = "-1"
+	
+				#ax^4 + cx^2 + dx + e
+				if var_type[0] in rear_l[5]:
+
+					temp=rear_l[5]
+
+					if rear_l[4] == "-":
+
+						d = "-"
+
+					else:
+
+						d = ""
+
+					v=0
+					while temp[v] != var_type[0]:
+
+						d=d+str(temp[v])
+						v=v+1
+
+					if d == "":
+
+						d = "1"
+
+					if d == "-":
+
+						d = "-1"
+
+					if rear_l[6] == "-":
+
+						e = "-"
+						e = e+rear_l[7]
+
+					else:
+
+						e=rear_l[7]
+
+				#ax^4 + cx^2 + e
+				else:
+
+					d = 0
+
+					if rear_l[4] == "-":
+
+						e = "-"
+						e = e+rear_l[5]
+
+					else:
+
+						e=rear_l[5]
+					
+
+			# c = 0
+			#ax^4 + dx + e
+			else:
+
+				c = 0
+				#ax^4 + dx + e
+				if var_type[0] in rear_l[3]:
+
+					temp=rear_l[3]
+
+					if rear_l[2] == "-":
+
+						d = "-"
+
+					else:
+
+						d = ""
+
+					v=0
+					while temp[v] != var_type[0]:
+
+						d=d+str(temp[v])
+						v=v+1
+
+					if d == "":
+
+						d = "1"
+
+					if d == "-":
+
+						d = "-1"
+
+					if rear_l[4] == "-":
+
+						e = "-"
+						e = e+rear_l[5]
+
+					else:
+
+						e=rear_l[5]
+
+				#ax^4 + e
+				else:
+
+					d = 0
+
+					if rear_l[2] == "-":
+
+						e = "-"
+						e = e+rear_l[3]
+
+					else:
+
+						e=rear_l[3] 
+
+		print(a,b,c,d,e)
+
+		a = float(a)
+		b = float(b)
+		c = float(c)
+		d = float(d)
+		e = float(e)		
+
+		delta_zero = (c**2)-(3*b*d)+(12*a*e)
+		delta_one = (2*(c**3))-(9*b*c*d)+(27*(b**2)*e)+(27*a*(d**2))-(72*a*c*e)
+
+		print("delta_zero",delta_zero,"delta_one",delta_one)
+
+		big_q = cube_root(((delta_one)+((delta_one**2)-(4*delta_zero**3))**(1/2))/2)
+
+		p = ((8*a*c)-(3*(b**2)))/(8*(a**2))
+		q = ((b**3)-(4*a*b*c)+(8*(a**2)*d))/(8*(a**3))
+
+		s = (1/2)*(((-2/3*p)+((1/(3*a))*((big_q)+(delta_zero/big_q))))**(1/2))
+
+		print("big_q",big_q,"p",p,"q",q,"s",s)
+
+		ans_one = (-1*b/(4*a))-s+((1/2)*(((-4*(s**2))-(2*p)+(q/s))**(1/2)))
+		ans_two = (-1*b/(4*a))-s-((1/2)*(((-4*(s**2))-(2*p)+(q/s))**(1/2)))
+		ans_three = (-1*b/(4*a))+s+((1/2)*(((-4*(s**2))-(2*p)-(q/s))**(1/2)))
+		ans_four = (-1*b/(4*a))+s-((1/2)*(((-4*(s**2))-(2*p)-(q/s))**(1/2)))
+
+		if isinstance(ans_one, complex):
+
+			if round(1-ans_one.imag,10) == 1.0000000000:
+
+				ans_one = ans_one.real
+
+		if isinstance(ans_two, complex):
+
+			if round(1-ans_two.imag,10) == 1.0000000000:
+
+				ans_two = ans_two.real
+
+		if isinstance(ans_three, complex):
+
+			if round(1-ans_three.imag,10) == 1.0000000000:
+
+				ans_three = ans_three.real
+
+		if isinstance(ans_four, complex):
+
+			if round(1-ans_four.imag,10) == 1.0000000000:
+
+				ans_four = ans_four.real
+
+		ans_one = str(ans_one)
+		ans_two = str(ans_two)
+		ans_three = str(ans_three)
+		ans_four = str(ans_four)
+
+		if "(" in ans_one:
+
+			ans_one = ans_one.replace('(','')
+
+		if ")" in ans_one:
+
+			ans_one = ans_one.replace(')','')
+
+		if "(" in ans_two:
+
+			ans_two = ans_two.replace('(','')
+
+		if ")" in ans_two:
+
+			ans_two = ans_two.replace(')','')
+
+		if "(" in ans_three:
+
+			ans_three = ans_three.replace('(','')
+
+		if ")" in ans_three:
+
+			ans_three = ans_three.replace(')','')
+
+		if "(" in ans_four:
+
+			ans_four = ans_four.replace('(','')
+
+		if ")" in ans_four:
+
+			ans_four = ans_four.replace(')','')
+
+		ans=[]
+		ans.insert(0,ans_one)
+		ans.insert(1,ans_two)
+		ans.insert(2,ans_three)
+		ans.insert(3,ans_four)
+		
+		print(rear_l,simp_r)
+		return ans
+
+	#For any polynomial of nth degree where n>=5
+	else:
+
+		if "-" in simp_r[1]:
+
+			simp_r[1] = simp_r[1].replace('-','')
+			rear_l.insert(len(rear_l)-1,"+")
+			rear_l.insert(len(rear_l)-1,simp_r[1])
+			simp_r[1] = "0"
+
+		else:
+
+			rear_l.insert(len(rear_l)-1,"-")
+			rear_l.insert(len(rear_l)-1,simp_r[1])
+			simp_r[1] = "0"
+
+		#print(new_n_order[0])
+
+		coeff=[]
+		for s in range(int(new_n_order[0]),-1,-1):
+
+			for i in range(0,len(rear_l)):
+
+				if "^"+str(s) in rear_l[i]:
+					
+					temp = rear_l[i]
+					a=""
+					v=0
+					while temp[v] != var_type[0]:
+
+						a = a+str(temp[v])
+						v+=1
+
+					v += 2
+					b=""
+					while v != len(temp):
+
+						b = b+str(temp[v])
+						v+=1
+
+					if int(b) == s: 
+
+						if a == "":
+
+							a = 1
+
+						if a == "-":
+
+							a = -1
+
+						if rear_l[i-1] == "-":
+
+							a = -1*float(a)
+
+						coeff.append(float(a))
+						#print("1st case","rear_l[i]",rear_l[i],"s",s,"i",i,"coeff",coeff)
+
+				elif ("^" not in rear_l[i]) & (var_type[0] in rear_l[i]) & (s==1):
+				
+					temp = rear_l[i]
+					a=""
+					v=0
+					while temp[v] != var_type[0]:
+
+						a = a+str(temp[v])
+						v+=1
+
+					if a == "":
+
+						a = 1
+
+					if a == "-":
+
+						a = -1
+
+					if rear_l[i-1] == "-":
+
+						a = -1*float(a)
+
+					coeff.append(float(a))
+					#print("2nd case","rear_l[i]",rear_l[i],"s",s,"i",i,"coeff",coeff)
+
+				elif (is_number(rear_l[i]) == True) & (s==0):
+				
+					a = float(rear_l[i])
+					if rear_l[i-1] == "-":
+
+						a = -1*a					
+
+					coeff.append(a)
+					#print("3rd case","rear_l[i]",rear_l[i],"s",s,"i",i,"coeff",coeff)
+
+		#print("coeff before JT",coeff)
+
+		ans = jenkins_traub.real_poly(coeff,int(new_n_order[0]))
+
+		for i in range(0,len(ans)):
+
+			ans[i] = round(ans[i].real,6)+(round(ans[i].imag,6))*1j
+
+			if round(1-ans[i].imag,7) == 1.0000000:
+			
+				ans[i] = ans[i].real
+
+			if "(" in str(ans[i]):
+
+				ans[i] = str(ans[i]).replace('(','')
+
+			if ")" in str(ans[i]):
+
+				ans[i] = str(ans[i]).replace(')','') 
+
+		return ans
+
+
+		
+
 s=0
 #Transform input string array into code-readable format
 while s != len(a)-5:
@@ -568,7 +2793,7 @@ while s != len(a)-5:
 		j=j+1
 
 	#checks if previous digit is a number so that it doesn't mistake a negative number for an operation
-	elif (a[s] == "-") & (a[s-1] != "("):
+	elif (a[s] == "-") & ((a[s-1] == ")") or (a[s-1].isdigit() == True) or (a[s-1].isalpha() == True)):
 	
 		master.insert(j,"-")
 		j=j+1
@@ -949,7 +3174,24 @@ while s != len(a)-5:
 	elif a[s] == ")":
 
 		master.insert(j,")" + str(b))
+		eq_index=j
 		b=b-1
+		j=j+1
+
+	elif a[s] == "=":
+
+		master.insert(j,"=")
+		j=j+1
+
+	#The following code is for single character variables
+	elif (a[s].isalpha() == True) & (a[s-1].isalpha() == False) & (a[s+1].isalpha() == False) & (a[s] != "d"):
+
+		master.insert(j,str(a[s]))
+		if str(a[s]) not in var_type:
+
+			var_type.insert(var_num,str(a[s]))
+			var_num=var_num+1
+
 		j=j+1
 
 	#the following code is for handling large numbers and decimals
@@ -958,7 +3200,7 @@ while s != len(a)-5:
 		
 		numtemp.insert(i,a[s])
 
-		if (a[s+1].isdigit() == True) or (a[s+1] == "."): #if the next index is a number or a period
+		if (a[s+1].isdigit() == True) or (a[s+1] == "."): #if the next index is a number or a periodw
 
 			i=i+1
 
@@ -984,49 +3226,179 @@ while s != len(a)-5:
 
 	s=s+1
 
-#print(master)
-p=0
-#for i in range (0,len(master)):
+
+if var_num > 0:
+
+	if len(var_type) > 1:
+
+		print("Multivariable problems are not yet supported.")
+
+	else:
+
+		#print(master)
+		equal_cnt=0
+		LHS=[]
+		i=0
+		RHS=[]
+		j=0
+		b=0
+		b_open=0
+		b_open_index=0
+		b_close=0
+		var_num_l=0
+		var_num_r=0
+		var_ranges_l=[]
+		var_ranges_r=[]
+		m=0
+		master.insert(len(master),"0")
+		master.insert(len(master)+1,"0")
+		c=len(master)
+		s=0
+		while s != c-2:
+
+			if master[s] == "=":
+
+				equal_cnt=1
+				LHS.insert(i,")1")
+				RHS.insert(j,"(1")
+				j=j+1
+
+			else:			
+
+				if equal_cnt == 0:
+
+					LHS.insert(i,str(master[s]))
+					
+					if "(" in master[s]:
+
+						b_open=b_open+1
+						b=b+1
+						b_open_index=s
+
+					if ")" in master[s]:
+
+						b_close=b_close+1
+						b=b-1
+					
+					if (master[s].isalpha() == True) & (len(master[s]) == 1):
+
+						if (master[s+1] == "^") & ("(" not in master[s+2]):
+
+							LHS[i] = str(LHS[i])+str(master[s+1])+str(master[s+2])
+							del master[s+1:s+3]
+							c=len(master)
+
+						if LHS[i-1].isdigit() == True:
+
+							LHS[i-1] = str(LHS[i-1])+str(LHS[i])
+							del LHS[i]
+							i=i-1
+
+						var_num_l=var_num_l+1
+
+						if b_open != b_close:
+
+							t=s
+							while (")" not in master[t]) & (str(b) not in master[t]):
+
+								t=t+1
 	
-	#if (master[i].isdigit() == True) or ("." in master[i]):
+							var_ranges_l.insert(m,str(b_open_index)+":"+str(t))
+							m=m+1
+
+						else:
+
+							var_ranges_l.insert(m,str(i))			
+	
+					i=i+1
+
+				else:
+
+					RHS.insert(j,str(master[s]))
+					
+					if "(" in master[s]:
+
+						b_open=b_open+1
+						b=b+1
+						b_open_index=s
+
+					if ")" in master[s]:
+
+						b_close=b_close+1
+						b=b-1
+
+					if (master[s].isalpha() == True) & (len(master[s]) == 1):
 		
-		#pass
+						if (master[s+1] == "^") & ("(" not in master[s+2]):
 
-	#elif ("(" in master[i]) or (")" in master[i]):
+							RHS[j] = str(RHS[j])+str(master[s+1])+str(master[s+2])
+							del master[s+1:s+3]
+							c=len(master)
+							
+						if RHS[j-1].isdigit() == True:
+
+							RHS[j-1] = str(RHS[j-1])+str(RHS[j])
+							del RHS[j]
+							j=j-1
+
+						var_num_r=var_num_r+1
+
+						if b_open != b_close:
+
+							t=s
+							while (")" not in master[t]) & (str(b) not in master[t]):
+
+								t=t+1
 	
-		#pass
+							var_ranges_r.insert(m,str(b_open_index)+":"+str(t))
+							m=m+1
 
-	#else:
+						else:
 
-		#for s in oper_dict:
+							var_ranges_r.insert(m,str(j))
 
-			#if master[i] == oper_dict[s]:
-				
-				#p=1
-				#break
+					j=j+1
 
-		#if p==1:
+			s=s+1
 
-			#pass
+		#if var_index_l != 0:
 
-		#else:
+			#then the variable is on the LHS of the equation
 
-			#print('There is a variable. It is "',master[i],'"')
+		#elif var_index_r != 0:
 
- 
-ans=calculate(master,0)
+			#then the variable is on the RHS of the equation			
+
+		#print(LHS,RHS)
+		ans=isolate(LHS,RHS,1)
+
+		if len(ans) == 1:
+		
+			print("The value of",str(var_type[0]),"is",str(ans[0]),"\n")
+
+		if len(ans) > 1:
+
+			print("The values of",str(var_type[0]),"are")
+			for s in range(0,len(ans)):
+
+				print(str(ans[s]))
+
+		print("")
+
+else:
+ 	
+	print(master)
+	ans=calculate(master,0)
 
 
-print("The result of the above equation is",ans,"\n")
-the_end = time.time()
-mem_tot = the_end - start
-print("Start", start, "s End", the_end, "s", mem_tot, "s")
+	print("The result of the above equation is",ans,"\n")
+	the_end = time.time()
+	mem_tot = the_end - start
+	print("Start", start, "s End", the_end, "s", mem_tot, "s")
 
-satoshi_amt = round(mem_tot*0.0000845)
+	satoshi_amt = round(mem_tot*0.0000845)
 
-print("The cost is", satoshi_amt, "sats")
+	print("The cost is", satoshi_amt, "sats")
 
-#request = stub.AddInvoice(ln.Invoice(value=satoshi_amt, memo=str(memo)), #metadata=[('macaroon', macaroon)])
-#print(request.payment_request)
 
 

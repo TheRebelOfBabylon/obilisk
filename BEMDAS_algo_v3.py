@@ -517,6 +517,7 @@ def main(a):
 	global sol_cnt, solution
 	sol_cnt=0
 	solution=[]
+	var_num=0
 
 	solution.insert(sol_cnt,"The inputted equation is "+str(a))
 	print(solution[sol_cnt])
@@ -554,7 +555,7 @@ def main(a):
 			j=j+1
 
 		#checks if previous digit is a number so that it doesn't mistake a negative number for an operation
-		elif (a[s] == "-") & (a[s-1] != "("):
+		elif (a[s] == "-") & ((a[s-1] == ")") or (a[s-1].isdigit() == True) or (a[s-1].isalpha() == True)):
 	
 			master.insert(j,"-")
 			j=j+1
@@ -938,6 +939,13 @@ def main(a):
 			b=b-1
 			j=j+1
 
+		#The following code is for single character variables
+		elif (a[s].isalpha() == True) & (a[s-1].isalpha() == False) & (a[s+1].isalpha() == False) & (a[s] != "d"):
+
+			master.insert(j,str(a[s]))
+			var_num=var_num+1
+			j=j+1
+
 		#the following code is for handling large numbers and decimals
 		else:
 
@@ -970,16 +978,28 @@ def main(a):
 
 		s=s+1
 
+	if var_num > 0:
+
+		if var_num > 1:
+
+			solution.insert(sol_cnt, "Multivariable problems are not yet supported")
+			print(solution)
+
+		else:
+
+			print(master)
+
+	else:
  
-	ans=calculate(master,0)
-	print(ans)
-	solution.insert(sol_cnt,"The final answer is "+str(ans))
-	print(solution[sol_cnt])
-	#print(solution)
-	the_end = process.memory_info().rss
-	mem_tot = the_end - beginning
-	solution.insert(sol_cnt+1,mem_tot)
-	#print(mem_tot, "bytes", beginning, "bytes", the_end, "bytes")
+		ans=calculate(master,0)
+		print(ans)
+		solution.insert(sol_cnt,"The final answer is "+str(ans))
+		print(solution[sol_cnt])
+		#print(solution)
+		the_end = process.memory_info().rss
+		mem_tot = the_end - beginning
+		solution.insert(sol_cnt+1,mem_tot)
+		#print(mem_tot, "bytes", beginning, "bytes", the_end, "bytes")
 
 	return solution
 
