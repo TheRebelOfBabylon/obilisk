@@ -32,29 +32,9 @@ def real_poly(eqn,highest_deg):
 		divisor = [1,-1*root]
 		#print("x+"+str(divisor[1]))
 		new_eqn = eqn.lin_divide(divisor)
+		del new_eqn.eqn[len(new_eqn.eqn)-1]
 		#print(new_eqn.eqn)
 		eqn = new_eqn.eqn 
-
-		#if i == 0:
-		
-			#ans.insert(i,root)
-			#print("Root "+str(i+1)+" is",ans[i])
-			#i += 1
-	
-		#else:
-
-			#answer_found = False
-			#for n in ans:
-
-				#if (round(root.real,5) == round(n.real,5)) and (round(root.imag,5) == round(n.imag,5)):
-
-					#answer_found = True
-
-			#if answer_found == False:
-
-				#ans.insert(i,root)
-				#print("Root "+str(i+1)+" is",ans[i])
-				#i += 1
 
 	return ans
 
@@ -79,6 +59,7 @@ def rpoly(eqn,highest_deg):
 		#print("K_prime",K_prime.eqn)
 		divisor = [1,0]
 		new_K = K_prime.lin_divide(divisor)
+		del new_K.eqn[len(new_K.eqn)-1]
 		#print("new_K",new_K.eqn)
 		K = new_K
 		#print(i)
@@ -103,6 +84,7 @@ def rpoly(eqn,highest_deg):
 				K_prime = algebra.poly_add(K.eqn,P_z.eqn)
 				divisor = [1,-1*s]
 				new_K = K_prime.lin_divide(divisor)
+				del new_K.eqn[len(new_K.eqn)-1]
 
 				K_bar = K.normalize()
 				new_K_bar = new_K.normalize()
@@ -135,7 +117,7 @@ def rpoly(eqn,highest_deg):
 
 		for i in range(0,10000):
 
-			if abs(coeff.evaluate(s)) < abs(10**(-7)):
+			if abs(coeff.evaluate(s)) < abs(10**(-5)):
 
 				stage_three_success = True
 				break
@@ -145,6 +127,7 @@ def rpoly(eqn,highest_deg):
 			K_prime = algebra.poly_add(K.eqn,P_z.eqn)
 			divisor = [1,-1*s]
 			new_K = K_prime.lin_divide(divisor)
+			del new_K.eqn[len(new_K.eqn)-1]
 			new_K_bar = new_K.normalize()
 
 			s = s-(coeff.evaluate(s)/new_K_bar.evaluate(s))
@@ -172,7 +155,7 @@ def get_random_root(eqn):
 
 	cauchy_eqn = eqn.cauchy_poly()
 	#print("Cauchy",cauchy_eqn.eqn)
-	beta = cauchy_eqn.newton_raphson(10**(-7))
+	beta = cauchy_eqn.newton_raphson(10**(-5))
 	#print("beta",beta)
 	rand = random.uniform(0,1)*2*math.pi
 	root = abs(beta)*cmath.exp(1j*rand)
