@@ -5,6 +5,7 @@
 <head>
 
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Comfortaa|Roboto+Slab&display=swap" rel="stylesheet">
 	<title>Solution</title>
 	<style>
 
@@ -13,37 +14,99 @@
 			width:850px;
 			height:auto;
 			background:white;
-			font-family:courier;
+			font-family:'Comfortaa', cursive;
 			font-size:22px;
 			margin:0 auto;
 			border: 1px solid black;			
 
 		} .paybtn {
+
 			color:#212529;
-			background-color:#ffc107;
-			border-color:#ffc107;
+			background-color:#FDB137;;
+			border-color:#FDB137;;
 			margin:auto;
 			width:175px;
 			padding:10px;
 			font-size:22px;
+			font-family:'Comfortaa', cursive;
 			border-radius:10px;
 			margin-top:5px;
+
+		} .topbar {
+
+			position:relative;
+			top: 0;
+			width:100%;
+			color:#FAF3E3;
+			text-align:left;
+			height:60.5px;
+			background:#292d58;
+			font-family:'Comfortaa', cursive;
+			font-size:22px;
+			line-height:60px;
+
+		} .topbar a {
+
+			float:left;
+			color:#FAF3E3;
+			text-align:center;
+			padding:0.5px 16px;
+			text-decoration:none;
+
+		} .topbar a:hover {
+
+			background-color:#868bc6;
+
+		} .topbar a.active {
+
+			background-color:#FDB137;
+
+		} #other_btn {
+
+			font-size:16px;
+
+		} .footnotes {
+			
+			position:fixed;
+			left: 0;
+			bottom: 0;
+			width:100%;
+			color:#FAF3E3;
+			text-align:left;
+			margin:auto;
+			height:auto;
+			background:#FDB137;
+			font-family:'Comfortaa', cursive;
+			line-height:60px;
+
 		}
 
 	</style>
 
 </head>
 
-<body style="background-color:powderblue;">
+<body style="background-color:#FAF3E3;">
 
-		<div id="rtn_btn">
-			<input type="button" value="Return" onclick="window.location.href = 'https://localhost:5000';" class="paybtn" id="return"></input>
+		<div id="topbar" class="topbar">
+			
+			<a class="active" href="https://localhost:5000">obilisk.app</a>
+			<a id="other_btn" href="#about">about</a>
+			<a id="other_btn" href="#bitcoin">bitcoin</a>
+			<a id="other_btn" href="#contact">contact</a>
+
 		</div>
 		<br>
 		<br>
 		<br>
 		<br>
 		<div id="sol1"></div>
+		<div id="footnotes" class="footnotes">
+			
+			<br>
+			<p style="position:absolute; left:15px; bottom:40px;">obilisk, inc.</p>
+			<br>
+
+		</div>
 
 	<script>
 

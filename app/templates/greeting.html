@@ -5,6 +5,7 @@
 <head>
 	
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Comfortaa|Roboto+Slab&display=swap" rel="stylesheet">
 	<title>Payment</title>
 	<style>
 
@@ -22,19 +23,55 @@
 		} #copy_node {
 			padding:5px;
 			border-radius:10px;
+			font-family:'Comfortaa', cursive;
 		} #qrcode {
 			width:160px;
 			height:160px;
 			margin-top:15px;
 		} .paybtn {
 			color:#212529;
-			background-color:#ffc107;
-			border-color:#ffc107;
-		} a {
+			background-color:#FDB137;
+			border-color:#FDB137;
+			font-family:'Comfortaa', cursive;
+		} .check_pmt a {
 			width:200px;
 			height:15px;
 			border-radius:10px;
 			padding:10px;
+			font-family:'Comfortaa', cursive;
+		} .topbar {
+
+			position:relative;
+			top: 0;
+			width:100%;
+			color:#FAF3E3;
+			text-align:left;
+			height:60.5px;
+			background:#292d58;
+			font-family:'Comfortaa', cursive;
+			font-size:22px;
+			line-height:60px;
+
+		} .topbar a {
+
+			float:left;
+			color:#FAF3E3;
+			text-align:center;
+			padding:0.5px 16px;
+			text-decoration:none;
+
+		} .topbar a:hover {
+
+			background-color:#868bc6;
+
+		} .topbar a.active {
+
+			background-color:#FDB137;
+
+		} #other_btn {
+
+			font-size:16px;
+
 		} .tooltip {
   			position: relative;
   			display: inline-block;
@@ -65,6 +102,21 @@
 		} .tooltip:hover .tooltiptext {
   			visibility: visible;
   			opacity: 1;
+		} 
+		.footnotes{
+			
+			position:fixed;
+			left: 0;
+			bottom: 0;
+			width:100%;
+			color:#FAF3E3;
+			text-align:left;
+			margin:auto;
+			height:auto;
+			background:#FDB137;
+			font-family:'Comfortaa', cursive;
+			line-height:60px;
+
 		}
 
 	</style>
@@ -73,10 +125,15 @@
 	<script type="text/javascript" src="{{ url_for('static', filename="js/jquery.qrcode.js")}}"></script>
 </head>
 
-<body style="background-color:powderblue;">
-	<div id="div1">
-		<input type="button" value="Return" onclick="window.location.href = 'https://localhost:5000';" class="paybtn" id="return"></input>
-	</div>	
+<body style="background-color:#FAF3E3;">
+	<div id="topbar" class="topbar">
+			
+			<a class="active" href="https://localhost:5000">obilisk.app</a>
+			<a id="other_btn" href="#about">about</a>
+			<a id="other_btn" href="#bitcoin">bitcoin</a>
+			<a id="other_btn" href="#contact">contact</a>
+
+		</div>	
 	<center>
 		<br>
 		<br>
@@ -86,7 +143,7 @@
 		<div id="paybutton"></div>
 			<form name="invoice" action="/check" method="post" id="invoice"></form>
 		<br>
-		<div id="check_pmt">
+		<div id="check_pmt" class="check_pmt">
 		
 			<a onclick="check_payment(invoice.invoice_text.value)">Check Payment</a>
 
@@ -94,12 +151,20 @@
 		<div id="node_key">
 			
 			<br>
-			<p>Need to connect to a node?</p>
-			<input readonly type="text" id="node_key_txt" name="node_key_txt" value="032b2618f7b47fc80164c7a89482ecbf24c775175367ba5617bed360977668c314@72.137.117.210:9735"></input>
+			<p style="font-family:'Comfortaa', cursive;">Need to connect to a node?</p>
+			<input readonly type="text" id="node_key_txt" name="node_key_txt" value="032b2618f7b47fc80164c7a89482ecbf24c775175367ba5617bed360977668c314@72.137.117.210:9735" style="font-family:'Comfortaa', cursive;"></input>
 			<input type="button" onclick="copyNodeFunc()" id="copy_node" value="Copy Node URI"></input>
 
 		</div>
 	</center>
+	<br>
+	<div id="footnotes" class="footnotes">
+			
+			<br>
+			<p style="position:absolute; left:15px; bottom:40px;">obilisk, inc.</p>
+			<br>
+
+	</div>
 		
 	<script type="text/javascript">
 
