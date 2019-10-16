@@ -372,126 +372,247 @@ class Poly_Func:
 		return x
 
 	#Quadratic Formula
-	def quadratic(self):
+	def quadratic(self, solution, sol_cnt):
 
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		print("\n-- Using the quadratic formula --")
+		solution.insert(sol_cnt, "-- Using the quadratic formula --")
+		sol_cnt+=1
 		print("ax^2 + bx + c = 0")
-		print("x = (-b +/- SQRT(b^2 - 4ac))/2a\n")
+		solution.insert(sol_cnt, "ax^2 + bx + c = 0")
+		sol_cnt+=1
+		print("x = (-b +/- √(b^2 - 4ac))/2a\n")
+		solution.insert(sol_cnt, "x = (-b +/- √(b^2 - 4ac))/2a")
+		sol_cnt+=1
 
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		a = self.eqn[0]
 		print("a = "+str(a))
+		solution.insert(sol_cnt, "a = "+str(a))
+		sol_cnt+=1
 		b = self.eqn[1]
 		print("b = "+str(b))
+		solution.insert(sol_cnt, "b = "+str(b))
+		sol_cnt+=1
 		c = self.eqn[2]
 		print("c = "+str(c))
+		solution.insert(sol_cnt, "c = "+str(c))
+		sol_cnt+=1
 		print("")
 
 		ans=[0,0]
 		ans[0] = ((-1*b)+((b**2)-(4*a*c))**0.5)/(2*a)
 		ans[1] = ((-1*b)-((b**2)-(4*a*c))**0.5)/(2*a)
 
-		return ans
+		return ans, solution, sol_cnt
 
 	#Cubic root formula
-	def cardano(self):
+	def cardano(self, solution, sol_cnt):
 
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		print("\n-- Using Cardano's Formula: --")
+		solution.insert(sol_cnt, "-- Using Cardano's Formula: --")
+		sol_cnt+=1
 		print("ax^3 + bx^2 + cx + d = 0\n")
+		solution.insert(sol_cnt, "ax^3 + bx^2 + cx + d = 0")
+		sol_cnt+=1
 		print("x1 = s+t-(b/3a)")
-		print("x2 = -(s+t)/2 - (b/3a) + (i*SQRT(3)/2)*(s-t)")
-		print("x3 = -(s+t)/2 - (b/3a) - (i*SQRT(3)/2)*(s-t)\n")
+		solution.insert(sol_cnt, "x1 = s+t-(b/3a)")
+		sol_cnt+=1
+		print("x2 = -(s+t)/2 - (b/3a) + (i*√3/2)*(s-t)")
+		solution.insert(sol_cnt, "x2 = -(s+t)/2 - (b/3a) + (i*√3/2)*(s-t)")
+		sol_cnt+=1
+		print("x3 = -(s+t)/2 - (b/3a) - (i*√3/2)*(s-t)\n")
+		solution.insert(sol_cnt, "x3 = -(s+t)/2 - (b/3a) - (i*√3/2)*(s-t)")
+		sol_cnt+=1
 	
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		a = self.eqn[0]
 		print("a = "+str(a))
+		solution.insert(sol_cnt, "a = "+str(a))
+		sol_cnt+=1
 		b = self.eqn[1]
 		print("b = "+str(b))
+		solution.insert(sol_cnt, "b = "+str(b))
+		sol_cnt+=1
 		c = self.eqn[2]
 		print("c = "+str(c))
+		solution.insert(sol_cnt, "c = "+str(c))
+		sol_cnt+=1
 		d = self.eqn[3]
 		print("d = "+str(d))
+		solution.insert(sol_cnt, "d = "+str(d))
+		sol_cnt+=1
 		print("")
 
 		#depressed cubic
 		p = ((3*a*c)-(b**2))/(9*(a**2))
 		q = ((9*a*b*c)-(27*(a**2)*d)-(2*(b**3)))/(54*(a**3))
 
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		print("Depressed cubic: y^3 + 3py - 2q = 0\n")
+		solution.insert(sol_cnt, "Depressed cubic: y^3 + 3py - 2q = 0")
+		sol_cnt+=1
 		print("y^3+"+str(3*p)+"y+"+str(-2*q)+"=0")
+		solution.insert(sol_cnt, "y^3+"+str(3*p)+"y+"+str(-2*q)+"=0")
+		sol_cnt+=1
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		print("p = (3ac - b^2)/9a^2 = "+str(p))
+		solution.insert(sol_cnt, "p = (3ac - b^2)/9a^2 = "+str(p))
+		sol_cnt+=1
 		print("q = (9abc - 27a^2d - 2b^3)/54a^3 = "+str(q)+"\n")
+		solution.insert(sol_cnt, "q = (9abc - 27a^2d - 2b^3)/54a^3 = "+str(q))
+		sol_cnt+=1
 
 		s = cube_root((q)+(((p)**3)+((q)**2))**(1/2))
 		t = cube_root((q)-(((p)**3)+((q)**2))**(1/2))
 
-		print("s = (q + SQRT(p^3 + q^2))^(1/3) = "+str(s))
-		print("t = (q - SQRT(p^3 + q^2))^(1/3) = "+str(t)+"\n")
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
+		print("s = (q + √(p^3 + q^2))^(1/3) = "+str(s))
+		solution.insert(sol_cnt, "s = (q + √(p^3 + q^2))^(1/3) = "+str(s))
+		sol_cnt+=1
+		print("t = (q - √(p^3 + q^2))^(1/3) = "+str(t)+"\n")
+		solution.insert(sol_cnt, "t = (q - √(p^3 + q^2))^(1/3) = "+str(t))
+		sol_cnt+=1
 
 		ans = [0,0,0]
 		ans[0] = s+t-(b/(3*a))
 		ans[1] = (-1*((s+t)/2))-(b/(3*a))+(((1j*(3**0.5))/2)*(s-t))
 		ans[2] = (-1*((s+t)/2))-(b/(3*a))-(((1j*(3**0.5))/2)*(s-t))
 
-		return ans
+		return ans, solution, sol_cnt
 
 	#Quartic root formula
-	def ferrari(self):
+	def ferrari(self, solution, sol_cnt):
 
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		print("\n-- Using Ferrari's Method: --")
+		solution.insert(sol_cnt, "-- Using Ferrari's Method: --")
+		sol_cnt+=1
 		print("ax^4 + bx^3 + cx^2 + dx + e = 0\n")
+		solution.insert(sol_cnt, "ax^4 + bx^3 + cx^2 + dx + e = 0")
+		sol_cnt+=1
 	
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		a = self.eqn[0]
 		print("a = "+str(a))
+		solution.insert(sol_cnt, "a = "+str(a))
+		sol_cnt+=1
 		b = self.eqn[1]
 		print("b = "+str(b))
+		solution.insert(sol_cnt, "b = "+str(b))
+		sol_cnt+=1
 		c = self.eqn[2]
 		print("c = "+str(c))
+		solution.insert(sol_cnt, "c = "+str(c))
+		sol_cnt+=1
 		d = self.eqn[3]
 		print("d = "+str(d))
+		solution.insert(sol_cnt, "d = "+str(d))
+		sol_cnt+=1
 		e = self.eqn[4]
 		print("e = "+str(e))
+		solution.insert(sol_cnt, "e = "+str(e))
+		sol_cnt+=1
 		print("")
 
 		#depressed quartic
 
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		print("Substitution: x = y-(b/4a)\n")
+		solution.insert(sol_cnt, "Substitution: x = y-(b/4a)")
+		sol_cnt+=1
 		print("Depressed quartic: y^4 + py^2 + qy + r = 0")
+		solution.insert(sol_cnt, "Depressed quartic: y^4 + py^2 + qy + r = 0")
+		sol_cnt+=1
 
-		print("y1 = SQRT((-1/2)*(2z - p)) + SQRT((1/2)*(-2z - p + 2q/SQRT(2z - p)))")
-		print("y2 = SQRT((-1/2)*(2z - p)) - SQRT((1/2)*(-2z - p + 2q/SQRT(2z - p)))")
-		print("y3 = SQRT((1/2)*(2z - p)) + SQRT((1/2)*(-2z - p - 2q/SQRT(2z - p)))")
-		print("y4 = SQRT((1/2)*(2z - p)) - SQRT((1/2)*(-2z - p - 2q/SQRT(2z - p)))\n")
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
+		print("y1 = √((-1/2)*(2z - p)) + √((1/2)*(-2z - p + 2q/√(2z - p)))")
+		solution.insert(sol_cnt, "y1 = √((-1/2)*(2z - p)) + √((1/2)*(-2z - p + 2q/√(2z - p)))")
+		sol_cnt+=1
+
+		print("y2 = √((-1/2)*(2z - p)) - √((1/2)*(-2z - p + 2q/√(2z - p)))")
+		solution.insert(sol_cnt, "y2 = √((-1/2)*(2z - p)) - √((1/2)*(-2z - p + 2q/√(2z - p)))")
+		sol_cnt+=1
+
+		print("y3 = √((1/2)*(2z - p)) + √((1/2)*(-2z - p - 2q/√(2z - p)))")
+		solution.insert(sol_cnt, "y3 = √((1/2)*(2z - p)) + √((1/2)*(-2z - p - 2q/√(2z - p)))")
+		sol_cnt+=1
+
+		print("y4 = √((1/2)*(2z - p)) - √((1/2)*(-2z - p - 2q/√(2z - p)))\n")
+		solution.insert(sol_cnt, "y4 = √((1/2)*(2z - p)) - √((1/2)*(-2z - p - 2q/√(2z - p)))")
+		sol_cnt+=1
 
 		p = (c/a)-((3*b**2)/(8*a**2))
 		q = (d/a)-((b*c)/(2*a**2))+(b**3/(8*a**3))
 		r = (e/a)-((b*d)/(4*a**2))+(((b**2)*c)/(16*a**3))-((3*b**4)/(256*a**4))
 
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		print("p = ((c/a) - 3b^2)/8a^2 = "+str(p))
+		solution.insert(sol_cnt, "p = ((c/a) - 3b^2)/8a^2 = "+str(p))
+		sol_cnt+=1
 		print("q = ((d/a) - bc/(2a^2) + b^3)/8a^3 = "+str(q))
+		solution.insert(sol_cnt, "q = ((d/a) - bc/(2a^2) + b^3)/8a^3 = "+str(q))
+		sol_cnt+=1
 		print("r = ((e/a) - bd/(4a^2) + b^2c/16a^3 - 3b^4)/256a^4 = "+str(q)+"\n")
+		solution.insert(sol_cnt, "r = ((e/a) - bd/(4a^2) + b^2c/16a^3 - 3b^4)/256a^4 = "+str(q))
+		sol_cnt+=1
 
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		depressed = "y^4+"+str(p)+"y^2+"+str(q)+"y+"+str(r)+"=0"
 		print("Depressed quartic is "+depressed+"\n")
+		solution.insert(sol_cnt, "Depressed quartic is "+depressed)
+		sol_cnt+=1
 
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		#resolvent cubic
 		print("Resolvent cubic: 8z^3 - 4pz^2 - 8rz + (4pr - q^2) = 0")
+		solution.insert(sol_cnt, "Resolvent cubic: 8z^3 - 4pz^2 - 8rz + (4pr - q^2) = 0")
+		sol_cnt+=1
 		resolvent = "8z^3+"+str(-4*p)+"z^2+"+str(-8*r)+"z+"+str((4*p*r)-(q**2))+"=0"
 		print(resolvent)
+		solution.insert(sol_cnt, resolvent)
+		sol_cnt+=1
 
 		cubic = [8,-4*p,-8*r,(4*p*r)-(q**2)]
 		cubic = Poly_Func(cubic)
-		cubic_ans = cubic.cardano()
+		cubic_ans, solution, sol_cnt = cubic.cardano(solution, sol_cnt)
 
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		print("the values of z of "+resolvent+" are")
+		solution.insert(sol_cnt, "the values of z of "+resolvent+" are")
+		sol_cnt+=1
 
 		for i in cubic_ans:
 
 			print(i)
+			solution.insert(sol_cnt, i)
+			sol_cnt+=1
 
 		for i in cubic_ans:
 
 			try:
 
+				solution.insert(sol_cnt,"")
+				sol_cnt+=1
 				print("\nTrying "+str(i)+" to find roots of depressed quartic "+depressed+" ...\n")
+				solution.insert(sol_cnt, "Trying "+str(i)+" to find roots of depressed quartic "+depressed+" ...")
+				sol_cnt+=1
 
 				s = i
 	
@@ -503,20 +624,42 @@ class Poly_Func:
 			except ZeroDivisionError:
 
 				print("attempt failed...")
+				solution.insert(sol_cnt, "attempt failed...")
+				sol_cnt+=1
 
 			else:
 
 				break
 
 		print("Success!\n")
+		solution.insert(sol_cnt, "Success!")
+		sol_cnt+=1
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 
 		print("The values of y are")
+		solution.insert(sol_cnt, "The values of y are")
+		sol_cnt+=1
 		print(y_one)
+		solution.insert(sol_cnt, str(y_one))
+		sol_cnt+=1
 		print(y_two)
+		solution.insert(sol_cnt, str(y_two))
+		sol_cnt+=1
 		print(y_three)
+		solution.insert(sol_cnt, str(y_three))
+		sol_cnt+=1
 		print(y_four,"\n")
+		solution.insert(sol_cnt, str(y_four))
+		sol_cnt+=1
+		solution.insert(sol_cnt,"\n")
+		sol_cnt+=1
 
 		print("Recall x = y-(b/4a)\n")
+		solution.insert(sol_cnt, "Recall x = y-(b/4a)")
+		sol_cnt+=1
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 
 		ans = [0,0,0,0]
 
@@ -525,4 +668,4 @@ class Poly_Func:
 		ans[2] = y_three-(b/(4*a))
 		ans[3] = y_four-(b/(4*a))
 
-		return ans
+		return ans, solution, sol_cnt
