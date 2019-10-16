@@ -26,6 +26,31 @@ stub = lnrpc.LightningStub(channel)
 def form():
     	return render_template('main_page.html')
 
+@app.route('/bitcoin', methods=['GET', 'POST'])
+def btc_form():
+
+	return render_template('bitcoin.html')
+
+@app.route('/about', methods=['GET', 'POST'])
+def abt_form():
+
+	return render_template('about.html')
+
+@app.route('/shop', methods=['GET', 'POST'])
+def shop_form():
+
+	return render_template('shop.html')
+
+@app.route('/contact', methods=['GET', 'POST'])
+def cntct_form():
+
+	return render_template('contact.html')
+
+@app.route('/how_to', methods=['GET', 'POST'])
+def how_to_form():
+
+	return render_template('how_to.html')
+
 @app.route('/result', methods=['GET', 'POST'])
 def hello():
 
@@ -52,7 +77,7 @@ def hello():
 	
 	for i in range (0,len(eqn)-1):
 
-		solution = solution + eqn[i] + ";"
+		solution += str(eqn[i]) + ";"
 		
 
 	#code to write equation, invoice and r_hash to database

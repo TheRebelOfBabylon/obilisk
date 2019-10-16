@@ -851,6 +851,8 @@ def isolate(l, r, lvl):
 		print("")
 		print(solution[sol_cnt])
 		sol_cnt=sol_cnt+1
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 
 		temp=""
 		for s in range(0,len(simp_l)):
@@ -1135,6 +1137,8 @@ def isolate(l, r, lvl):
 					#print(simp_l,simp_r)
 					string = stringify(simp_l,simp_r)
 					print(string,"\n")
+					solution.insert(sol_cnt,string)
+					sol_cnt += 1
 
 				else:
 
@@ -1158,6 +1162,8 @@ def isolate(l, r, lvl):
 					#print(simp_l,simp_r)
 					string = stringify(simp_l,simp_r)
 					print(string,"\n")
+					solution.insert(sol_cnt,string)
+					sol_cnt += 1
 
 			elif simp_r[v-1] == "+":
 
@@ -1184,6 +1190,8 @@ def isolate(l, r, lvl):
 					#print(simp_l,simp_r)
 					string = stringify(simp_l,simp_r)
 					print(string,"\n")
+					solution.insert(sol_cnt,string)
+					sol_cnt += 1
 
 				else:
 
@@ -1207,6 +1215,8 @@ def isolate(l, r, lvl):
 					#print(simp_l,simp_r)
 					string = stringify(simp_l,simp_r)
 					print(string,"\n")
+					solution.insert(sol_cnt,string)
+					sol_cnt += 1
 
 			else:
 				
@@ -1234,6 +1244,8 @@ def isolate(l, r, lvl):
 					#print(simp_l,simp_r)
 					string = stringify(simp_l,simp_r)
 					print(string,"\n")
+					solution.insert(sol_cnt,string)
+					sol_cnt += 1
 
 				else:
 
@@ -1265,6 +1277,8 @@ def isolate(l, r, lvl):
 					#print(simp_l,simp_r)
 					string = stringify(simp_l,simp_r)
 					print(string,"\n")
+					solution.insert(sol_cnt,string)
+					sol_cnt += 1
 
 		v=v+1
 
@@ -1310,6 +1324,8 @@ def isolate(l, r, lvl):
 					#print(simp_l,simp_r)
 					string = stringify(simp_l,simp_r)
 					print(string,"\n")
+					solution.insert(sol_cnt,string)
+					sol_cnt += 1
 
 				else:
 
@@ -1340,6 +1356,8 @@ def isolate(l, r, lvl):
 					#print(simp_l,simp_r)
 					string = stringify(simp_l,simp_r)
 					print(string,"\n")
+					solution.insert(sol_cnt,string)
+					sol_cnt += 1
 
 			elif simp_l[v-1] == "+":
 
@@ -1366,6 +1384,8 @@ def isolate(l, r, lvl):
 					#print(simp_l,simp_r)
 					string = stringify(simp_l,simp_r)
 					print(string,"\n")
+					solution.insert(sol_cnt,string)
+					sol_cnt += 1
 
 				else:
 
@@ -1396,6 +1416,8 @@ def isolate(l, r, lvl):
 					#print(simp_l,simp_r)
 					string = stringify(simp_l,simp_r)
 					print(string,"\n")
+					solution.insert(sol_cnt,string)
+					sol_cnt += 1
 
 			else:
 						
@@ -1423,6 +1445,8 @@ def isolate(l, r, lvl):
 					#print(simp_l,simp_r)
 					string = stringify(simp_l,simp_r)
 					print(string,"\n")
+					solution.insert(sol_cnt,string)
+					sol_cnt += 1
 
 				else:
 
@@ -1447,6 +1471,8 @@ def isolate(l, r, lvl):
 					#print(simp_l,simp_r)
 					string = stringify(simp_l,simp_r)
 					print(string,"\n")
+					solution.insert(sol_cnt,string)
+					sol_cnt += 1
 
 		v=v+1				
 	
@@ -2164,13 +2190,21 @@ def isolate(l, r, lvl):
 
 			temp += simp_r[s]
 
-	solution.insert(sol_cnt,"-- After combining all similar terms... --\n"+temp)
-	print(solution[sol_cnt],"\n")
+	solution.insert(sol_cnt,"")
+	sol_cnt+=1
+	solution.insert(sol_cnt,"-- After combining all similar terms... --")
+	print(solution[sol_cnt]+"\n"+temp+"\n")
 	sol_cnt=sol_cnt+1
+	solution.insert(sol_cnt,temp)
+	sol_cnt += 1
 
 	if len(new_n_order) == 1:
 
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 		print("-- Isolating "+var_type[0]+"... --")
+		solution.insert(sol_cnt,"-- Isolating "+var_type[0]+"... --")
+		sol_cnt += 1
 		t=0
 		while t != len(rear_l):
 
@@ -2210,6 +2244,8 @@ def isolate(l, r, lvl):
 
 				string = stringify(rear_l,simp_r)
 				print(string,"\n")
+				solution.insert(sol_cnt,string)
+				sol_cnt += 1
 
 			if (rear_l[t] == "*") & (var_type[0] in rear_l[t-1]):
 
@@ -2222,6 +2258,8 @@ def isolate(l, r, lvl):
 
 				string = stringify(rear_l,simp_r)
 				print(string,"\n")
+				solution.insert(sol_cnt,string)
+				sol_cnt += 1
 
 			if (rear_l[t-1] == "*") & (var_type[0] in rear_l[t]):
 
@@ -2236,6 +2274,8 @@ def isolate(l, r, lvl):
 
 				string = stringify(rear_l,simp_r)
 				print(string,"\n")
+				solution.insert(sol_cnt,string)
+				sol_cnt += 1
 
 			#/ second
 			if (rear_l[t] == "/") & (var_type[0] in rear_l[t-1]):			
@@ -2249,6 +2289,8 @@ def isolate(l, r, lvl):
 
 				string = stringify(rear_l,simp_r)
 				print(string,"\n")
+				solution.insert(sol_cnt,string)
+				sol_cnt += 1
 
 			if (rear_l[t-1] == "/") & (var_type[0] in rear_l[t]):
 
@@ -2266,6 +2308,8 @@ def isolate(l, r, lvl):
 
 				string = stringify(rear_l,simp_r)
 				print(string,"\n")
+				solution.insert(sol_cnt,string)
+				sol_cnt += 1
 
 			#^ third
 			if (var_type[0] in rear_l[t]) & ("^" in rear_l[t]):
@@ -2330,6 +2374,8 @@ def isolate(l, r, lvl):
 
 				string = stringify(rear_l,simp_r)
 				print(string,"\n")
+				solution.insert(sol_cnt,string)
+				sol_cnt += 1
 			
 			t=t+1
 
@@ -2348,6 +2394,8 @@ def isolate(l, r, lvl):
 			sol_cnt=sol_cnt+1
 			string = stringify(bracket,simp_r)
 			print(string)
+			solution.insert(sol_cnt,string)
+			sol_cnt += 1
 			simp_r[1] = str(simp_r[1])
 			ans = isolate(bracket,simp_r,1)
 			return ans
@@ -2373,7 +2421,7 @@ def isolate(l, r, lvl):
 
 		rear_l = Poly_Func(rear_l)
 		coeff = rear_l.get_coeff(int(new_n_order[0]),var_type[0])
-		ans = coeff.quadratic()
+		ans, solution, sol_cnt = coeff.quadratic(solution, sol_cnt)
 
 		for s in range(0,len(ans)):
 
@@ -2408,7 +2456,7 @@ def isolate(l, r, lvl):
 
 		rear_l = Poly_Func(rear_l)
 		coeff = rear_l.get_coeff(int(new_n_order[0]),var_type[0])
-		ans = coeff.cardano()
+		ans, solution, sol_cnt = coeff.cardano(solution, sol_cnt)
 
 		for s in range(0,len(ans)):
 
@@ -2448,7 +2496,7 @@ def isolate(l, r, lvl):
 		rear_l = Poly_Func(rear_l)
 		coeff = rear_l.get_coeff(int(new_n_order[0]),var_type[0])
 		#print(coeff.eqn)
-		ans = coeff.ferrari()
+		ans, solution, sol_cnt = coeff.ferrari(solution, sol_cnt)
 
 		for s in range(0,len(ans)):
 
@@ -2494,6 +2542,12 @@ def isolate(l, r, lvl):
 		
 		#print("coeff before JT",coeff)
 		print("Checking if 0 is a root via synthetic division...\n")
+		solution.insert(sol_cnt,"Checking if 0 is a root via synthetic division...")
+		sol_cnt+=1
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 
 		test = test.lin_divide([1,0])
 		test_two = test_two.lin_divide([1,0])
@@ -2514,6 +2568,12 @@ def isolate(l, r, lvl):
 		string = stringify(rear_l.eqn,simp_r)
 		string = string.replace('=0','')
 		print("("+string+")/"+var_type[0]+" = "+test_temp+"\n")
+		solution.insert(sol_cnt,"("+string+")/"+var_type[0]+" = "+test_temp)
+		sol_cnt+=1
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
+		solution.insert(sol_cnt,"")
+		sol_cnt+=1
 
 		if test.eqn[len(test.eqn)-1] == 0:
 
@@ -2537,6 +2597,12 @@ def isolate(l, r, lvl):
 						test = test.lin_divide([1,0])
 						
 						print("0 might be a repeated root, trying again...\n")
+						solution.insert(sol_cnt,"0 might be a repeated root, trying again...")
+						sol_cnt+=1
+						solution.insert(sol_cnt,"")
+						sol_cnt+=1
+						solution.insert(sol_cnt,"")
+						sol_cnt+=1
 
 						test_two = test_two.lin_divide([1,0])
 						remainder = test.eqn[len(test.eqn)-1]
@@ -2554,6 +2620,12 @@ def isolate(l, r, lvl):
 							test_temp += "+"+str(remainder)+"/"+var_type[0]
 
 						print("("+string+")/"+var_type[0]+" = "+test_temp+"\n")
+						solution.insert(sol_cnt,"("+string+")/"+var_type[0]+" = "+test_temp)
+						sol_cnt+=1
+						solution.insert(sol_cnt,"")
+						sol_cnt+=1
+						solution.insert(sol_cnt,"")
+						sol_cnt+=1
 
 						i += 1
 
@@ -2561,11 +2633,17 @@ def isolate(l, r, lvl):
 
 						success_attempt = True
 						print("Success! 0 is a root\n")
+						solution.insert(sol_cnt,"Success! 0 is a root")
+						sol_cnt+=1
+						solution.insert(sol_cnt,"")
+						sol_cnt+=1
+						solution.insert(sol_cnt,"")
+						sol_cnt+=1
 
 				elif len(test.eqn)-2 == 4:
 
 					del test.eqn[len(test.eqn)-1]
-					ans = test.ferrari()
+					ans, solution, sol_cnt = test.ferrari(solution,sol_cnt)
 					success_attempt = True
 
 				else:
@@ -2580,6 +2658,8 @@ def isolate(l, r, lvl):
 		else:
 
 			print("0 is not a root\n")
+			solution.insert(sol_cnt,"0 is not a root")
+			sol_cnt+=1
 
 			ans = jenkins_traub.real_poly(coeff,int(new_n_order[0]))
 
@@ -3085,8 +3165,8 @@ def main(a):
 				temp = "" #clear up temp
 
 		s=s+1
-	print(master)
-	if var_num > 0:
+	print(master,var_num,var_type)
+	if (var_num != 0) or (len(var_type) != 0):
 
 		if len(var_type) > 1:
 
@@ -3267,6 +3347,6 @@ def main(a):
 		solution.insert(sol_cnt+1,mem_tot)
 		#print(mem_tot, "bytes", beginning, "bytes", the_end, "bytes")
 
-	return solution
+		return solution
 
 

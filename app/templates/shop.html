@@ -6,41 +6,11 @@
 
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 	<link href="https://fonts.googleapis.com/css?family=Comfortaa|Roboto+Slab&display=swap" rel="stylesheet">
-	<title>obilisk.app - Solution</title>
+	
+	<title>obilisk.app - Bitcoin</title>
 	<style>
-
-		* {
-
-			box-sizing:border-box;
-
-		} #sol1 {
-
-			width:850px;
-			height:auto;
-			background:white;
-			font-family:'Comfortaa', cursive;
-			font-size:22px;
-			margin:0 auto;
-			border: 1px solid black;			
-
-		} #sol1 p {
-
-			margin-left:5px;
-
-		} .paybtn {
-
-			color:#212529;
-			background-color:#FDB137;;
-			border-color:#FDB137;;
-			margin:auto;
-			width:175px;
-			padding:10px;
-			font-size:22px;
-			font-family:'Comfortaa', cursive;
-			border-radius:10px;
-			margin-top:5px;
-
-		} .topbar {
+		
+		.topbar {
 
 			position:relative;
 			top: 0;
@@ -72,33 +42,6 @@
 		} #other_btn {
 
 			font-size:16px;
-
-		} footer {
-		
-			color:#F7F6EE;
-			text-align:left;
-			background:#FDB137;
-			font-family:'Comfortaa', cursive;
-			font-size:12px;
-
-		} footer a {
-
-			color:#F7F6EE;
-
-		} footer li {
-
-			line-height:3.4;
-
-		} .flex-container {
-
-			display:flex;
-			flex-direction:row;
-			flex-wrap:wrap;
-
-		} .flex-container > div {
-
-			padding:15px;
-			margin:2px;
 
 		} .dropdown {
 
@@ -143,6 +86,36 @@
 
 			display: block;
 
+		} footer {
+		
+			position:fixed;
+			color:#F7F6EE;
+			text-align:left;
+			background:#FDB137;
+			font-family:'Comfortaa', cursive;
+			font-size:12px;
+			bottom:0;
+			width:100%
+
+		} footer a {
+
+			color:#F7F6EE;
+
+		} footer li {
+
+			line-height:3.4;
+
+		} .flex-container {
+
+			display:flex;
+			flex-direction:row;
+			flex-wrap:wrap;
+
+		} .flex-container > div {
+
+			padding:15px;
+			margin:2px;
+
 		}
 
 	</style>
@@ -153,7 +126,7 @@
 
 	<div id="topbar" class="topbar">
 			
-		<a class="active" href="https://localhost:5000">obilisk.app</a>
+		<a id="other_btn" href="https://localhost:5000">obilisk.app</a>
 		<a id="other_btn" href="/about">about</a>
 		<div class="dropdown">
 			<a class="dropbtn">resources
@@ -164,30 +137,16 @@
 				<a href="/how_to">How to use obilisk</a>
 			</div>
 		</div>
-		<a id="other_btn" href="/shop">merch</a>
+		<a class="active" href="/shop">merch</a>
 
 	</div>
 	<br>
 	<br>
 	<br>
 	<br>
-	<div id="sol1"></div>
-	<br>
-	<script>
-
-		var solution = {{ display|tojson|safe }};
-
-		var i;
-
-		for (i=0; i<solution.length; i++) {
-
-			var sol_step = document.createElement("p");
-			sol_step.innerHTML = solution[i];
-			document.getElementById("sol1").appendChild(sol_step);
-
-		}//endfor
-
-	</script>
+	<div class="paragraph">
+		<p style="padding:100px 450px 100px 450px;text-align:center;"><b><font size="64">Coming Soon!</font></b><p>
+	</div>
 </body>
 <footer>
 	<div class="flex-container">

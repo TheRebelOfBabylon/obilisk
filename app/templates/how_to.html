@@ -6,47 +6,16 @@
 
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 	<link href="https://fonts.googleapis.com/css?family=Comfortaa|Roboto+Slab&display=swap" rel="stylesheet">
-	<title>obilisk.app - Solution</title>
+	
+	<title>obilisk.app - Bitcoin</title>
 	<style>
-
-		* {
-
-			box-sizing:border-box;
-
-		} #sol1 {
-
-			width:850px;
-			height:auto;
-			background:white;
-			font-family:'Comfortaa', cursive;
-			font-size:22px;
-			margin:0 auto;
-			border: 1px solid black;			
-
-		} #sol1 p {
-
-			margin-left:5px;
-
-		} .paybtn {
-
-			color:#212529;
-			background-color:#FDB137;;
-			border-color:#FDB137;;
-			margin:auto;
-			width:175px;
-			padding:10px;
-			font-size:22px;
-			font-family:'Comfortaa', cursive;
-			border-radius:10px;
-			margin-top:5px;
-
-		} .topbar {
+		
+		.topbar {
 
 			position:relative;
 			top: 0;
 			width:100%;
 			color:#F7F6EE;
-			text-align:left;
 			height:60.5px;
 			background:#292d58;
 			font-family:'Comfortaa', cursive;
@@ -72,33 +41,6 @@
 		} #other_btn {
 
 			font-size:16px;
-
-		} footer {
-		
-			color:#F7F6EE;
-			text-align:left;
-			background:#FDB137;
-			font-family:'Comfortaa', cursive;
-			font-size:12px;
-
-		} footer a {
-
-			color:#F7F6EE;
-
-		} footer li {
-
-			line-height:3.4;
-
-		} .flex-container {
-
-			display:flex;
-			flex-direction:row;
-			flex-wrap:wrap;
-
-		} .flex-container > div {
-
-			padding:15px;
-			margin:2px;
 
 		} .dropdown {
 
@@ -143,20 +85,58 @@
 
 			display: block;
 
+		} .paragraph p {
+
+			margin-left:80px;
+
+		} .par_list li p {
+
+			margin-left:5px;
+
+		} .par_list {
+
+			margin-left:70px;
+
+		} footer {
+		
+			color:#F7F6EE;
+			text-align:left;
+			background:#FDB137;
+			font-family:'Comfortaa', cursive;
+			font-size:12px;
+
+		} footer a {
+
+			color:#F7F6EE;
+
+		} footer li {
+
+			line-height:3.4;
+
+		} .flex-container {
+
+			display:flex;
+			flex-direction:row;
+			flex-wrap:wrap;
+
+		} .flex-container > div {
+
+			padding:15px;
+			margin:2px;
+
 		}
 
 	</style>
 
 </head>
-
 <body style="background-color:#F7F6EE;">
 
 	<div id="topbar" class="topbar">
 			
-		<a class="active" href="https://localhost:5000">obilisk.app</a>
+		<a id="other_btn" href="https://localhost:5000">obilisk.app</a>
 		<a id="other_btn" href="/about">about</a>
-		<div class="dropdown">
-			<a class="dropbtn">resources
+		<div class="dropdown active">
+			<a class="dropbtn active">resources
 				<i class="fa fa-caret-down"></i>
 			</a>
 			<div class="dropdown-content">
@@ -169,25 +149,43 @@
 	</div>
 	<br>
 	<br>
-	<br>
-	<br>
-	<div id="sol1"></div>
-	<br>
-	<script>
-
-		var solution = {{ display|tojson|safe }};
-
-		var i;
-
-		for (i=0; i<solution.length; i++) {
-
-			var sol_step = document.createElement("p");
-			sol_step.innerHTML = solution[i];
-			document.getElementById("sol1").appendChild(sol_step);
-
-		}//endfor
-
-	</script>
+	<div class="paragraph">
+		<p><b>Preliminaries</b></p>
+		<br>
+		<ul class="par_list">
+			<li>
+				<p>You must download a Lightning Network enabled Bitcoin Wallet. <a href="/bitcoin">Here</a> is a list of popular mobile and PC Lightning Network wallets.</p>
+			</li>
+			<li>
+				<p>You must have bitcoin in your wallet. Depending on your jurisdiction, different options to purchase bitcoin exist (online broker, Over-The-Counter (OTC) exchange, Bitcoin ATM, etc.).</p>
+			</li>
+			<li>
+				<p>You must open a channel with the obilisk node or with a mutually connected node. In the future, this complication will be abstracted away.</p>
+			</li>
+		</ul>
+		<br>
+		<p><b>Step 1</b></p>
+		<br>
+		<center><img src="/static/How_to_1.png" style="width:800px;height:450px;border:1px solid #000000;"></center>
+		<br>
+		<p>Enter a math problem for obilisk to solve. Currently, obilisk can solve any arithmetic problem, and most polynomial root finding problems. Other features such as calculus and linear algebra will be implemented in future releases.</p>
+		<br>
+		<p><b>Step 2</b></p>
+		<br>
+		<center><img src="/static/How_to_2.png" style="width:800px;height:450px;border:1px solid #000000;"></center>
+		<br>
+		<p>If properly entered, obilisk will generate an encoded Lightning invoice. Using your wallet of choice filled with some bitcoin, pay the invoice.</p>
+		<br>
+		<center><img src="/static/How_to_3.jpg" style="width:200px;height:450px;border:1px solid #000000;"></center>
+		<br>
+		<p><b>Step 3</b></p>
+		<br>
+		<center><img src="/static/How_to_4.png" style="width:800px;height:450px;border:1px solid #000000;"></center>
+		<br>
+		<p>Once successfully paid, click the “Check Payment” button. obilisk will query the Lightning Node to ensure the payment was made and then display the solution.</p>
+		<p>And that’s it! Once onboarding to the Lightning Network is done, obilisk is fast and easy to use. As development of the Lightning Network progresses, onboarding will become easier and easier.</p>
+		<br>
+	</div>
 </body>
 <footer>
 	<div class="flex-container">
