@@ -3,20 +3,61 @@
 <html>
 
 <head>
-
+	
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 	<link href="https://fonts.googleapis.com/css?family=Comfortaa|Roboto+Slab&display=swap" rel="stylesheet">
-	
-	<title>obilisk.app - About</title>
+	<title>Error!</title>
 	<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 	<style>
-		
-		.topbar {
+
+		#return {
+
+			margin:auto;
+			width:175px;
+			padding:10px;
+			font-size:22px;
+			border-radius:10px;
+			margin-top:5px;
+
+		} #copy_btn {
+
+			padding:5px;
+			border-radius:10px;
+
+		} #copy_node {
+
+			padding:5px;
+			border-radius:10px;
+			font-family:'Comfortaa', cursive;
+
+		} #qrcode {
+
+			width:160px;
+			height:160px;
+			margin-top:15px;
+
+		} .paybtn {
+
+			color:#212529;
+			background-color:#FDB137;
+			border-color:#FDB137;
+			font-family:'Comfortaa', cursive;
+
+		} .check_pmt a {
+
+			width:200px;
+			height:15px;
+			border-radius:10px;
+			padding:10px;
+			font-family:'Comfortaa', cursive;
+
+		} .topbar {
 
 			position:relative;
 			top: 0;
 			width:100%;
 			color:#F7F6EE;
+			text-align:left;
 			height:60.5px;
 			background:#292d58;
 			font-family:'Comfortaa', cursive;
@@ -43,7 +84,72 @@
 
 			font-size:16px;
 
-		} .dropdown {
+		} .tooltip {
+
+  			position: relative;
+  			display: inline-block;
+
+		} .tooltip .tooltiptext {
+
+ 			visibility: hidden;
+  			width: 140px;
+  			background-color: #555;
+  			color: #fff;
+  			text-align: center;
+  			border-radius: 6px;
+  			padding: 5px;
+  			position: absolute;
+  			z-index: 1;
+  			bottom: 150%;
+  			left: 50%;
+  			margin-left: -75px;
+  			opacity: 0;
+  			transition: opacity 0.3s;
+
+		} .tooltip .tooltiptext::after {
+
+  			content: "";
+  			position: absolute;
+  			top: 100%;
+  			left: 50%;
+  			margin-left: -5px;
+  			border-width: 5px;
+  			border-style: solid;
+  			border-color: #555 transparent transparent transparent;
+
+		} .tooltip:hover .tooltiptext {
+
+  			visibility: visible;
+  			opacity: 1;
+
+		} footer {
+		
+			color:#F7F6EE;
+			text-align:left;
+			background:#FDB137;
+			font-family:'Comfortaa', cursive;
+			font-size:12px;
+
+		} footer a {
+
+			color:#F7F6EE;
+
+		} footer li {
+
+			line-height:3.4;
+
+		} .flex-container {
+
+			display:flex;
+			flex-direction:row;
+			flex-wrap:wrap;
+
+		} .flex-container > div {
+
+			padding:15px;
+			margin:2px;
+
+		} dropdown {
 
 			float:left;
 
@@ -86,55 +192,18 @@
 
 			display: block;
 
-		} .paragraph p {
-
-			margin-left:80px;
-
-		} .paragraph p.thick {
-
-			font-weight:bold;
-
-		} footer {
-		
-			position:fixed;
-			color:#F7F6EE;
-			text-align:left;
-			background:#FDB137;
-			font-family:'Comfortaa', cursive;
-			font-size:12px;
-			width:100%;
-			bottom:0;
-
-		} footer a {
-
-			color:#F7F6EE;
-
-		} footer li {
-
-			line-height:3.4;
-
-		} .flex-container {
-
-			display:flex;
-			flex-direction:row;
-			flex-wrap:wrap;
-
-		} .flex-container > div {
-
-			padding:15px;
-			margin:2px;
-
 		}
 
 	</style>
-
+	<script type="text/javascript" src="{{ url_for('static', filename="js/jquery.min.js")}}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename="js/qrcode.js")}}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename="js/jquery.qrcode.js")}}"></script>
 </head>
-<body style="background-color:#F7F6EE;">
 
-	<div id="topbar" class="topbar">
-			
-		<a id="other_btn" href="https://localhost:5000"><img src="/static/logo_horiz_white.png" style="width:120px;height:31px;"></a>
-		<a class="active" href="/about">about</a>
+<body style="background-color:#F7F6EE;">
+	<div id="topbar" class="topbar">	
+		<a class="active" href="https://localhost:5000"><img src="/static/logo_horiz_white.png" style="width:150px;height:39px;"></a>
+		<a id="other_btn" href="/about">about</a>
 		<div class="dropdown">
 			<a class="dropbtn">resources
 				<i class="fa fa-caret-down"></i>
@@ -145,22 +214,11 @@
 			</div>
 		</div>
 		<a id="other_btn" href="/shop">merch</a>
-
+	</div>	
+	<div>
+		<p>{{ display }}</p>
 	</div>
-	<br>
-	<br>
-	<div class="paragraph">
-		<p class="thick">Our Values</p>
-		<br>
-		<p>obilisk is an on demand, mathematical and engineering computation engine. Its design philosophy is based on three pillars.</p>
-		<p>Privacy – Users who have computational needs should not sacrifice their privacy through unnecessary channels such as with monthly subscription fees or with data mining.</p>
-		<p>Liberty – Users should use obilisk without restrictions. obilisk also promotes liberty through the use of Bitcoin, the world’s freest form of money.</p>
-		<p>Education – Our aim is to make our advanced calculator solutions as detailed as possible to empower users to learn mathematics.</p>
-		<br>
-		<p class="thick">Our Vision</p>
-		<br>
-		<p>To create powerful mathematics and engineering tools with universal accessibility. A lot of the most popular tools used in STEM fields today have significant barriers to entry such as the need for expensive hardware, and financing for licenses. We believe that with Bitcoin and the Lightning Network, we will be able to create powerful tools that can be used by anyone, anywhere.</p>
-	</div>
+	<br>	
 </body>
 <footer>
 	<div class="flex-container">

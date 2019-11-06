@@ -98,6 +98,37 @@ oper_dict_two = {
 
 }
 
+anti_dict = {
+
+	"SIN":"ASIN",
+	"COS":"ACOS",
+	"TAN":"ATAN",
+	"SEC":"ASEC",
+	"CSC":"ACSC",
+	"COT":"ACOT",
+	"ASIN":"SIN",
+	"ACOS":"COS",
+	"ATAN":"TAN",
+	"ASEC":"SEC",
+	"ACSC":"CSC",
+	"ACOT":"COT",
+	"SINH":"ASINH",
+	"COSH":"ACOSH",
+	"TANH":"ATANH",
+	"SECH":"ASECH",
+	"CSCH":"ACSCH",
+	"COTH":"ACOTH",
+	"ASINH":"SINH",
+	"ACOSH":"COSH",
+	"ATANH":"TANH",
+	"ASECH":"SECH",
+	"ACSCH":"CSCH",
+	"ACOTH":"COTH",
+	"LN":"e^",
+	"e^":"LN",
+
+}
+
 #To detect divisions by zero
 def div_check(x,y):
 
@@ -739,33 +770,54 @@ def isolate(l, r, lvl):
 					bracket[0] = "("+str(b)
 					bracket_temp="("
 					z = i+1
-					while ")" not in simp_l[z]:
+					print(b,i,len(simp_l),simp_l)
+					while ")"+str(b) not in simp_l[z]:
 
-						#print(simp_l[z])
+						print(simp_l[z],b)
 						if "(" in simp_l[z]:
 
 							bracket_temp += "("
+							b += 1
 
-						if ")" in simp_l[z]:
+						elif ")" in simp_l[z]:
 
 							bracket_temp += ")"
+							b -= 1
 
 						else:
 
 							bracket_temp += simp_l[z] 
 							bracket.append(str(simp_l[z]))
-							z += 1
+							
+						z += 1
 
+					z += 1 #we are now at the index with ")" in it
 					bracket.append(")"+str(b))
 					bracket_temp += ")"
-					#print("bracket",bracket)
-					simp_l[i] = var_type[0]
-					del simp_l[i+1:z+1]
-					s=-1
-					b=0
-					b_open = 0
-					b_close = 0
-					#print("4",simp_l)
+					#print("HEYHEYHEY",simp_l[i-1],simp_l[i-1] in anti_dict)
+					
+					#if there's another x somewhere, don't do the substitution
+					if simp_l[i-1] in anti_dict:
+			
+						bracket.insert(0,simp_l[i-1])
+						bracket_temp = simp_l[i-1] + bracket_temp
+						simp_l[i-1] = var_type[0]
+						del simp_l[i:z+1]
+						s=-1
+						b=0
+						b_open = 0
+						b_close = 0
+
+					else:
+
+						simp_l[i] = var_type[0]
+						del simp_l[i+1:z]
+						print("HEYHEYHEY", simp_l, bracket, bracket_temp)
+						s=-1
+						b=0
+						b_open = 0
+						b_close = 0
+						#print("4",simp_l)
 	
 				else:
 
@@ -778,7 +830,7 @@ def isolate(l, r, lvl):
 						z += 1
 
 					b_temp.append(")"+str(b))
-					#print(b_temp)
+					print("LOOOOK",b_temp)
 					simp_l[i] = var_type[0]
 					del simp_l[i+1:z+1]
 
@@ -862,7 +914,7 @@ def isolate(l, r, lvl):
 
 		s=s+1
 
-	#print(simp_l)
+	print("bracket",bracket)
 	del simp_l[len(simp_l)-2:len(simp_l)]
 	#print(simp_l)
 
@@ -2370,7 +2422,9 @@ def isolate(l, r, lvl):
 			string = stringify(bracket,simp_r)
 			print(string)
 			simp_r[1] = str(simp_r[1])
-			ans = isolate(bracket,simp_r,1)
+			bracket.insert(0,"(1")
+			bracket.append(")1")
+			ans = isolate(bracket,simp_r,0)
 			return ans
 			
 
