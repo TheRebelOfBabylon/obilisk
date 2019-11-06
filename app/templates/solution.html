@@ -3,7 +3,15 @@
 <html>
 
 <head>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-151639136-1"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
 
+        gtag('config', 'UA-151639136-1');
+        </script>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 	<link href="https://fonts.googleapis.com/css?family=Comfortaa|Roboto+Slab&display=swap" rel="stylesheet">
 	<title>obilisk.app - Solution</title>
@@ -154,7 +162,7 @@
 
 	<div id="topbar" class="topbar">
 			
-		<a class="active" href="https://localhost:5000"><img src="/static/logo_horiz_white.png" style="width:150px;height:39px;"></a>
+		<a class="active" href="/"><img src="/static/logo_horiz_white.png" style="width:150px;height:39px;"></a>
 		<a id="other_btn" href="/about">about</a>
 		<div class="dropdown">
 			<a class="dropbtn">resources
