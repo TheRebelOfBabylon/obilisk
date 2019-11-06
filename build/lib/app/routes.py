@@ -41,6 +41,11 @@ def shop_form():
 
 	return render_template('shop.html')
 
+@app.route('/contact', methods=['GET', 'POST'])
+def cntct_form():
+
+	return render_template('contact.html')
+
 @app.route('/how_to', methods=['GET', 'POST'])
 def how_to_form():
 
@@ -50,60 +55,39 @@ def how_to_form():
 def hello():
 
 	eqn=str(request.form['display'])
+	eqn=BEMDAS_algo_v3.main(eqn)
 
-	try:
+	#finding the last entry in eqn array
+	mem_tot=eqn[len(eqn)-1] # in bytes
+
+	print(mem_tot, "bytes")
+	satoshi_amt = round(mem_tot*0.00007284) #current price per byte is 0.00007284 sats/byte
+	print(satoshi_amt, "Sats")
+
+	ln_request = stub.AddInvoice(ln.Invoice(value=satoshi_amt, memo=str(request.form['display'])), metadata=[('macaroon', macaroon)])
+	ln_response=[]
+	ln_response.insert(0,str(ln_request.payment_request))
+	ln_response.insert(1,ln_request.r_hash)
+	ln_response[1] = codecs.encode(ln_response[1], 'base64')
+	ln_response[1] = ln_response[1].decode('utf-8')
+
+	#turning solution into a string format
+
+	solution = ""
 	
-		eqn=BEMDAS_algo_v3.main(eqn)
+	for i in range (0,len(eqn)-1):
 
-	except:
-
-		err_msg = "There was an error calculating the equation. Please check equation formatting or submit a bug to info@obilisk.app."
-		print(err_msg)
-		return render_template('error.html', display=err_msg)
-
-	else:
-
-		#finding the last entry in eqn array
-		mem_tot=eqn[len(eqn)-1] # in bytes
-
-		print(mem_tot, "bytes")
-		satoshi_amt = round(mem_tot*0.00007284) #current price per byte is 0.00007284 sats/byte
-		print(satoshi_amt, "Sats")
-
-		try:
-
-			ln_request = stub.AddInvoice(ln.Invoice(value=satoshi_amt,memo=str(request.form['display'])), metadata=[('macaroon', macaroon)])
-
-		except:
-
-			err_msg = "There was an error communicating with the BTC/LN network. Please contact the administrator at info@obilisk.app."
-			print(err_msg)
-			return render_template('error.html', display=err_msg)
-
-		else:
-
-			ln_response.insert(0,str(ln_request.payment_request))
-			ln_response=[]
-			ln_response.insert(1,ln_request.r_hash)
-			ln_response[1] = codecs.encode(ln_response[1], 'base64')
-			ln_response[1] = ln_response[1].decode('utf-8')
-
-			#turning solution into a string format
-
-			solution = ""
-	
-			for i in range (0,len(eqn)-1):
-
-				solution += str(eqn[i]) + ";"
+		solution += str(eqn[i]) + ";"
 		
-			#code to write equation, invoice and r_hash to database
-			u = User(equation=str(solution), invoice=str(ln_response[0]), r_hash=str(ln_response[1]))
-			db.session.add(u)
-			db.session.commit()
- 
-			print(ln_response)
 
-			return render_template('greeting.html', display=ln_response[0])
+	#code to write equation, invoice and r_hash to database
+	u = User(equation=str(solution), invoice=str(ln_response[0]), r_hash=str(ln_response[1]))
+	db.session.add(u)
+	db.session.commit()
+ 
+	print(ln_response)
+
+	return render_template('greeting.html', display=ln_response[0])
 
 @app.route('/check', methods=['GET', 'POST'])
 def check():

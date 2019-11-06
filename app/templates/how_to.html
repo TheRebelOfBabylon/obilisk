@@ -7,7 +7,8 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 	<link href="https://fonts.googleapis.com/css?family=Comfortaa|Roboto+Slab&display=swap" rel="stylesheet">
 	
-	<title>obilisk.app - Bitcoin</title>
+	<title>obilisk.app - How To</title>
+	<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 	<style>
 		
 		.topbar {
@@ -133,7 +134,7 @@
 
 	<div id="topbar" class="topbar">
 			
-		<a id="other_btn" href="https://localhost:5000">obilisk.app</a>
+		<a id="other_btn" href="https://localhost:5000"><img src="/static/logo_horiz_white.png" style="width:120px;height:31px;"></a>
 		<a id="other_btn" href="/about">about</a>
 		<div class="dropdown active">
 			<a class="dropbtn active">resources
@@ -189,8 +190,10 @@
 </body>
 <footer>
 	<div class="flex-container">
-		<div style="padding:20px 0px 10px 80px;">
-			<p>obilisk,</p>
+		<div>
+			<img src="/static/logo_vert_white.png" style="width:56px;height:93px;" vspace="10" ></img>
+		</div>
+		<div style="padding:22px 0px 10px 15px;">
 			<p>800 Steeles Ave. W #B10182<p>
 			<p>Thornhill, Ontario</p>
 			<p>L4J 7L2</p>
@@ -214,6 +217,11 @@
 					info@obilisk.app</a>
 				</li>
 			</ul>
+		</div>
+	</div>
+	<div class="flex-container">
+		<div>
+			<p>© 2019 Obilisk. All rights reserved.</p>
 		</div>
 	</div>
 </footer>

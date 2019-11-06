@@ -1,0 +1,11 @@
+MANIFEST.in
+setup.py
+app/__init__.py
+app/models.py
+app/routes.py
+obilisk.egg-info/PKG-INFO
+obilisk.egg-info/SOURCES.txt
+obilisk.egg-info/dependency_links.txt
+obilisk.egg-info/not-zip-safe
+obilisk.egg-info/requires.txt
+obilisk.egg-info/top_level.txt

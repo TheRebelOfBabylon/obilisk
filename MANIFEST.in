@@ -1,0 +1,10 @@
+include obilis/app.db
+include obilis/BEMDAS_algo_v3.py
+include obilis/algebra.py
+include obilis/jenkins_traub.py
+include obilis/calculus.py
+include obilis/rpc_pb2_grpc.py
+include obilis/rpc_pb2.py
+graft obilis/googleapis
+graft obilis/app
+global-exclude *.pyc
