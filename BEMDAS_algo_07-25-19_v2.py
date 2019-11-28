@@ -6,6 +6,9 @@ import codecs
 import calculus
 from algebra import *
 import jenkins_traub
+from requests import Request, Session
+from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
+import json
 
 start = time.time()
 
@@ -144,6 +147,22 @@ def div_check(x,y):
 		return False
 
 def operation(num_one,oper,num_two):
+
+	try:
+
+		num_one = float(num_one)
+
+	except:
+
+		num_one = complex(num_one)
+
+	try:
+
+		num_two = float(num_two)
+
+	except:
+
+		num_two = complex(num_two)
 
 	operation_ans = 0
 
@@ -424,7 +443,7 @@ def calculate(n,b):
 				if (n[t] == "SIN") or (n[t] == "COS") or (n[t] == "TAN") or (n[t] == "ASIN") or (n[t] == "ACOS") or (n[t] == "ATAN") or (n[t] == "SINH") or (n[t] == "COSH") or (n[t] == "TANH") or (n[t] == "SECH") or (n[t] == "CSCH") or (n[t] == "COTH") or (n[t] == "ASINH") or (n[t] == "ACOSH") or (n[t] == "ATANH") or (n[t] == "LN") or (n[t] == "SQRT"):
 
 					solution.insert(sol_cnt,op+"("+n[t+1]+")")
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=",calc)
 					sol_cnt=sol_cnt+1
 					n[t] = str(calc)
@@ -435,7 +454,7 @@ def calculate(n,b):
 				elif (n[t] == "SEC"):
 
 					solution.insert(sol_cnt,op+"("+n[t+1]+")")
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=","1/COS("+n[t+1]+") =",calc)
 					sol_cnt=sol_cnt+1
 					n[t] = str(calc)
@@ -446,7 +465,7 @@ def calculate(n,b):
 				elif (n[t] == "CSC"):
 
 					solution.insert(sol_cnt,op+"("+n[t+1]+")")
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=","1/SIN("+n[t+1]+") =",calc)
 					sol_cnt=sol_cnt+1
 					n[t] = str(calc)
@@ -457,7 +476,7 @@ def calculate(n,b):
 				elif (n[t] == "COT"):
 
 					solution.insert(sol_cnt,op+"("+n[t+1]+")")
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=","1/TAN("+n[t+1]+") =",calc)
 					sol_cnt=sol_cnt+1
 					n[t] = str(calc)
@@ -468,7 +487,7 @@ def calculate(n,b):
 				elif (n[t] == "ASEC"):
 
 					solution.insert(sol_cnt,op+"("+n[t+1]+")")
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=","ACOS(1/"+n[t+1]+") =",calc)
 					sol_cnt=sol_cnt+1
 					n[t] = str(calc)
@@ -479,7 +498,7 @@ def calculate(n,b):
 				elif (n[t] == "ACSC"):
 
 					solution.insert(sol_cnt,op+"("+n[t+1]+")")
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=","ASIN(1/"+n[t+1]+") =",calc)
 					sol_cnt=sol_cnt+1
 					n[t] = str(calc)
@@ -490,7 +509,7 @@ def calculate(n,b):
 				elif (n[t] == "ACOT"):
 
 					solution.insert(sol_cnt,op+"("+n[t+1]+")")
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=","ATAN(1/"+n[t+1]+") =",calc)
 					sol_cnt=sol_cnt+1
 					n[t] = str(calc)
@@ -501,7 +520,7 @@ def calculate(n,b):
 				elif (n[t] == "ASECH"):
 
 					solution.insert(sol_cnt,op+"("+n[t+1]+")")
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=","ACOSH(1/"+n[t+1]+") =",calc)
 					sol_cnt=sol_cnt+1
 					n[t] = str(calc)
@@ -512,7 +531,7 @@ def calculate(n,b):
 				elif (n[t] == "ACSCH"):
 
 					solution.insert(sol_cnt,op+"("+n[t+1]+")")
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=","ASINH(1/"+n[t+1]+") =",calc)
 					sol_cnt=sol_cnt+1
 					n[t] = str(calc)
@@ -523,7 +542,7 @@ def calculate(n,b):
 				elif (n[t] == "ACOTH"):
 
 					solution.insert(sol_cnt,op+"("+n[t+1]+")")
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=","ATANH(1/"+n[t+1]+") =",calc)
 					sol_cnt=sol_cnt+1
 					n[t] = str(calc)
@@ -534,7 +553,7 @@ def calculate(n,b):
 				elif (n[t] == "LOG"):
 
 					solution.insert(sol_cnt,op+"("+n[t+1]+","+n[t+2]+")")
-					calc = operation(float(n[t+1]),op,float(n[t+2]))
+					calc = operation(n[t+1],op,n[t+2])
 					print("OP"+str(sol_cnt+1)+"___","Log of",n[t+2],"to the base",n[t+1],"=",calc)
 					sol_cnt=sol_cnt+1
 					n[t] = str(calc)
@@ -569,7 +588,7 @@ def calculate(n,b):
 			if n[t] == op:
 				
 				solution.insert(sol_cnt,n[t-1]+op+n[t+1])
-				calc = operation(float(n[t-1]),op,float(n[t+1]))
+				calc = operation(n[t-1],op,n[t+1])
 				print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=",calc)
 				sol_cnt=sol_cnt+1
 				n[t-1] = str(calc)
@@ -581,7 +600,7 @@ def calculate(n,b):
 			elif n[t] == op1:
 
 				solution.insert(sol_cnt,n[t-1]+op1+n[t+1])
-				calc = operation(float(n[t-1]),op1,float(n[t+1]))
+				calc = operation(n[t-1],op1,n[t+1])
 				print("OP"+str(sol_cnt+1)+"___",solution[sol_cnt],"=",calc)
 				sol_cnt=sol_cnt+1
 				n[t-1] = str(calc)
@@ -722,6 +741,37 @@ def stringify(l,r):
 
 	return temp
 
+def lower_b_lvl(b, lvl):
+
+	print("lvl", lvl)
+
+	for i in range(0,len(b)):
+
+		if "(" in b[i]:
+
+			b[i] = "("
+
+		if ")" in b[i]:
+
+			b[i] = ")"
+
+	br = 0
+	for i in range(0,len(b)):
+
+		if "(" in b[i]:
+
+			br += 1
+			b[i] = "("+str(br)
+
+		if ")" in b[i]:
+
+			b[i] = ")"+str(br)
+			br -= 1
+
+	print(b)
+
+	return b
+
 def isolate(l, r, lvl):
 
 	global var_index_l, var_index_r, var_type, oper_dict_two, solution, sol_cnt
@@ -743,6 +793,7 @@ def isolate(l, r, lvl):
 	b=0
 	b_open = 0
 	b_close = 0
+	bracket_lvl = 1
 	s=0
 	simp_l.insert(len(simp_l),"0")
 	simp_l.insert(len(simp_l)+1,"0")
@@ -818,6 +869,8 @@ def isolate(l, r, lvl):
 						b_open = 0
 						b_close = 0
 						#print("4",simp_l)
+
+					bracket_lvl += 1
 	
 				else:
 
@@ -830,7 +883,7 @@ def isolate(l, r, lvl):
 						z += 1
 
 					b_temp.append(")"+str(b))
-					print("LOOOOK",b_temp)
+					#print("LOOOOK",b_temp)
 					simp_l[i] = var_type[0]
 					del simp_l[i+1:z+1]
 
@@ -878,6 +931,7 @@ def isolate(l, r, lvl):
 					b_open = 0
 					b_close = 0
 					#print("5",simp_l)
+					bracket_lvl += 1
 
 			#combining x with ^ and exponents
 			if (simp_l[s+1] == "^") & (is_number(simp_l[s+2]) == True):
@@ -913,8 +967,9 @@ def isolate(l, r, lvl):
 				b_close = 0
 
 		s=s+1
+		print(bracket,simp_l, bracket_lvl, b)
 
-	print("bracket",bracket)
+	print("bracket",bracket, simp_l, bracket_lvl, b)
 	del simp_l[len(simp_l)-2:len(simp_l)]
 	#print(simp_l)
 
@@ -1343,7 +1398,6 @@ def isolate(l, r, lvl):
 
 	#move constants from LHS to RHS
 
-	#print(simp_l,simp_r)
 	b=0
 	v=0
 	while v != len(simp_l)-1:
@@ -1356,7 +1410,7 @@ def isolate(l, r, lvl):
 
 			b=b-1
 
-		if (var_type[0] not in simp_l[v]) & (is_number(simp_l[v]) == True) & (simp_l[v-1] not in oper_dict_two.values()) & (simp_l[v+1] not in oper_dict_two.values()) & (b==lvl): #& you're not within variable bracket range
+		if (var_type[0] not in simp_l[v]) & (is_number(simp_l[v]) == True) & (simp_l[v-1] not in oper_dict_two.values()) & (simp_l[v+1] not in oper_dict_two.values()): #& you're not within variable bracket range
 	
 			if simp_l[v-1] == "-":
 
@@ -2422,8 +2476,7 @@ def isolate(l, r, lvl):
 			string = stringify(bracket,simp_r)
 			print(string)
 			simp_r[1] = str(simp_r[1])
-			bracket.insert(0,"(1")
-			bracket.append(")1")
+			bracket = lower_b_lvl(bracket,bracket_lvl)
 			ans = isolate(bracket,simp_r,0)
 			return ans
 			
@@ -2676,6 +2729,28 @@ def isolate(l, r, lvl):
 
 		return ans
 
+def inference(eqn):
+
+	master=[]
+	s=0
+	for i in range(0,len(eqn)):
+
+		if ("(" in eqn[i]) and (is_number(eqn[i-1]) == True):
+
+			master.append("*")
+			master.append(eqn[i])
+
+		elif (eqn[i] in oper_dict.values()) and (is_number(eqn[i-1]) == True):
+
+			master.append("*")
+			master.append(eqn[i])
+
+		else:
+
+			master.append(eqn[i])
+
+	print(master)
+	return master
 
 		
 
@@ -3304,16 +3379,45 @@ if var_num > 0:
 
 else:
  	
-	#print(master)
+	print(master)
+	master=inference(master)
 	ans=calculate(master,0)
-
 
 	print("The result of the above equation is",ans,"\n")
 	the_end = time.time()
 	mem_tot = the_end - start
 	print("Start", start, "s End", the_end, "s", mem_tot, "s")
 
-	satoshi_amt = round(mem_tot*0.0000845)
+	url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
+
+	parameters = {
+
+  		'symbol':'BTC',
+  		'convert':'CAD'
+
+	}
+
+	headers = {
+
+  		'Accepts': 'application/json',
+  		'X-CMC_PRO_API_KEY': '93dfb645-5ccb-4b27-82ab-7f3599f9e044'
+
+	}
+
+	session = Session()
+	session.headers.update(headers)
+
+	try:
+
+		response = session.get(url, params=parameters)
+
+	except (ConnectionError, Timeout, TooManyRedirects) as e:
+
+  		print(e)
+
+	data = json.loads(response.text)
+ 	
+	satoshi_amt = round((10**8)*0.25/data["data"]["BTC"]["quote"]["CAD"]["price"],0)
 
 	print("The cost is", satoshi_amt, "sats")
 

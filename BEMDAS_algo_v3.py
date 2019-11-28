@@ -11,7 +11,6 @@ beginning = process.memory_info().rss
 
 solution=[]
 sol_cnt=0
-var_type=[]
 
 oper_dict = {
 	
@@ -80,6 +79,96 @@ oper_dict_two = {
 
 }
 
+anti_dict = {
+
+	"SIN":"ASIN",
+	"COS":"ACOS",
+	"TAN":"ATAN",
+	"SEC":"ASEC",
+	"CSC":"ACSC",
+	"COT":"ACOT",
+	"ASIN":"SIN",
+	"ACOS":"COS",
+	"ATAN":"TAN",
+	"ASEC":"SEC",
+	"ACSC":"CSC",
+	"ACOT":"COT",
+	"SINH":"ASINH",
+	"COSH":"ACOSH",
+	"TANH":"ATANH",
+	"SECH":"ASECH",
+	"CSCH":"ACSCH",
+	"COTH":"ACOTH",
+	"ASINH":"SINH",
+	"ACOSH":"COSH",
+	"ATANH":"TANH",
+	"ASECH":"SECH",
+	"ACSCH":"CSCH",
+	"ACOTH":"COTH",
+	"LN":"e^",
+	"e^":"LN",
+
+}
+
+var_dict = {
+
+	"a":"b",
+	"b":"c",
+	"c":"d",
+	"d":"e",
+	"e":"f",
+	"f":"g",
+	"g":"h",
+	"h":"i",
+	"i":"j",
+	"j":"k",
+	"k":"l",
+	"l":"m",
+	"m":"n",
+	"n":"o",
+	"o":"p",
+	"p":"q",
+	"q":"r",
+	"r":"s",
+	"s":"t",
+	"t":"u",
+	"u":"v",
+	"v":"w",
+	"w":"x",
+	"x":"y",
+	"y":"z",
+	"z":"a"
+
+}
+
+def inference(eqn):
+
+	master=[]
+	s=0
+	for i in range(0,len(eqn)):
+
+		if ("(" in eqn[i]) and (is_number(eqn[i-1]) == True):
+
+			master.append("*")
+			master.append(eqn[i])
+
+		elif (eqn[i] in oper_dict.values()) and (is_number(eqn[i-1]) == True):
+
+			master.append("*")
+			master.append(eqn[i])
+
+		elif ("(" in eqn[i]) and (")" in eqn[i-1]):
+
+			master.append("*")
+			master.append(eqn[i])
+
+		else:
+
+			master.append(eqn[i])
+
+	print(master)
+	return master
+
 #To detect divisions by zero
 def div_check(x,y):
 
@@ -95,6 +184,22 @@ def div_check(x,y):
 		return False
 
 def operation(num_one,oper,num_two):
+
+	try:
+
+		num_one = float(num_one)
+
+	except:
+
+		num_one = complex(num_one)
+
+	try:
+
+		num_two = float(num_two)
+
+	except:
+
+		num_two = complex(num_two)
 
 	operation_ans = 0
 
@@ -372,7 +477,7 @@ def calculate(n,b):
 
 				if (n[t] == "SIN") or (n[t] == "COS") or (n[t] == "TAN") or (n[t] == "ASIN") or (n[t] == "ACOS") or (n[t] == "ATAN") or (n[t] == "SINH") or (n[t] == "COSH") or (n[t] == "TANH") or (n[t] == "SECH") or (n[t] == "CSCH") or (n[t] == "COTH") or (n[t] == "ASINH") or (n[t] == "ACOSH") or (n[t] == "ATANH") or (n[t] == "LN") or (n[t] == "SQRT"):
 
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+op+"("+n[t+1]+") = "+str(calc))
 					print(solution[sol_cnt])
 					sol_cnt=sol_cnt+1
@@ -383,7 +488,7 @@ def calculate(n,b):
 
 				elif (n[t] == "SEC"):
 
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+op+"("+n[t+1]+") = 1/COS("+n[t+1]+") = "+str(calc))
 					print(solution[sol_cnt])
 					sol_cnt=sol_cnt+1
@@ -394,7 +499,7 @@ def calculate(n,b):
 
 				elif (n[t] == "CSC"):
 
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+op+"("+n[t+1]+") = 1/SIN("+n[t+1]+") = "+str(calc))
 					print(solution[sol_cnt])
 					sol_cnt=sol_cnt+1
@@ -405,7 +510,7 @@ def calculate(n,b):
 
 				elif (n[t] == "COT"):
 
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+op+"("+n[t+1]+") = 1/TAN("+n[t+1]+") = "+str(calc))
 					print(solution[sol_cnt])
 					sol_cnt=sol_cnt+1
@@ -416,7 +521,7 @@ def calculate(n,b):
 
 				elif (n[t] == "ASEC"):
 
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+op+"("+n[t+1]+") = ACOS(1/"+n[t+1]+") = "+str(calc))
 					print(solution[sol_cnt])
 					sol_cnt=sol_cnt+1
@@ -427,7 +532,7 @@ def calculate(n,b):
 
 				elif (n[t] == "ACSC"):
 
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+op+"("+n[t+1]+") = ASIN(1/"+n[t+1]+") = "+str(calc))
 					print(solution[sol_cnt])
 					sol_cnt=sol_cnt+1
@@ -438,7 +543,7 @@ def calculate(n,b):
 
 				elif (n[t] == "ACOT"):
 
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+op+"("+n[t+1]+") = ATAN(1/"+n[t+1]+") = "+str(calc))
 					print(solution[sol_cnt])
 					sol_cnt=sol_cnt+1
@@ -449,7 +554,7 @@ def calculate(n,b):
 
 				elif (n[t] == "ASECH"):
 
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+op+"("+n[t+1]+") = ACOSH(1/"+n[t+1]+") = "+str(calc))
 					print(solution[sol_cnt])
 					sol_cnt=sol_cnt+1
@@ -460,7 +565,7 @@ def calculate(n,b):
 
 				elif (n[t] == "ACSCH"):
 
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+op+"("+n[t+1]+") = ASINH(1/"+n[t+1]+") = "+str(calc))
 					print(solution[sol_cnt])
 					sol_cnt=sol_cnt+1
@@ -471,7 +576,7 @@ def calculate(n,b):
 
 				elif (n[t] == "ACOTH"):
 
-					calc = operation(0,op,float(n[t+1]))
+					calc = operation(0,op,n[t+1])
 					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+op+"("+n[t+1]+") = ATANH(1/"+n[t+1]+") = "+str(calc))
 					print(solution[sol_cnt])
 					sol_cnt=sol_cnt+1
@@ -482,7 +587,7 @@ def calculate(n,b):
 
 				elif (n[t] == "LOG"):
 
-					calc = operation(float(n[t+1]),op,float(n[t+2]))
+					calc = operation(n[t+1],op,n[t+2])
 					solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ Log of "+n[t+2]+" to the base of "+n[t+1]+" = "+str(calc))
 					print(solution[sol_cnt])
 					sol_cnt=sol_cnt+1
@@ -516,7 +621,7 @@ def calculate(n,b):
 			
 			if n[t] == op:
 				
-				calc = operation(float(n[t-1]),op,float(n[t+1]))
+				calc = operation(n[t-1],op,n[t+1])
 				solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+n[t-1]+op+n[t+1]+" = "+str(calc))
 				print(solution[sol_cnt])
 				sol_cnt=sol_cnt+1
@@ -528,7 +633,7 @@ def calculate(n,b):
 
 			elif n[t] == op1:
 
-				calc = operation(float(n[t-1]),op1,float(n[t+1]))
+				calc = operation(n[t-1],op1,n[t+1])
 				solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+n[t-1]+op1+n[t+1]+" = "+str(calc))
 				print(solution[sol_cnt])
 				sol_cnt=sol_cnt+1
@@ -542,55 +647,874 @@ def calculate(n,b):
 
 	return calc
 
-def simplify(eqn):
+#Need to rewrite simplify function to calculate any numerical values within a variable type equation. Also combine all similar terms like the beginning of isolate
 
-	s=0
-	b=1
-	k=0
-	temp=[]
-	while s != len(eqn):
+def combining(eqn, var_type, highest_deg):
 
-		#add logic for dealing with trig operations, log, ln
-
-		if ("(" in eqn[s]) & (str(b) not in eqn[s]):
+	global oper_dict, solution, sol_cnt
+	#0 compute any low hanging fruit terms ex: cos(x)+3cos(x)+x^2-x^2+x-69x+1+472+2+sin(90)+log(3,3)+3^1 -> cos(x)+3cos(x)+x^2-x^2+x-69x+1+472+2+1+1+1
 	
-			#we are inside a bracket
-			b=b+1
-			t=s+1
-			var_check = 0
+	i = 0
+	while i != len(eqn):
 
-			#while we aren't at the close bracket
-			while (")"+str(b)) not in eqn[t]:
-			
-				if var_check != 1:
+		#If this index is an operation in the dictionary
+		if eqn[i] in oper_dict.values():
+
+			if eqn[i] == "LOG":
+
+				s=i+2
+				j=eqn[s-1]
+				j=j.replace('(','')
+				temp=""
+				while s != ",":
+
+					temp += eqn[s]
+					s += 1
+
+				try:
+
+					x = float(temp)
 					
-					temp.insert(k,str(eqn[t]))
-					k=k+1
+					s += 1
+					temp=""
+					while s != ")"+j:
 
-				#if the variable is within the brackets
-				if (eqn[t].isalpha() == True) & (len(eqn[t]) == 1):
+						temp += eqn[s]
+						s += 1
 
-					var_check = 1
-					temp.clear()
+					try:
+	
+						y = float(temp)
+						calc = operation(str(x),eqn[i],str(y))
+						eqn[i] = str(calc)
+						del eqn[i+1:s]
 
-				t=t+1
-			
-			if var_check == 0:
+					except:
 
-				if len(temp) > 1:
-					
-					eqn[s]=str(calculate(temp, b))
-					del eqn[s+1:t+1]
-					b=b-1
+						#there is a variable inside this operation and it is not a low hanging fruit
+						pass
+
+				except:
+
+					#there is a variable inside this operation and it is not a low hanging fruit
+					pass
 
 			else:
+
+				s=i+2
+				j=eqn[s-1]
+				j=j.replace('(','')
+				temp=""
+				while s != ")"+j:
+
+					temp += eqn[s]
+					s += 1
+
+				try:
+
+					x = float(temp)
+					calc = operation(0,eqn[i],str(x))
+					eqn[i] = str(calc)
+					del eqn[i+1:s]
+
+				except:
+
+					#there is a variable inside this operation and it is not a low hanging fruit
+					pass
+
+		elif eqn[i] == "^":
+
+			if (is_number(eqn[i-1]) == True) and (is_number(eqn[i+1]) == True):
+
+				calc = operation(eqn[i-1],eqn[i],eqn[i+1])
+				eqn[i-1] = str(calc)
+				del eqn[i:i+1]
+
+		elif (eqn[i] == "/") or (eqn[i] == "*"):
+
+			if (is_number(eqn[i-1]) == True) and (is_number(eqn[i+1]) == True):
+
+				calc = operation(eqn[i-1],eqn[i],eqn[i+1])
+				eqn[i-1] = str(calc)
+				del eqn[i:i+1]
+
+		i+=1
+
+	#1 put all the terms in descending order (highest exponent to lowest) ex: cos(x)+3cos(x)+x^2-x^2+x-69x+1+472+2+1+1+1
+
+	rearranged=[]
+	n=0
+
+	for s in range(0,len(eqn)):
+
+		if (var_type in eqn[t]) & (oper_dict.values() in eqn[t]):
+
+			if eqn[t-1] == "-":
+						
+				if "-" in eqn[t]:
+
+					if n == 0:
+
+						rearranged.insert(n,eqn[t])
+						n=n+1
+
+					else:
+
+						rearranged.insert(n,"+")
+						n=n+1
+						rearranged.insert(n,eqn[t])
+						n=n+1
+
+				else:
+
+					rearranged.insert(n,"-")
+
+					if n == 0:		
+
+						rearranged[n]=rearranged[n]+eqn[t]
+						n=n+1
+
+					else:
+			
+						n=n+1
+						rearranged.insert(n,eqn[t])
+						n=n+1
+
+			elif eqn[t-1] == "+":
+
+				if "-" in eqn[t]:
+
+					rearranged.insert(n,"-")
+
+					if n == 0:		
+
+						rearranged[n]=rearranged[n]+eqn[t]
+						n=n+1
+
+					else:
+			
+						n=n+1
+						rearranged.insert(n,eqn[t])
+						n=n+1
+
+				else:
+							
+					if n == 0:
+
+						rearranged.insert(n,eqn[t])
+						n=n+1
+
+					else:
+
+						rearranged.insert(n,"+")
+						n=n+1
+						rearranged.insert(n,eqn[t])
+						n=n+1
+
+			else:
+
+				if "-" in eqn[t]:
+
+					rearranged.insert(n,"-")
+
+					if n == 0:		
+
+						rearranged[n]=rearranged[n]+eqn[t]
+						n=n+1
+
+					else:
+			
+						n=n+1
+						rearranged.insert(n,eqn[t])
+						n=n+1
+
+				else:
+							
+					if n == 0:
+
+						rearranged.insert(n,eqn[t])
+						n=n+1
+
+					else:
+
+						rearranged.insert(n,"+")
+						n=n+1
+						rearranged.insert(n,eqn[t])
+						n=n+1
+	
+	for s in range(highest_deg,-1,-1):		
+
+		for t in range(0,len(eqn)):
+
+			if s > 1:
+
+				if (var_type in eqn[t]) & ("^"+str(s) in eqn[t]) & (oper_dict.values() not in eqn[t]):
+
+					temp = eqn[t]
+					v=0
+					while temp[v] != var_type:
+
+						v+=1
+
+					v += 2
+					b=""
+					while v != len(temp):
+
+						b = b+str(temp[v])
+						v+=1
+
+					if int(b) == s:
+
+						if eqn[t-1] == "-":
+						
+							if "-" in eqn[t]:
+
+								if n == 0:
+
+									rearranged.insert(n,eqn[t])
+									n=n+1
+
+								else:
+
+									rearranged.insert(n,"+")
+									n=n+1
+									rearranged.insert(n,eqn[t])
+									n=n+1
+
+							else:
+
+								rearranged.insert(n,"-")
+
+								if n == 0:		
+
+									rearranged[n]=rearranged[n]+eqn[t]
+									n=n+1
+
+								else:
+			
+									n=n+1
+									rearranged.insert(n,eqn[t])
+									n=n+1
+
+						elif eqn[t-1] == "+":
+
+							if "-" in eqn[t]:
+
+								if n == 0:		
+
+									rearranged.insert(n,eqn[t])
+									n=n+1
+
+								else:
+			
+									rearranged.insert(n,"-")
+									n=n+1
+									rearranged.insert(n,eqn[t])
+									rearranged[n] = rearranged[n].replace('-','')
+									n=n+1
+
+							else:
+							
+								if n == 0:
+
+									rearranged.insert(n,eqn[t])
+									n=n+1
+
+								else:
+
+									rearranged.insert(n,"+")
+									n=n+1
+									rearranged.insert(n,eqn[t])
+									n=n+1
+
+						else:
+
+							if "-" in eqn[t]:
+
+								if n == 0:		
+
+									rearranged.insert(n,eqn[t])
+									n=n+1
+
+								else:
+			
+									rearranged.insert(n,eqn[t])
+									n=n+1
+
+							else:
+							
+								if n == 0:
+
+									rearranged.insert(n,eqn[t])
+									n=n+1
+
+								else:
+
+									rearranged.insert(n,"+")
+									n=n+1
+									rearranged.insert(n,eqn[t])
+									n=n+1
+
+			elif s == 1:
+
+				if (var_type in eqn[t]) & ("^" not in eqn[t]) & (oper_dict.values() not in eqn[t]):
+
+					if eqn[t-1] == "-":
+						
+						if "-" in eqn[t]:
+
+							if n == 0:
+
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+							else:
+
+								rearranged.insert(n,"+")
+								n=n+1
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+						else:
+
+							rearranged.insert(n,"-")
+
+							if n == 0:		
+
+								rearranged[n]=rearranged[n]+eqn[t]
+								n=n+1
+
+							else:
+			
+								n=n+1
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+					elif eqn[t-1] == "+":
+
+						if "-" in eqn[t]:
+
+							rearranged.insert(n,"-")
+
+							if n == 0:		
+
+								rearranged[n]=rearranged[n]+eqn[t]
+								n=n+1
+
+							else:
+			
+								n=n+1
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+						else:
+							
+							if n == 0:
+
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+							else:
+
+								rearranged.insert(n,"+")
+								n=n+1
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+					else:
+
+						if "-" in eqn[t]:
+
+							rearranged.insert(n,"-")
+
+							if n == 0:		
+
+								rearranged[n]=rearranged[n]+eqn[t]
+								n=n+1
+
+							else:
+			
+								n=n+1
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+						else:
+							
+							if n == 0:
+
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+							else:
+
+								rearranged.insert(n,"+")
+								n=n+1
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+			else:
+
+				if (var_type not in eqn[t]) & (is_number(eqn[t]) == True) & (oper_dict.values() not in eqn[t]):
+
+					if eqn[t-1] == "-":
+					
+						if "-" in eqn[t]:
+
+							if n == 0:
+
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+							else:
+
+								rearranged.insert(n,"+")
+								n=n+1
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+						else:
+
+							rearranged.insert(n,"-")
+
+							if n == 0:		
+
+								rearranged[n]=rearranged[n]+eqn[t]
+								n=n+1
+
+							else:
+			
+								n=n+1
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+					elif eqn[t-1] == "+":
+
+						if "-" in eqn[t]:
+
+							rearranged.insert(n,"-")
+
+							if n == 0:		
+
+								rearranged[n]=rearranged[n]+eqn[t]
+								n=n+1
+
+							else:
+			
+								n=n+1
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+						else:
+							
+							if n == 0:
+
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+							else:
+
+								rearranged.insert(n,"+")
+								n=n+1
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+					else:
+
+						if "-" in eqn[t]:
+
+							rearranged.insert(n,"-")
+
+							if n == 0:		
+
+								rearranged[n]=rearranged[n]+eqn[t]
+								n=n+1
+
+							else:
+			
+								n=n+1
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+						else:
+							
+							if n == 0:
+
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+							else:
+
+								rearranged.insert(n,"+")
+								n=n+1
+								rearranged.insert(n,eqn[t])
+								n=n+1
+
+	#2 add up all similar terms ex: 4cos(x)-68x+478
+	
+	for s in range(highest_deg,-1,-1):		
+
+		t=0
+		while t!=len(rearranged):
+
+			if s > 1:
+
+				if rearranged[t] == "+":
+
+					if ("^"+str(s) in rearranged[t-1]) & ("^"+str(s) in rearranged[t+1]) :# and both strings share the same base
+
+						temp_one=str(rearranged[t-1])
+						temp_two=str(rearranged[t+1])
+						v=0
+						x=""
+						while temp_one[v] != var_type:
+
+							x=x+str(temp_one[v])
+							v=v+1
+						
+						if x == "":
+
+							x = "1"
+
+						elif x == "-":
+
+							x = "-1"
+
+						if rearranged[t-2] == "-":
+
+							if "-" in x:
+
+								x = x.replace('-','')
+
+							else:
+
+								x = "-"+x
+
+						x=float(x)
+
+						v=0
+						y=""
+						while temp_two[v] != var_type:
+
+							y=y+str(temp_two[v])
+							v=v+1
+
+						if y == "":
+
+							y = "1"
+
+						elif y == "-":
+
+							y = "-1"
+
+						y=float(y)
+
+						z=x+y
+
+						solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+str(x)+var_type+"^"+str(s)+" + "+str(y)+var_type+"^"+str(s)+" = "+str(z)+var_type+"^"+str(s))
+						print(solution[sol_cnt])
+						sol_cnt=sol_cnt+1
 				
-				s=t	
-				b=b-1
+						z=str(z)
+	
+						if float(z) == 0.0:
 
-		s=s+1
+							del rearrranged[t-1:t+2]
+							#print(rear_l,rear_l[t])
+							if (rearranged[t-1] == "-") or (rearranged[t-1] == "+"):
 
-	return eqn
+								del rearranged[t-1]
+								t=0
+
+							elif rearranged[t] == "+":
+
+								del rear_l[t]
+								t=0
+
+						else:
+	
+							rear_l[t-1]=z+var_type[0]+"^"+str(new_n_order[s])
+							del rear_l[t:t+2]
+
+							if (rear_l[t-2] == "-") & ("-" in rear_l[t-1]):
+
+								rear_l[t-1] = rear_l[t-1].replace('-','')
+
+							if (rear_l[t-2] == "-") & (float(z) > 0):
+
+								rear_l[t-2] = "+"
+
+							t=0
+
+						string = stringify(rear_l)
+						string += "="+stringify(simp_r)
+						print(string,"\n")
+
+				if rear_l[t] == "-":
+
+					if ("^"+str(new_n_order[s]) in rear_l[t-1]) & ("^"+str(new_n_order[s]) in rear_l[t+1]):
+
+						temp_one=str(rear_l[t-1])
+						temp_two=str(rear_l[t+1])
+						v=0
+						x=""
+						while temp_one[v] != var_type[0]:
+
+							x=x+str(temp_one[v])
+							v=v+1
+
+						if x == "":
+
+							x = "1"
+
+						elif x == "-":
+
+							x = "-1"
+
+						if rear_l[t-2] == "-":
+
+							if "-" in x:
+
+								x = x.replace('-','')
+
+							else:
+
+								x = "-"+x
+
+						x=float(x)
+
+						v=0
+						y=""
+						while temp_two[v] != var_type[0]:
+
+							y=y+str(temp_two[v])
+							v=v+1
+
+						if y == "":
+
+							y = "1"
+
+						elif y == "-":
+
+							y = "-1"
+
+						y=float(y)
+						z=x-y
+
+						solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+str(x)+var_type[0]+"^"+str(new_n_order[s])+" + "+str(y)+var_type[0]+"^"+str(new_n_order[s])+" = "+str(z)+var_type[0]+"^"+str(new_n_order[s]))
+						print(solution[sol_cnt])
+						sol_cnt=sol_cnt+1
+
+						z=str(z)
+
+						if float(z) == 0.0:
+
+							del rear_l[t-1:t+2]
+							if (rear_l[t-1] == "-") or (rear_l[t-1] == "+"):
+
+								del rear_l[t-1]
+								t=0
+
+							elif rear_l[t] == "-":
+
+								del rear_l[t]
+								t=0
+
+						else:
+	
+							rear_l[t-1]=z+var_type[0]+"^"+str(new_n_order[s])
+							del rear_l[t:t+2]
+
+							if (rear_l[t-2] == "-") & ("-" in rear_l[t-1]):
+
+								rear_l[t-1] = rear_l[t-1].replace('-','')
+
+							t=0
+
+						string = stringify(rear_l)
+						string += "="+stringify(simp_r)
+						print(string,"\n")
+
+			if int(new_n_order[s]) == 1:
+
+				if rear_l[t] == "+":
+
+					if (var_type[0] in rear_l[t-1]) & (var_type[0] in rear_l[t+1]) & ("^" not in rear_l[t-1]) & ("^" not in rear_l[t+1]):
+
+						temp_one=str(rear_l[t-1])
+						temp_two=str(rear_l[t+1])
+						v=0
+						x=""
+						while temp_one[v] != var_type[0]:
+
+							x=x+str(temp_one[v])
+							v=v+1
+
+						if x == "":
+
+							x = "1"
+
+						elif x == "-":
+
+							x = "-1"
+
+						if rear_l[t-2] == "-":
+
+							if "-" in x:
+
+								x = x.replace('-','')
+
+							else:
+
+								x = "-"+x
+
+						x=float(x)
+
+						v=0
+						y=""
+						while temp_two[v] != var_type[0]:
+
+							y=y+str(temp_two[v])
+							v=v+1
+
+						if y == "":
+
+							y = "1"
+
+						elif y == "-":
+
+							y = "-1"
+
+						y=float(y)
+						z=x+y						
+
+						solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+str(x)+var_type[0]+" + "+str(y)+var_type[0]+" = "+str(z)+var_type[0])
+						print(solution[sol_cnt])
+						sol_cnt=sol_cnt+1
+
+						z=str(z)
+	
+						if float(z) == 0.0:
+
+							del rear_l[t-1:t+2]
+							if (rear_l[t-1] == "-") or (rear_l[t-1] == "+"):
+
+								del rear_l[t-1]
+								t=0
+
+							elif rear_l[t] == "+":
+
+								del rear_l[t]
+								t=0
+
+						else:
+	
+							rear_l[t-1]=z+var_type[0]
+							del rear_l[t:t+2]
+
+							if (rear_l[t-2] == "-") & ("-" in rear_l[t-1]):
+
+								rear_l[t-1] = rear_l[t-1].replace('-','')
+
+							t=0
+
+						string = stringify(rear_l)
+						string += "="+stringify(simp_r)
+						print(string,"\n")
+
+				if rear_l[t] == "-":
+
+					if (var_type[0] in rear_l[t-1]) & (var_type[0] in rear_l[t+1]) & ("^" not in rear_l[t-1]) & ("^" not in rear_l[t+1]):
+
+						temp_one=str(rear_l[t-1])
+						temp_two=str(rear_l[t+1])
+						v=0
+						x=""
+						while temp_one[v] != var_type[0]:
+
+							x=x+str(temp_one[v])
+							v=v+1
+
+						if x == "":
+
+							x = "1"
+
+						elif x == "-":
+
+							x = "-1"
+
+						if rear_l[t-2] == "-":
+
+							if "-" in x:
+
+								x = x.replace('-','')
+
+							else:
+
+								x = "-"+x
+
+						x=float(x)
+
+						v=0
+						y=""
+						while temp_two[v] != var_type[0]:
+
+							y=y+str(temp_two[v])
+							v=v+1
+
+						if y == "":
+
+							y = "1"
+
+						elif y == "-":
+
+							y = "-1"
+
+						y=float(y)
+						z=x-y
+
+						solution.insert(sol_cnt,"OP"+str(sol_cnt)+"___ "+str(x)+var_type[0]+" + "+str(y)+var_type[0]+" = "+str(z)+var_type[0])
+						print(solution[sol_cnt])
+						sol_cnt=sol_cnt+1
+
+						z=str(z)
+
+						if float(z) == 0.0:
+
+							del rear_l[t-1:t+2]
+							if (rear_l[t-1] == "-") or (rear_l[t-1] == "+"):
+
+								del rear_l[t-1]
+								t=0
+
+							elif (rear_l[t-2] == "-") or (rear_l[t-2] == "+"):
+
+								del rear_l[t-2]
+								t=0
+
+							elif rear_l[t] == "-":
+
+								del rear_l[t]
+								t=0
+
+						else:
+	
+							rear_l[t-1]=z+var_type[0]
+							del rear_l[t:t+2]
+							
+							if (rear_l[t-2] == "-") & ("-" in rear_l[t-1]):
+
+								rear_l[t-1] = rear_l[t-1].replace('-','')
+
+							t=0
+
+						string = stringify(rear_l)
+						string += "="+stringify(simp_r)
+						print(string,"\n")
+
+			t=t+1
+
+	right_side=calculate(simp_r,0)
+
 
 def is_number(s):
 
@@ -635,7 +1559,7 @@ def cube_root(x):
 
 			return -(-x)**(1/3)
 
-def stringify(l,r):
+def stringify(l):
 
 	temp=""
 	for s in range(1,len(l)-1):
@@ -652,27 +1576,427 @@ def stringify(l,r):
 
 			temp=temp+str(l[s])
 
-	temp = temp + "="
-
-	for s in range(1,len(r)-1):
-
-		if "(" in str(r[s]):
-		
-			temp += "("
-
-		elif ")" in str(r[s]):
-	
-			temp += ")"
-
-		else:
-
-			temp=temp+str(r[s])
-
 	return temp
 
-def isolate(l, r, lvl):
+def lower_b_lvl(b, lvl):
 
-	global var_index_l, var_index_r, var_type, oper_dict_two, solution, sol_cnt
+	print("lvl", lvl)
+
+	for i in range(0,len(b)):
+
+		if "(" in b[i]:
+
+			b[i] = "("
+
+		if ")" in b[i]:
+
+			b[i] = ")"
+
+	br = 0
+	for i in range(0,len(b)):
+
+		if "(" in b[i]:
+
+			br += 1
+			b[i] = "("+str(br)
+
+		if ")" in b[i]:
+
+			b[i] = ")"+str(br)
+			br -= 1
+
+	print(b)
+
+	return b
+
+#This function groups terms around variables into a single index
+
+def grouping(eqn,var_type):
+
+	global oper_dict
+
+	eqn_deg=[]
+	#Start with combining with constants and powers into one index
+	i=0
+	b_open=0
+	b_close=0
+	b_loc=0
+	while i != len(eqn):
+
+		#This index has a variable in it
+		if ("(" in eqn[i]) & (oper_dict.values() not in eqn[i]):
+
+			b_open += 1
+			b_loc = i
+
+		if (")" in eqn[i]) & (oper_dict.values() not in eqn[i]):
+
+			b_close += 1
+
+		if var_type in eqn[i]:
+
+			if (eqn[i+1] == "^") and (is_number(eqn[i+2]) == True):
+
+				eqn_deg.append(int(eqn[i+2]))
+				eqn[i] = eqn[i]+"^"+eqn[i+2]
+				del eqn[i+1:i+3]
+				i=-1
+
+			if (i != -1) and (is_number(eqn[i-1]) == True):
+	
+				eqn[i-1] = eqn[i-1]+eqn[i]
+				del eqn[i]
+				i=-1
+
+			if (i != -1) and (eqn[i-1] == "*") and (is_number(eqn[i-2]) == True):
+
+				eqn[i-2] = eqn[i-2]+eqn[i]
+				del eqn[i-1:i+1]
+				i=-1
+
+			if (i != -1) and (b_open != b_close) and (eqn[b_loc-1] in oper_dict.values()):
+
+				temp=eqn[b_loc-1]
+				j=eqn[b_loc]
+				j=j.replace('(','')
+				u=b_loc
+				while eqn[u] != ")"+j:
+
+					temp+=eqn[u]
+
+				temp+=eqn[u]
+				eqn[b_loc-1]=temp
+				del eqn[b_loc:u]
+				i=-1
+
+		i += 1
+
+	if len(eqn_deg) == 0:
+
+		eqn_deg.append(1)
+		eqn_deg.append(0)
+
+	new_eqn_deg=[]
+	n=0
+	s=0
+	while s != len(eqn_deg):
+
+		j=eqn_deg[s]
+		k=0
+		t=0
+		while t != len(eqn_deg):
+
+			if j < eqn_deg[t]:
+
+				k=1
+
+			t=t+1
+
+		if k!=1:
+
+			new_eqn_deg.insert(n,eqn_deg[s])
+			n=n+1
+			del eqn_deg[s]
+			s=-1
+
+		s=s+1
+
+	return eqn, new_eqn_deg
+
+#This function takes two brackets in array form and foils them out.
+#Both brackets must be of minimum degree 1
+def foiling(b_one, b_two, var_type):
+
+	b_one, b_one_deg = grouping(b_one,var_type)
+
+	b_two, b_two_deg = grouping(b_two,var_type)
+
+	#Create array with only coefficients
+	b_one = Poly_Func(b_one)
+	b_one_coeff = b_one.get_coeff(new_b_one_deg[0],var_type)
+
+	b_two = Poly_Func(b_two)
+	b_two_coeff = b_two.get_coeff(new_b_two_deg[0],var_type)
+
+	ans_coeff=[]
+	ans_powers=[]
+	b_one_pow=len(b_one_coeff)-1
+	b_two_pow=len(b_two_coeff)-1
+
+	#Foiling
+	for i in range(0,len(b_one_coeff.eqn)):
+
+		for j in range(0,len(b_two_coeff.eqn)):
+
+			ans_coeff.append(b_one_coeff.eqn[i]*b_two_coeff.eqn[j])
+			ans_powers.append((b_one_pow-i)+(b_two_pow-j))
+
+	#Simplifying the answer
+	simp_ans_coeff=[]
+	temp_ind=[]
+	temp=0
+	for i in range(ans_powers[0],-1,-1):
+
+		for j in range(0,len(ans_powers)):
+
+			if ans_powers[j] == i:
+
+				temp+=ans_coeff[j]
+
+		simp_ans_coeff.append(temp)
+		temp=0
+
+	ans=[]
+	j=0
+	highest_deg_ans = len(simp_ans_coeff)-1
+
+	if highest_deg_ans > 1:
+
+		for i in range(highest_deg_ans,1,-1):
+
+			ans.append(str(simp_ans_coeff[j])+var_type+"^"+str(i))
+			ans.append("+")
+			j+=1
+
+		ans.append(str(simp_ans_coeff[j])+var_type)
+		ans.append("+")
+		j+=1
+		ans.append(str(simp_ans_coeff[j]))
+
+	else:
+
+		ans.append(str(simp_ans_coeff[j])+var_type)
+		ans.append("+")
+		j+=1
+		ans.append(str(simp_ans_coeff[j]))
+
+	ans.append(")")
+	ans.insert(0,"(")
+
+	return ans		
+
+
+def bracketing(LHS,RHS,var_type):
+
+	global var_dict
+
+	#LHS first
+	
+	b=0
+	b_open=0
+	b_close=0
+	bracket_lvl_l=0
+	bracket_master_l=[]
+	bracket=[]
+	bracket_master=[]
+	i_master_l=[]
+	foil=False
+	
+
+	for s in range(0,len(LHS)):
+
+		if "(" in LHS[s]:
+
+			b += 1
+			i = s
+			b_open += 1
+			bracket_lvl_l += 1
+
+		if ")" in LHS[s]:
+
+			b -= 1
+			b_close += 1
+
+		#if there's a variable inside a bracket other than (1
+		if (var_type[0] in LHS[s]) and (b_open > 1) and (b_open != b_close):
+			
+			bracket.append("(")
+			k=i+1
+			while ")"+str(bracket_lvl_l) not in LHS[k]:
+
+				bracket.append(LHS[k])
+				k += 1
+
+			bracket.append(")")
+			i_master_l.append(i)
+			bracket_master_l.append(bracket)
+
+			if bracket not in bracket_master:
+
+				bracket_master.append(bracket)
+
+			bracket.clear()
+
+	#RHS
+	
+	b=0
+	b_open=0
+	b_close=0
+	bracket_lvl_r=0
+	bracket_master_r=[]
+	i_master_r=[]
+
+	for s in range(0,len(RHS)):
+
+		if "(" in RHS[s]:
+
+			b += 1
+			i = s
+			b_open += 1
+			bracket_lvl_r += 1
+
+		if ")" in RHS[s]:
+
+			b -= 1
+			b_close += 1
+
+		#if there's a variable inside a bracket other than (1
+		if (var_type[0] in RHS[s]) and (b_open > 1) and (b_open != b_close):
+			
+			bracket.append("(")
+			k=i+1
+			while ")"+str(bracket_lvl_r) not in RHS[k]:
+
+				bracket.append(RHS[k])
+				k += 1
+
+			bracket.append(")")
+			i_master_r.append(i)
+			bracket_master_r.append(bracket)
+
+			if bracket not in bracket_master:
+
+				bracket_master.append(bracket)
+
+			bracket.clear()
+
+	#Check if there are any duplicates at all
+	duplicate=False
+	dup_cnt=0
+	dupes=[]
+	temp=[]
+	for i in range(0,len(bracket_master_l)):
+
+		temp.clear()
+		temp=bracket_master_l
+		del temp[i]
+
+		for j in range(0,len(temp)):
+
+			if bracket_master_l[i] == temp[j]:
+
+				duplicate = True
+				dup_cnt += 1
+
+				if bracket_master_l[i] not in dupes:
+
+					dupes.append(stringify(bracket_master_l[i]))
+
+		for j in range(0,len(bracket_master_r)):
+
+			if bracket_master_l[i] == bracket_master_r[j]:
+
+				duplicate = True
+				dup_cnt += 1
+				
+				if bracket_master_l[i] not in dupes:
+
+					dupes.append(stringify(bracket_master_l[i]))
+
+	for i in range(0,len(bracket_master_r)):
+
+		for j in range(0,len(bracket_master_l)):
+
+			if bracket_master_r[i] == bracket_master_l[j]:
+
+				duplicate = True
+				dup_cnt += 1
+
+				if bracket_master_r[i] not in dupes:
+
+					dupes.append(stringify(bracket_master_r[i]))
+
+		temp.clear()
+		temp=bracket_master_r
+		del temp[i]
+
+		for j in range(0,len(temp)):
+
+			if bracket_master_r[i] == temp[j]:
+
+				duplicate = True
+				dup_cnt += 1
+
+				if bracket_master_r[i] not in dupes:
+
+					dupes.append(stringify(bracket_master_r[i]))
+
+	if duplicate == True:
+
+		if dup_cnt == 1:
+
+			if len(bracket_master) == 1:
+
+				#we can substitute directly
+				
+				#First lets get a string of the equation
+				string_eqn = stringify(LHS)
+				string_eqn += "="+stringify(RHS)
+
+				#Second lets replace the bracket by a variable that isn't the inputted variable
+				string_eqn = string_eqn.replace(dupes[0],var_dict[var_type])
+
+				#!!!! Call the bracketify function !!!!
+				#return bracketified eqn
+
+			#There may be duplicates but they can't be substituted easily so we simply foil out the equation to remove the brackets
+			else:
+
+				#First we walk LHS and RHS and foil any brackets multiplied by any constants
+
+				#Maybe we should work our way outwards. Start with inner most constant, bracket pairs and work outwards
+				#Go through each side of the eqn, find highest bracket number. Then search for these pairs for every bracket number
+				#in descending order.				
+
+				for j in range(bracket_lvl_l,0,-1):
+
+					t=0
+					while t != len(LHS):
+
+						if (LHS[t] == "("+str(j)) and (LHS[t-1] == "*") and (is_number(LHS[t-2]) == True):
+
+							x=float(LHS[t-2])
+
+							br=[]
+							s=t
+							while s != ")"+str(bracket_lvl_l):
+
+								br.append(LHS[s])
+								s+=1
+
+							br.append(LHS[s])
+
+							br, br_deg = grouping(br,var_type)
+						  
+				
+			#Find the relationship between duplicates
+			for i in dupes:
+
+				
+
+		else:
+		
+			#do a substitution and then foil and try calculating
+
+	else:
+
+		#there still might be a relationship. If not, then call the foil function because there are no duplicates at all
+			
+			
+
+def isolate(l, r, lvl, var_type):
+
+	global var_index_l, var_index_r, oper_dict_two, solution, sol_cnt
 	
 	op=""
 	op1=""
@@ -681,8 +2005,8 @@ def isolate(l, r, lvl):
 
 	#Simplify both sides of equation
 	
-	simp_l = simplify(l)
-	simp_r = simplify(r)	
+	simp_l = combining(l)
+	simp_r = combining(r)	
 
 	#Grouping
 	#LHS
@@ -691,6 +2015,7 @@ def isolate(l, r, lvl):
 	b=0
 	b_open = 0
 	b_close = 0
+	bracket_lvl = 1
 	s=0
 	simp_l.insert(len(simp_l),"0")
 	simp_l.insert(len(simp_l)+1,"0")
@@ -724,27 +2049,49 @@ def isolate(l, r, lvl):
 						if "(" in simp_l[z]:
 
 							bracket_temp += "("
+							b += 1
 
 						if ")" in simp_l[z]:
 
 							bracket_temp += ")"
+							b -= 1
 
 						else:
 
 							bracket_temp += simp_l[z] 
 							bracket.append(str(simp_l[z]))
-							z += 1
+							
+						z += 1
 
+					z += 1
 					bracket.append(")"+str(b))
 					bracket_temp += ")"
 					#print("bracket",bracket)
-					simp_l[i] = var_type[0]
-					del simp_l[i+1:z+1]
-					s=-1
-					b=0
-					b_open = 0
-					b_close = 0
-					#print("4",simp_l)
+					
+					if simp_l[i-1] in anti_dict:
+			
+						bracket.insert(0,simp_l[i-1])
+						bracket_temp = simp_l[i-1] + bracket_temp
+						simp_l[i-1] = var_type[0]
+						del simp_l[i:z+1]
+						s=-1
+						b=0
+						b_open = 0
+						b_close = 0
+
+					else:
+
+						simp_l[i] = var_type[0]
+						del simp_l[i+1:z]
+						print("HEYHEYHEY", simp_l, bracket, bracket_temp)
+						s=-1
+						b=0
+						b_open = 0
+						b_close = 0
+						#print("4",simp_l)
+
+					bracket_lvl += 1
+
 	
 				else:
 
@@ -805,6 +2152,7 @@ def isolate(l, r, lvl):
 					b_open = 0
 					b_close = 0
 					#print("5",simp_l)
+					bracket_lvl += 1
 
 			#combining x with ^ and exponents
 			if (simp_l[s+1] == "^") & (is_number(simp_l[s+2]) == True):
@@ -1135,7 +2483,8 @@ def isolate(l, r, lvl):
 
 					v=0
 					#print(simp_l,simp_r)
-					string = stringify(simp_l,simp_r)
+					string = stringify(simp_l)
+					string += "="+stringify(simp_r)
 					print(string,"\n")
 					solution.insert(sol_cnt,string)
 					sol_cnt += 1
@@ -1160,7 +2509,8 @@ def isolate(l, r, lvl):
 
 					v=0
 					#print(simp_l,simp_r)
-					string = stringify(simp_l,simp_r)
+					string = stringify(simp_l)
+					string += "="+stringify(simp_r)
 					print(string,"\n")
 					solution.insert(sol_cnt,string)
 					sol_cnt += 1
@@ -1188,7 +2538,8 @@ def isolate(l, r, lvl):
 
 					v=0
 					#print(simp_l,simp_r)
-					string = stringify(simp_l,simp_r)
+					string = stringify(simp_l)
+					string += "="+stringify(simp_r)
 					print(string,"\n")
 					solution.insert(sol_cnt,string)
 					sol_cnt += 1
@@ -1213,7 +2564,8 @@ def isolate(l, r, lvl):
 
 					v=0
 					#print(simp_l,simp_r)
-					string = stringify(simp_l,simp_r)
+					string = stringify(simp_l)
+					string += "="+stringify(simp_r)
 					print(string,"\n")
 					solution.insert(sol_cnt,string)
 					sol_cnt += 1
@@ -1242,7 +2594,8 @@ def isolate(l, r, lvl):
 
 					v=0
 					#print(simp_l,simp_r)
-					string = stringify(simp_l,simp_r)
+					string = stringify(simp_l)
+					string += "="+stringify(simp_r)
 					print(string,"\n")
 					solution.insert(sol_cnt,string)
 					sol_cnt += 1
@@ -1275,7 +2628,8 @@ def isolate(l, r, lvl):
 
 					v=0
 					#print(simp_l,simp_r)
-					string = stringify(simp_l,simp_r)
+					string = stringify(simp_l)
+					string += "="+stringify(simp_r)
 					print(string,"\n")
 					solution.insert(sol_cnt,string)
 					sol_cnt += 1
@@ -1297,7 +2651,7 @@ def isolate(l, r, lvl):
 
 			b=b-1
 
-		if (var_type[0] not in simp_l[v]) & (is_number(simp_l[v]) == True) & (simp_l[v-1] not in oper_dict_two.values()) & (simp_l[v+1] not in oper_dict_two.values()) & (b==lvl): #& you're not within variable bracket range
+		if (var_type[0] not in simp_l[v]) & (is_number(simp_l[v]) == True) & (simp_l[v-1] not in oper_dict_two.values()) & (simp_l[v+1] not in oper_dict_two.values()): #& you're not within variable bracket range
 	
 			if simp_l[v-1] == "-":
 
@@ -1322,7 +2676,8 @@ def isolate(l, r, lvl):
 
 					v=0
 					#print(simp_l,simp_r)
-					string = stringify(simp_l,simp_r)
+					string = stringify(simp_l)
+					string += "="+stringify(simp_r)
 					print(string,"\n")
 					solution.insert(sol_cnt,string)
 					sol_cnt += 1
@@ -1354,7 +2709,8 @@ def isolate(l, r, lvl):
 
 					v=0
 					#print(simp_l,simp_r)
-					string = stringify(simp_l,simp_r)
+					string = stringify(simp_l)
+					string += "="+stringify(simp_r)
 					print(string,"\n")
 					solution.insert(sol_cnt,string)
 					sol_cnt += 1
@@ -1382,7 +2738,8 @@ def isolate(l, r, lvl):
 
 					v=0
 					#print(simp_l,simp_r)
-					string = stringify(simp_l,simp_r)
+					string = stringify(simp_l)
+					string += "="+stringify(simp_r)
 					print(string,"\n")
 					solution.insert(sol_cnt,string)
 					sol_cnt += 1
@@ -1414,7 +2771,8 @@ def isolate(l, r, lvl):
 
 					v=0
 					#print(simp_l,simp_r)
-					string = stringify(simp_l,simp_r)
+					string = stringify(simp_l)
+					string += "="+stringify(simp_r)
 					print(string,"\n")
 					solution.insert(sol_cnt,string)
 					sol_cnt += 1
@@ -1443,7 +2801,8 @@ def isolate(l, r, lvl):
 
 					v=0
 					#print(simp_l,simp_r)
-					string = stringify(simp_l,simp_r)
+					string = stringify(simp_l)
+					string += "="+stringify(simp_r)
 					print(string,"\n")
 					solution.insert(sol_cnt,string)
 					sol_cnt += 1
@@ -1469,7 +2828,8 @@ def isolate(l, r, lvl):
 
 					v=0
 					#print(simp_l,simp_r)
-					string = stringify(simp_l,simp_r)
+					string = stringify(simp_l)
+					string += "="+stringify(simp_r)
 					print(string,"\n")
 					solution.insert(sol_cnt,string)
 					sol_cnt += 1
@@ -1871,7 +3231,8 @@ def isolate(l, r, lvl):
 
 							t=0
 
-						string = stringify(rear_l,simp_r)
+						string = stringify(rear_l)
+						string += "="+stringify(simp_r)
 						print(string,"\n")
 
 				if rear_l[t] == "-":
@@ -1955,7 +3316,8 @@ def isolate(l, r, lvl):
 
 							t=0
 
-						string = stringify(rear_l,simp_r)
+						string = stringify(rear_l)
+						string += "="+stringify(simp_r)
 						print(string,"\n")
 
 			if int(new_n_order[s]) == 1:
@@ -2041,7 +3403,8 @@ def isolate(l, r, lvl):
 
 							t=0
 
-						string = stringify(rear_l,simp_r)
+						string = stringify(rear_l)
+						string += "="+stringify(simp_r)
 						print(string,"\n")
 
 				if rear_l[t] == "-":
@@ -2130,7 +3493,8 @@ def isolate(l, r, lvl):
 
 							t=0
 
-						string = stringify(rear_l,simp_r)
+						string = stringify(rear_l)
+						string += "="+stringify(simp_r)
 						print(string,"\n")
 
 			t=t+1
@@ -2242,7 +3606,8 @@ def isolate(l, r, lvl):
 
 				simp_r[1] = operation(float(simp_r[1]),"/",float(x))
 
-				string = stringify(rear_l,simp_r)
+				string = stringify(rear_l)
+				string += "="+stringify(simp_r)
 				print(string,"\n")
 				solution.insert(sol_cnt,string)
 				sol_cnt += 1
@@ -2256,7 +3621,8 @@ def isolate(l, r, lvl):
 				simp_r[1] = operation(float(simp_r[1]),"/",x)
 				del rear_l[t:t+2]
 
-				string = stringify(rear_l,simp_r)
+				string = stringify(rear_l)
+				string += "="+stringify(simp_r)
 				print(string,"\n")
 				solution.insert(sol_cnt,string)
 				sol_cnt += 1
@@ -2272,7 +3638,8 @@ def isolate(l, r, lvl):
 				t=0
 				#print(rear_l,simp_r)
 
-				string = stringify(rear_l,simp_r)
+				string = stringify(rear_l)
+				string += "="+stringify(simp_r)
 				print(string,"\n")
 				solution.insert(sol_cnt,string)
 				sol_cnt += 1
@@ -2287,7 +3654,8 @@ def isolate(l, r, lvl):
 				simp_r[1] = operation(float(simp_r[1]),"*",x)
 				del rear_l[t+1:t+2]
 
-				string = stringify(rear_l,simp_r)
+				string = stringify(rear_l)
+				string += "="+stringify(simp_r)
 				print(string,"\n")
 				solution.insert(sol_cnt,string)
 				sol_cnt += 1
@@ -2306,7 +3674,8 @@ def isolate(l, r, lvl):
 				t=0
 				#print(rear_l,simp_r)
 
-				string = stringify(rear_l,simp_r)
+				string = stringify(rear_l)
+				string += "="+stringify(simp_r)
 				print(string,"\n")
 				solution.insert(sol_cnt,string)
 				sol_cnt += 1
@@ -2372,7 +3741,8 @@ def isolate(l, r, lvl):
 
 					#simp_r[1] = "+/- "+str(simp_r[1])
 
-				string = stringify(rear_l,simp_r)
+				string = stringify(rear_l)
+				string += "="+stringify(simp_r)
 				print(string,"\n")
 				solution.insert(sol_cnt,string)
 				sol_cnt += 1
@@ -2384,7 +3754,7 @@ def isolate(l, r, lvl):
 		if bracket[0] == "0":
 
 			ans=[]
-			ans.insert(0,simp_r[1])
+			ans.insert(0,var_type[0]+" = "+str(simp_r[1]))
 			return ans
 
 		else:
@@ -2392,12 +3762,14 @@ def isolate(l, r, lvl):
 			solution.insert(sol_cnt,"-- Reintroducing "+bracket_temp+" --")
 			print(solution[sol_cnt],"\n")
 			sol_cnt=sol_cnt+1
-			string = stringify(bracket,simp_r)
+			string = stringify(bracket)
+			string += "="+stringify(simp_r)
 			print(string)
 			solution.insert(sol_cnt,string)
 			sol_cnt += 1
 			simp_r[1] = str(simp_r[1])
-			ans = isolate(bracket,simp_r,1)
+			bracket = lower_b_lvl(bracket,bracket_lvl)
+			ans = isolate(bracket,simp_r,0, var_type)
 			return ans
 			
 
@@ -2431,7 +3803,9 @@ def isolate(l, r, lvl):
 
 			if ")" in str(ans[s]):
 
-				ans[s] = str(ans[s]).replace(')','')		
+				ans[s] = str(ans[s]).replace(')','')
+
+			ans[s] = var_type[0]+" = "+str(ans[s])		
 
 		return ans
 
@@ -2473,6 +3847,8 @@ def isolate(l, r, lvl):
 			if ")" in str(ans[s]):
 
 				ans[s] = str(ans[s]).replace(')','')
+
+			ans[s] = var_type[0]+" = "+str(ans[s])
 		
 
 		return ans		
@@ -2513,6 +3889,8 @@ def isolate(l, r, lvl):
 			if ")" in str(ans[s]):
 
 				ans[s] = str(ans[s]).replace(')','')
+
+			ans[s] = var_type[0]+" = "+str(ans[s])
 		
 		return ans		
 
@@ -2565,7 +3943,8 @@ def isolate(l, r, lvl):
 
 			test_temp += "+"+str(remainder)+"/"+var_type[0]
 
-		string = stringify(rear_l.eqn,simp_r)
+		string = stringify(rear_l.eqn)
+		string += "="+stringify(simp_r)
 		string = string.replace('=0','')
 		print("("+string+")/"+var_type[0]+" = "+test_temp+"\n")
 		solution.insert(sol_cnt,"("+string+")/"+var_type[0]+" = "+test_temp)
@@ -2652,7 +4031,7 @@ def isolate(l, r, lvl):
 
 			for s in range(1,i+1):
 
-				ans.insert(0,0)
+				ans.insert(0,var_type+" = 0")
 					
 
 		else:
@@ -2677,7 +4056,9 @@ def isolate(l, r, lvl):
 
 			if ")" in str(ans[i]):
 
-				ans[i] = str(ans[i]).replace(')','') 
+				ans[i] = str(ans[i]).replace(')','')
+
+			ans[i] = var_type[0]+" = "+str(ans[i]) 
 
 		return ans
 
@@ -2696,6 +4077,7 @@ def main(a):
 	sol_cnt=0
 	solution=[]
 	var_num=0
+	var_type=[]
 	var_index=0
 
 	solution.insert(sol_cnt,"The inputted equation is "+str(a))
@@ -3165,7 +4547,7 @@ def main(a):
 				temp = "" #clear up temp
 
 		s=s+1
-	print(master,var_num,var_type)
+	#print(master,var_num,var_type,(var_num != 0) or (len(var_type) != 0))
 	if (var_num != 0) or (len(var_type) != 0):
 
 		if len(var_type) > 1:
@@ -3308,9 +4690,9 @@ def main(a):
 
 				#then the variable is on the RHS of the equation			
 
-			#print(LHS,RHS)
-			ans=isolate(LHS,RHS,1)
-
+			
+			ans=isolate(LHS,RHS,1,var_type)
+			#print("YEEEEHAAAWWW",ans)
 			if len(ans) == 1:
 		
 				solution.insert(sol_cnt,"The value of "+str(var_type[0])+" is "+str(ans[0]))
@@ -3333,11 +4715,28 @@ def main(a):
 				mem_tot = abs(the_end - beginning)
 				solution.insert(sol_cnt+2+s,mem_tot)
 
-			return solution
+			return solution, ans
 
 	else:
- 
-		ans=calculate(master,0)
+
+		master=inference(master)
+		ans=["0"]
+		ans[0]=calculate(master,0)
+
+		try:
+
+			ans[0] = complex(ans[0])
+
+		except:
+
+			pass
+
+		if isinstance(ans[0], complex) == True:
+
+			if ans[0].imag == 0:
+
+				ans[0] = str(ans[0].real)
+
 		print(ans)
 		solution.insert(sol_cnt,"The final answer is "+str(ans))
 		print(solution[sol_cnt])
@@ -3347,6 +4746,6 @@ def main(a):
 		solution.insert(sol_cnt+1,mem_tot)
 		#print(mem_tot, "bytes", beginning, "bytes", the_end, "bytes")
 
-		return solution
+		return solution, ans
 
 
