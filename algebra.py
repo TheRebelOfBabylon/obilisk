@@ -12,7 +12,14 @@ def is_number(s):
 
 	except ValueError:
 		
-		return False
+		try:
+
+			complex(s)
+			return True
+
+		except ValueError:
+
+			return False
 
 def cube_root(x):
 
@@ -314,7 +321,12 @@ class Poly_Func:
 
 				elif (is_number(self.eqn[i]) == True) & (s==0):
 				
-					a = float(self.eqn[i])
+					a = complex(self.eqn[i])
+
+					if round(a.imag,6) == 0:
+
+						a = float(a.real)
+				
 					if self.eqn[i-1] == "-":
 
 						a = -1*a					
