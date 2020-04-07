@@ -653,7 +653,7 @@ def calculate(n,b):
 
 def combining(eqn, var_type, highest_deg):
 
-	#print("in combining", eqn, var_type, highest_deg)
+	print("in combining", eqn, var_type, highest_deg)
 
 	global oper_dict, solution, sol_cnt
 	#Tentative order of terms: ()^c ()/() ()*() c*() ()+-() cos() x^2 x 69
@@ -1129,7 +1129,7 @@ def combining(eqn, var_type, highest_deg):
 						b = b+str(temp[v])
 						v+=1
 
-					if int(b) == s:
+					if int(float(b)) == s:
 
 						if eqn[t-1] == "-":
 						
@@ -2327,7 +2327,7 @@ def grouping(eqn):
 
 	global oper_dict
 
-	#print("Inside grouping")
+	#print("Inside grouping", eqn)
 	#Start with combining with constants and powers into one index
 	i=0
 	p=0
@@ -2441,6 +2441,7 @@ def grouping(eqn):
 		i += 1
 
 	#This section of code was added because when grouping is fed an equation that is already grouped, it fails
+	#print("Made it here", eqn)
 	if len(var) == 0:
 
 		for i in range(0,len(eqn)):
@@ -2501,6 +2502,7 @@ def grouping(eqn):
 
 							var.append(x)					
 
+	#print("Now we here", eqn)
 	eqn_deg=[]
 	for s in eqn:
 
@@ -2532,13 +2534,13 @@ def grouping(eqn):
 						pow=""
 						while (q != len(temp)):
 
-							if is_number(temp[q]) == True:
+							if (is_number(temp[q]) == True) or (temp[q] == "."):
 
 								pow+= temp[q]
 								#print(pow, "q = "+str(q), "len(temp) = "+str(len(temp)))
 								q+=1
 
-						pow = int(pow)
+						pow = int(float(pow))
 
 						if pow not in eqn_deg:
 					
@@ -2568,7 +2570,7 @@ def grouping(eqn):
 				eqn_deg.append(0)
 				#print(s, eqn_deg)
 
-	#print("eqn_deg", eqn_deg)
+	#print("eqn_deg", eqn_deg, eqn)
 	new_eqn_deg=[]
 	s = 0
 	while s != len(eqn_deg):
@@ -2703,7 +2705,7 @@ def bracket_add(br_one, op, br_two, var):
 
 					ans.append(var)
 					ans.append("^")
-					ans.append(str(i))
+					ans.append(str(float(i)))
 					j+=1
 
 				elif ans_coeff[j] == 0:
@@ -2717,7 +2719,7 @@ def bracket_add(br_one, op, br_two, var):
 
 						ans.append("-"+var)
 						ans.append("^")
-						ans.append(str(i))
+						ans.append(str(float(i)))
 						j+=1
 
 					else:
@@ -2725,7 +2727,7 @@ def bracket_add(br_one, op, br_two, var):
 						ans.append(str(ans_coeff[j]))
 						ans.append(var)
 						ans.append("^")
-						ans.append(str(i))
+						ans.append(str(float(i)))
 						j+=1
 
 				else:
@@ -2733,7 +2735,7 @@ def bracket_add(br_one, op, br_two, var):
 					ans.append(str(ans_coeff[j]))
 					ans.append(var)
 					ans.append("^")
-					ans.append(str(i))
+					ans.append(str(float(i)))
 					j+=1
 
 			else:
@@ -2743,7 +2745,7 @@ def bracket_add(br_one, op, br_two, var):
 					ans.append("+")
 					ans.append(var)
 					ans.append("^")
-					ans.append(str(i))
+					ans.append(str(float(i)))
 					j+=1
 
 				elif ans_coeff[j] == 0:
@@ -2758,7 +2760,7 @@ def bracket_add(br_one, op, br_two, var):
 						ans.append("-")
 						ans.append(var)
 						ans.append("^")
-						ans.append(str(i))
+						ans.append(str(float(i)))
 						j+=1
 
 					else:
@@ -2767,7 +2769,7 @@ def bracket_add(br_one, op, br_two, var):
 						ans.append(str(abs(ans_coeff[j])))
 						ans.append(var)
 						ans.append("^")
-						ans.append(str(i))
+						ans.append(str(float(i)))
 						j+=1
 
 				else:
@@ -2776,7 +2778,7 @@ def bracket_add(br_one, op, br_two, var):
 					ans.append(str(ans_coeff[j]))
 					ans.append(var)
 					ans.append("^")
-					ans.append(str(i))
+					ans.append(str(float(i)))
 					j+=1
 
 		if ans_coeff[j] == 1:
@@ -2949,7 +2951,7 @@ def foiling(b_one, b_two, var_type):
 
 						ans.append(var_type)
 						ans.append("^")
-						ans.append(str(i))
+						ans.append(str(float(i)))
 						j+=1
 
 					elif simp_ans_coeff[j] == 0:
@@ -2963,7 +2965,7 @@ def foiling(b_one, b_two, var_type):
 
 							ans.append("-"+var_type)
 							ans.append("^")
-							ans.append(str(i))
+							ans.append(str(float(i)))
 							j+=1
 
 						else:
@@ -2971,7 +2973,7 @@ def foiling(b_one, b_two, var_type):
 							ans.append(str(simp_ans_coeff[j]))
 							ans.append(var_type)
 							ans.append("^")
-							ans.append(str(i))
+							ans.append(str(float(i)))
 							j+=1
 
 					else:
@@ -2979,7 +2981,7 @@ def foiling(b_one, b_two, var_type):
 						ans.append(str(simp_ans_coeff[j]))
 						ans.append(var_type)
 						ans.append("^")
-						ans.append(str(i))
+						ans.append(str(float(i)))
 						j+=1
 
 				#simp_coeff_ans[j] is a complex number
@@ -2988,7 +2990,7 @@ def foiling(b_one, b_two, var_type):
 					ans.append(str(simp_ans_coeff[j]))
 					ans.append(var_type)
 					ans.append("^")
-					ans.append(str(i))
+					ans.append(str(float(i)))
 					j+=1
 
 			else:
@@ -3000,7 +3002,7 @@ def foiling(b_one, b_two, var_type):
 						ans.append("+")
 						ans.append(var_type)
 						ans.append("^")
-						ans.append(str(i))
+						ans.append(str(float(i)))
 						j+=1
 
 					elif simp_ans_coeff[j] == 0:
@@ -3015,7 +3017,7 @@ def foiling(b_one, b_two, var_type):
 							ans.append("-")
 							ans.append(var_type)
 							ans.append("^")
-							ans.append(str(i))
+							ans.append(str(float(i)))
 							j+=1
 
 						else:
@@ -3024,7 +3026,7 @@ def foiling(b_one, b_two, var_type):
 							ans.append(str(abs(simp_ans_coeff[j])))
 							ans.append(var_type)
 							ans.append("^")
-							ans.append(str(i))
+							ans.append(str(float(i)))
 							j+=1
 
 					else:
@@ -3033,7 +3035,7 @@ def foiling(b_one, b_two, var_type):
 						ans.append(str(simp_ans_coeff[j]))
 						ans.append(var_type)
 						ans.append("^")
-						ans.append(str(i))
+						ans.append(str(float(i)))
 						j+=1
 
 				#simp_coeff_ans[j] is a complex number
@@ -3043,7 +3045,7 @@ def foiling(b_one, b_two, var_type):
 					ans.append(str(simp_ans_coeff[j]))
 					ans.append(var_type)
 					ans.append("^")
-					ans.append(str(i))
+					ans.append(str(float(i)))
 					j+=1
 
 		if simp_ans_coeff[j].imag == 0:
@@ -5657,7 +5659,7 @@ def bracketify(a):
 	#Transform input string array into code-readable format
 	while s != len(a)-5:
 
-		#print(master)
+		#print(master, a[s], s)
 		if a[s] == "(":
 		
 			b=b+1 #system has knowledge of current amount of open brackets
@@ -6123,7 +6125,7 @@ def bracketify(a):
 
 					temp=str(temp)+str(numtemp[k])
 
-				master.insert(j,temp)
+				master.insert(j,str(float(temp)))
 				j=j+1
 				i=0
 				numtemp.clear()
