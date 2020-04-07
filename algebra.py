@@ -97,7 +97,7 @@ class Poly_Func:
 
 					if s > 1:
 
-						temp += var_type+"^"+str(s)
+						temp += var_type+"^"+str(float(s))
 
 					elif s == 1:
 
@@ -119,7 +119,7 @@ class Poly_Func:
 
 					if s > 1:
 
-						temp += "-"+var_type+"^"+str(s)
+						temp += "-"+var_type+"^"+str(float(s))
 
 					elif s == 1:
 
@@ -141,7 +141,7 @@ class Poly_Func:
 
 					if s > 1:
 
-						temp += str(self.eqn[i])+var_type+"^"+str(s)
+						temp += str(self.eqn[i])+var_type+"^"+str(float(s))
 
 					elif s == 1:
 
@@ -165,7 +165,7 @@ class Poly_Func:
 
 					if s > 1:
 
-						temp += var_type+"^"+str(s)
+						temp += var_type+"^"+str(float(s))
 
 					elif s == 1:
 
@@ -180,7 +180,7 @@ class Poly_Func:
 
 					if s > 1:
 
-						temp += "-"+var_type+"^"+str(s)
+						temp += "-"+var_type+"^"+str(float(s))
 
 					elif s == 1:
 
@@ -194,7 +194,7 @@ class Poly_Func:
 
 					if s > 1:
 
-						temp += str(self.eqn[i])+var_type+"^"+str(s)
+						temp += str(self.eqn[i])+var_type+"^"+str(float(s))
 
 					elif s == 1:
 
@@ -260,7 +260,7 @@ class Poly_Func:
 			
 			for i in range(0,len(self.eqn)):
 				
-				if "^"+str(s) in self.eqn[i]:
+				if "^"+str(float(s)) in self.eqn[i]:
 				
 					temp = self.eqn[i]
 					a=""
@@ -277,7 +277,7 @@ class Poly_Func:
 						b = b+str(temp[v])
 						v+=1
 
-					if int(b) == s:
+					if int(float(b)) == s:
 
 						if a == "":
 

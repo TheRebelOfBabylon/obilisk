@@ -17,6 +17,7 @@ def solve(LHS, RHS, var):
 		ans=[]
 		for i in ans_r:
 
+			print(i)
 			temp = i
 			temp[1] = complex(temp[1])
 

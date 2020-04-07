@@ -255,6 +255,7 @@ def solving(l_prime, r, var, highest_deg):
 	print("Beginning of solving: ", l, r, var, highest_deg)
 
 	global oper_dict_two
+	asymptote=[]
 
 	ans=0
 	#First we put equation in standard polynomial form
@@ -272,1104 +273,1098 @@ def solving(l_prime, r, var, highest_deg):
 
 	#1. remove any brackets divided by brackets ()/()
 	s=0
-	l_copy = l[:]
-	temp_l = []
-	r_copy = r[:]
-	temp_r = []
 	div_check_l = 0
 	while s != len(l):
 	
-		print("we're looping infinitely in here",l,l_copy,r,r_copy,"\n",s, len(l))
+		#print("we're looping infinitely in here",l,l_copy,r,r_copy,"\n",s, len(l))
 
 
 		#What do we do if COS(()/())? or (()/())^7. Maybe it would be wise to make a marker that indicates a bracket is preceded by a special op like COS 
 		if ("(" in l[s]) and (l[s-1] == "/") and (")" in l[s-2]) and (s != 0):
 
 			div_check_l += 1
-			j = s
-			b = l[j]
-			b = b.replace("(",'')
-			b = int(b)
+			print("s is currently "+str(s),l[s])
+			br_string = "("
+			k = s+1
+			var_check = False
+			while ")" not in l[k]:
+
+				if var in l[k]:
+
+					var_check = True
+
+				br_string+=l[k]
+				k+=1
+
+			k+=1
+			br_string+=")"
 			
-			#this might be (()/())^c
-			if b != 2:
+			exp_check = False
+			if l[k] == "^":
 
-				c = b
-				k=j
-				x=1
-				exp_chk = False
-				while c != 1:
-
-					if (l[k] == "^") and (l[k-1] == ")"+str(c)):
-
-						k+=1
-						x*=float(l[k])
-						exp_chk = True
-						c-=1
-
-					elif l[k-1] == ")"+str(c):
-
-						c-=1	
-
-					k+=1
-
-			else:
-
-				x = 1
-				exp_chk = False
+				exp_check == True
+				br_string+="^"+l[k+1]
 				
-			br = []
-			l[j-1]="$"
-			l[j]="$"
-			j+=1
-			while l[j] != ")"+str(b):
+			if var_check == True:
 
-				br.append(l[j])
-				l[j]="$"
-				j+=1
+				temp, temp_var = bracketify(br_string)
+				temp, temp_deg = grouping(temp)
+				temp_string = stringify(temp)
 
-			l[j]="$"
-			br_copy = br[:]
-			br_copy.insert(0,"(2")
-			br_copy.append(")2")
-			mul_br = br_copy[:]
-			if (l[j+1] == "^") and (is_number(l[j+2]) == True):
+				print("AN ASYMPTOTE HAS BEEN FOUND", temp_string)
+				asy_temp = solving(temp, ["(1","0",")1"], temp_var[0], temp_deg[0])
 
-				br_copy.append("^")
-				br_copy.append(l[j+2])
+				if not asymptote:
 
-			br_copy.insert(0,"(1")
-			br_copy.append(")1")
+					asymptote.append(asy_temp)
 
-			if x > 1:
+				if asy_temp not in asymptote:
+	
+					asymptote.append(asy_temp)
 
-				mul_br.append("^")
-				mul_br.append(str(x))
+				print("FOUND AN ASYMPTOTE: ", asymptote)
 
-			mul_br.insert(0,"(1")
-			mul_br.append(")1")
-
-			mul_br = stringify(mul_br)
-
-			print("Identified bracket division: ", "br", br, "x", x, "mul_br", mul_br)
-
-			b=0
-			k=0
-			#print("l[s]", l[s], "br", br, "x", x)
-			while k != len(l):
-
-				#print("k = "+str(k), "b = "+str(b))
+			k = 0
+			b = 0
+			while k != s:
 
 				if "(" in l[k]:
 
 					b+=1
 
-				if ")" in l[k]:
+				elif ")" in l[k]:
 
 					b-=1
 
-				if (is_number(l[k]) == True) and (b == 1) and (("(" in l[k-1]) or (l[k-1] in "+-")):
+				k+=1
+ 
+			x = 1
+			c = b
+			while k != len(l):
 
-					print("l[k] = "+str(l[k]))
-					ini = k
-					term = l[k]
+				if "(" in l[k]:
 
-					b_two = 0
-					m = 0
-					while m != len(l_copy):
+					b+=1
 
-						if "(" in l_copy[m]:
+				elif ")" in l[k]:
 
-							b_two+=1
+					b-=1
 
-						if ")" in l_copy[m]:
+				if (is_number(l[k]) == True) and (l[k-1] == "^") and (l[k-2] == ")"+str(c)):
 
-							b_two-=1
+					x*=float(l[k])
+					c-=1
 
-						if (l_copy[m] == term) and (b_two == 1) and (("(" in l_copy[m-1]) or (l_copy[m-1] in "+-")):
+				elif (l[k-1] != "^") and (l[k-2] == ")"+str(c)):
 
-							m+=1
-							l_copy.insert(m,"*")
-							m+=1
-							l_copy.insert(m,"("+str(b_two+1))
-							m+=1
-							for c in br:
-
-								l_copy.insert(m,c)
-								m+=1
-
-							l_copy.insert(m,")"+str(b_two+1))
-
-							if exp_chk == True:
-
-								m+=1
-								l_copy.insert(m,"^")
-								m+=1
-								l_copy.insert(m,str(x))
-
-							break
-
-						m+=1
-
-					while (l[ini] not in "+-"): 
-
-						if (l[ini] != ")1"):
-	
-							break
-
-						temp_l.append(l[ini])
-						l[ini] = "#"
-						
-						ini+=1
-						#print("deleting",l,l_copy)
-
-					temp_l.append(l[ini])
-					l[ini] = "#"
-					print("deleting",l,l_copy)
-					k=-1
-					b=0
-
-				elif (var in l[k]) and (b == 1) and (("(" in l[k-1]) or (l[k-1] in "+-")):
-
-					#print("we in here", l[k])
-					
-					ini = k
-					term = l[k]
-
-					b_two = 0
-					m = 0
-					while m != len(l_copy):
-
-						if "(" in l_copy[m]:
-
-							b_two+=1
-
-						if ")" in l_copy[m]:
-
-							b_two-=1
-
-						if (l_copy[m] == term) and (b_two == 1)and (("(" in l_copy[m-1]) or (l_copy[m-1] in "+-")):
-
-							m+=1
-							l_copy.insert(m,"*")
-							m+=1
-							l_copy.insert(m,"("+str(b_two+1))
-							m+=1
-							for c in br:
-
-								l_copy.insert(m,c)
-								m+=1
-
-							l_copy.insert(m,")"+str(b_two+1))
-
-							if exp_chk == True:
-
-								m+=1
-								l_copy.insert(m,"^")
-								m+=1
-								l_copy.insert(m,str(x))
-
-							break
-
-						m+=1
-
-					while (l[ini] not in "+-"):
-
-						if (l[ini] != ")1"):
-	
-							break
-
-						temp_l.append(l[ini])
-						l[ini] = "#"
-						ini+=1
-						#print("deleting",l,l_copy)
-
-					temp_l.append(l[ini])
-					l[ini] = "#"
-					#print("deleting",l,l_copy)
-					k=-1
-					b=0
-
-				elif ("(2" == l[k]) and (l[k-1] not in "*/"):
-
-					ini = k
-					term = l[k]
-
-					b_two = 0
-					m = 0
-					while m != len(l_copy):
-
-						if "(" in l_copy[m]:
-
-							b_two+=1
-
-						if ")" in l_copy[m]:
-
-							b_two-=1
-
-						if ("(2" == l_copy[m]) and (l_copy[m-1] not in "*/"):
-
-							l_copy.insert(m,"(2")
-							m+=1
-							for c in br:
-
-								l_copy.insert(m,c)
-								m+=1
-
-							l_copy.insert(m,")2")
-							m+=1
-							if exp_chk == True:
-
-								l_copy.insert(m,"^")
-								m+=1
-								l_copy.insert(m,str(x))
-								m+=1
-
-							l_copy.insert(m,"*")
-							break
-
-						m+=1
-					
-					br_temp=[]
-					while (l[ini] != ")2"):
-
-						br_temp.append(l[ini])
-						temp_l.append(l[ini])
-						l[ini] = "#"
-						ini+=1
-						#print("deleting",l,l_copy)
-
-					br_temp.append(l[ini])
-					temp_l.append(l[ini])
-					l[ini] = "#"
-					#print("deleting",l,l_copy)
-					while (l[ini] not in "+-"):
-						
-						if (l[ini] != ")1"):
-	
-							break
-
-						br_temp.append(l[ini])
-
-						temp_l.append(l[ini])
-						l[ini] = "#"
-						ini+=1 
-						#print("deleting",l,l_copy)
-					
-					br_temp.insert(0,"(1")
-					br_temp.append(")1")
-					br_temp_string = stringify(br_temp)
-					#print("br_temp_string = "+br_temp_string, "mul_br = "+mul_br)
-
-					br_copy = stringify(br_copy)
-
-					if "/"+br_copy in br_temp_string:
-
-						l_copy_string = stringify(l_copy)
-						#print("l_copy_string ="+l_copy_string)
-						l_copy_string = l_copy_string.replace(mul_br+"*"+br_temp_string,br_temp_string)
-						#print("l_copy_string ="+l_copy_string)
-						l_copy_string = l_copy_string.replace("/"+br_copy,"")
-						#print("l_copy_string ="+l_copy_string)
-						l_copy, l_copy_var = bracketify(l_copy_string)
-						l_copy, highest_deg = grouping(l_copy)
-
-					temp_l.append(l[ini])
-					l[ini] = "#"
-					#print("deleting",l_copy)
-					k=-1
-					b=0
+					c-=1
 
 				k+=1
+
+			if (x > 1) and (exp_check == False):
+
+				br_string = br_string+"^"+str(x)
+
+			elif (x > 1) and (exp_check == True):
+
+				x_temp = float(br_string[len(br_string)-1])
+				x*=x_temp
+				new_br_string = ""
+				i=0
+				while br_string[i] != "^":
+
+					new_br_string+=br_string[i]
+
+				new_br_string += "^"+str(x)
+				br_string = new_br_string
+				
+			print("The divisor is: "+br_string)
 			
-			n=0
-			for d in range(0,len(l)):
+			br, br_var = bracketify(br_string)
+			br, br_deg = grouping(br)
+			del br[0]
+			del br[len(br)-1]
 
-				if l[d] == "#":
+			print(br)
 
-					l[d] = temp_l[n]
-					n+=1
+			k=1
+			b=1
+			while l[k] != ")1":
 
-			temp_l=[]
+				if "(" in l[k]:
 
-			print("Now RHS...")
-			b=0
-			k=0
-			#print("l[s]", l[s], "br", br, "x", x)
-			while k != len(r):
+					b+=1
 
-				#print("k = "+str(k), "b = "+str(b))
+				elif ")" in l[k]:
+
+					b-=1
+
+				if ((is_number(l[k]) == True) or (var in l[k])) and (b == 1):
+
+					#pass
+					k+=1
+					l.insert(k,"*")
+					k+=1
+					for i in range(len(br)-1,-1,-1):
+
+						l.insert(k,br[i])
+
+					#print(l, k)
+
+					if k < s:
+
+						s+=len(br)+1
+
+					while l[k] != ")1":
+
+						if "(" in l[k]:
+
+							b+=1
+
+						elif ")" in l[k]:
+
+							b-=1
+
+						if (l[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(l)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(l)-1 = "+str(len(l)-1))
+
+				elif (l[k] == "(2"):
+
+					l.insert(k,"*")
+					for i in range(len(br)-1,-1,-1):
+
+						l.insert(k,br[i])
+
+					#print(l, k)
+
+					if k < s:
+
+						s+=len(br)+1
+
+					#print("s is now "+str(s), l[s])
+					k+=len(br)+1
+
+					while l[k] != ")1":
+
+						if "(" in l[k]:
+
+							b+=1
+
+						elif ")" in l[k]:
+
+							b-=1
+
+						if (l[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(l)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(l)-1 = "+str(len(l)-1))
+
+				k+=1
+
+			k=1
+			b=1
+			while r[k] != ")1":
 
 				if "(" in r[k]:
 
 					b+=1
 
-				if ")" in r[k]:
+				elif ")" in r[k]:
 
 					b-=1
 
-				if (is_number(r[k]) == True) and (b == 1) and (("(" in r[k-1]) or (r[k-1] in "+-")):
+				if ((is_number(r[k]) == True) or (var in r[k])) and (b == 1):
 
-					print("r[k] = "+str(r[k]))
-					ini = k
-					term = r[k]
+					#pass
+					k+=1
+					r.insert(k,"*")
+					k+=1
+					for i in range(len(br)-1,-1,-1):
 
-					b_two = 0
-					m = 0
-					while m != len(r_copy):
+						r.insert(k,br[i])
 
-						if "(" in r_copy[m]:
+					#print(r, k)
 
-							b_two+=1
+					while r[k] != ")1":
 
-						if ")" in r_copy[m]:
+						if "(" in r[k]:
 
-							b_two-=1
+							b+=1
 
-						if (r_copy[m] == term) and (b_two == 1) and (("(" in r_copy[m-1]) or (r_copy[m-1] in "+-")):
+						elif ")" in r[k]:
 
-							m+=1
-							r_copy.insert(m,"*")
-							m+=1
-							r_copy.insert(m,"("+str(b_two+1))
-							m+=1
-							for c in br:
+							b-=1
 
-								r_copy.insert(m,c)
-								m+=1
-
-							r_copy.insert(m,")"+str(b_two+1))
-
-							if exp_chk == True:
-
-								m+=1
-								r_copy.insert(m,"^")
-								m+=1
-								r_copy.insert(m,str(x))
+						if (r[k] in "+-") and (b == 1):
 
 							break
 
-						m+=1
+						k+=1
 
-					while (r[ini] not in "+-"): 
+					if k == len(r)-1:
 
-						if (r[ini] != ")1"):
-	
-							break
+						k-=1
 
-						temp_r.append(r[ini])
-						r[ini] = "#"
-						ini+=1
-						#print("deleting",l,l_copy)
+					#print("k = "+str(k), "len(r)-1 = "+str(len(r)-1))
 
-					temp_r.append(r[ini])
-					r[ini] = "#"
-					print("deleting",r,r_copy)
-					k=-1
-					b=0
+				elif (r[k] == "(2"):
 
-				elif (var in r[k]) and (b == 1) and (("(" in r[k-1]) or (r[k-1] in "+-")):
+					r.insert(k,"*")
+					for i in range(len(br)-1,-1,-1):
 
-					print("we in here", r[k])
-					
-					ini = k
-					term = r[k]
+						r.insert(k,br[i])
 
-					b_two = 0
-					m = 0
-					while m != len(r_copy):
+					k+=len(br)+1
+					#print(r, k)
 
-						if "(" in r_copy[m]:
+					while r[k] != ")1":
 
-							b_two+=1
+						if "(" in r[k]:
 
-						if ")" in r_copy[m]:
+							b+=1
 
-							b_two-=1
+						elif ")" in r[k]:
 
-						if (r_copy[m] == term) and (b_two == 1) and (("(" in r_copy[m-1]) or (r_copy[m-1] in "+-")):
+							b-=1
 
-							m+=1
-							r_copy.insert(m,"*")
-							m+=1
-							r_copy.insert(m,"("+str(b_two+1))
-							m+=1
-							for c in br:
-
-								r_copy.insert(m,c)
-								m+=1
-
-							r_copy.insert(m,")"+str(b_two+1))
-
-							if exp_chk == True:
-
-								m+=1
-								r_copy.insert(m,"^")
-								m+=1
-								r_copy.insert(m,str(x))
+						if (r[k] in "+-") and (b == 1):
 
 							break
 
-						m+=1
+						k+=1
 
-					while (r[ini] not in "+-"):
+					if k == len(r)-1:
 
-						if (r[ini] != ")1"):
-	
-							break
+						k-=1
 
-						temp_r.append(r[ini])
-						r[ini] = "#"
-						ini+=1
-						#print("deleting",l,l_copy)
-
-					temp_r.append(r[ini])
-					r[ini] = "#"
-					print("deleting",r,r_copy)
-					k=-1
-					b=0
-
-				elif ("(2" == r[k]) and (r[k-1] not in "*/"):
-
-					ini = k
-					term = r[k]
-
-					b_two = 0
-					m = 0
-					while m != len(r_copy):
-
-						if "(" in r_copy[m]:
-
-							b_two+=1
-
-						if ")" in r_copy[m]:
-
-							b_two-=1
-
-						if ("(2" == r_copy[m]) and (r_copy[m-1] not in "*/"):
-
-							r_copy.insert(m,"(2")
-							m+=1
-							for c in br:
-
-								r_copy.insert(m,c)
-								m+=1
-
-							r_copy.insert(m,")2")
-							m+=1
-							if exp_chk == True:
-
-								r_copy.insert(m,"^")
-								m+=1
-								r_copy.insert(m,str(x))
-								m+=1
-
-							r_copy.insert(m,"*")
-							break
-
-						m+=1
-					
-					while (r[ini] != ")2"):
-
-						temp_r.append(r[ini])
-						r[ini] = "#"
-						ini+=1
-						#print("deleting",l,l_copy)
-
-					temp_r.append(r[ini])
-					r[ini] = "#"
-					#print("deleting",l,l_copy)
-					while (r[ini] not in "+-"):
-						
-						if (r[ini] != ")1"):
-	
-							break
-
-						temp_r.append(r[ini])
-						r[ini] = "#"
-						ini+=1 
-						#print("deleting",l,l_copy)
-					
-					temp_r.append(r[ini])
-					r[ini] = "#"
-					#print("deleting",l,l_copy)
-					k=-1
-					b=0
+					#print("k = "+str(k), "len(r)-1 = "+str(len(r)-1))
 
 				k+=1
 
-			n=0
-			for d in range(0,len(r)):
+			print(l,r)
 
-				if r[d] == "#":
+		elif ((is_number(l[s]) == True) or (var in l[s])) and (l[s-1] == "/") and (s != 0):
 
-					r[d] = temp_r[n]
-					n+=1
+			#print("l[s] = /"+str(l[s]))
+			div_check_l += 1
+			br_string = l[s]
 
-			temp_r=[]
+			if var in l[s]:
 
-			#br_copy = stringify(br_copy)
-			#print("br_copy="+br_copy)
-			#l_copy_string = stringify(l_copy)
-			#l_copy_string = l_copy_string.replace("/"+br_copy,"")
-			#l_copy, l_copy_var = bracketify(l_copy_string)
-			s=-1
+				temp=[]
+				temp.append(l[s])
+				temp.insert(0,"(1")
+				temp.append(")1")
+				temp_string = stringify(temp)
+				temp, temp_var = bracketify(temp_string)
+				temp, temp_deg = grouping(temp)
+
+				print("AN ASYMPTOTE HAS BEEN FOUND", temp_string)
+				asy_temp = solving(temp, ["(1","0",")1"], temp_var[0], temp_deg[0])
+				if not asymptote:
+
+					asymptote.append(asy_temp)
+
+				if asy_temp not in asymptote:
+	
+					asymptote.append(asy_temp)
+
+				print("FOUND AN ASYMPTOTE: ", asymptote)
+
+			k = 0
+			b = 0
+			b_open = 0
+			b_close = 0
+			while k != s:
+
+				if "(" in l[k]:
+
+					b_open+=1
+					b+=1
+
+				elif ")" in l[k]:
+
+					b_close+=1
+					b-=1
+
+				k+=1
+ 
+			x = 1
+			c = b
+			while k != len(l):
+
+				if "(" in l[k]:
+
+					b_open+=1
+					b+=1
+
+				elif ")" in l[k]:
+
+					b_close+=1
+					b-=1
+
+				if (is_number(l[k]) == True) and (l[k-1] == "^") and (l[k-2] == ")"+str(c)):
+
+					x*=float(l[k])
+					c-=1
+
+				elif (l[k-1] != "^") and (l[k-2] == ")"+str(c)):
+
+					c-=1
+
+				k+=1
+
+			if x > 1:
+
+				br_string = "("+br_string+")^"+str(x)
+				
+			#print("The divisor is: "+br_string)
+			
+			br, br_var = bracketify(br_string)
+			br, br_deg = grouping(br)
+			del br[0]
+			del br[len(br)-1]
+
+			#print(br)
+
+			k=1
+			b=1
+			while l[k] != ")1":
+
+				if "(" in l[k]:
+
+					b+=1
+
+				elif ")" in l[k]:
+
+					b-=1
+
+				if ((is_number(l[k]) == True) or (var in l[k])) and (b == 1):
+
+					#pass
+					k+=1
+					l.insert(k,"*")
+					k+=1
+					for i in range(len(br)-1,-1,-1):
+
+						l.insert(k,br[i])
+
+					#print(l, k)
+
+					if k < s:
+
+						s+=len(br)+1
+
+					while l[k] != ")1":
+
+						if "(" in l[k]:
+
+							b+=1
+
+						elif ")" in l[k]:
+
+							b-=1
+
+						if (l[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(l)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(l)-1 = "+str(len(l)-1))
+
+				elif (l[k] == "(2"):
+
+					l.insert(k,"*")
+					for i in range(len(br)-1,-1,-1):
+
+						l.insert(k,br[i])
+					
+					#print(l, k)
+
+					if k < s:
+
+						s+=len(br)+1
+
+					k+=len(br)+1
+
+					while l[k] != ")1":
+
+						if "(" in l[k]:
+
+							b+=1
+
+						elif ")" in l[k]:
+
+							b-=1
+
+						if (l[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(l)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(l)-1 = "+str(len(l)-1))
+
+				k+=1
+
+			k=1
+			b=1
+			while r[k] != ")1":
+
+				if "(" in r[k]:
+
+					b+=1
+
+				elif ")" in r[k]:
+
+					b-=1
+
+				if ((is_number(r[k]) == True) or (var in r[k])) and (b == 1):
+
+					#pass
+					k+=1
+					r.insert(k,"*")
+					k+=1
+					for i in range(len(br)-1,-1,-1):
+
+						r.insert(k,br[i])
+
+					#print(r, k)
+
+					while r[k] != ")1":
+
+						if "(" in r[k]:
+
+							b+=1
+
+						elif ")" in r[k]:
+
+							b-=1
+
+						if (r[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(r)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(r)-1 = "+str(len(r)-1))
+
+				elif (r[k] == "(2"):
+
+					r.insert(k,"*")
+					for i in range(len(br)-1,-1,-1):
+
+						r.insert(k,br[i])
+
+					k+=len(br)+1
+					#print(r, k)
+
+					while r[k] != ")1":
+
+						if "(" in r[k]:
+
+							b+=1
+
+						elif ")" in r[k]:
+
+							b-=1
+
+						if (r[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(r)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(r)-1 = "+str(len(r)-1))
+
+				k+=1
+
+			print(l,r)
 			
 		s+=1
 
 	print("AHHHHHHHHHHHHHHH")
 	
-
-	l = l_copy[:]
-	r = r_copy[:]
 	l_string = stringify(l)
 	r_string = stringify(r)
 	print(l_string+"="+r_string)
 
 	s=0
-	l_copy = l[:]
-	temp_l = []
-	r_copy = r[:]
-	temp_r = []
 	div_check_r = 0
 	while s != len(r):
 	
-		print("we're looping infinitely in here",l,l_copy,r,r_copy,"\n",s, len(r))
-
+		#print("we're looping infinitely in here",l,l_copy,r,r_copy,"\n",s, len(r))
 
 		#What do we do if COS(()/())? or (()/())^7. Maybe it would be wise to make a marker that indicates a bracket is preceded by a special op like COS 
 		if ("(" in r[s]) and (r[s-1] == "/") and (")" in r[s-2]) and (s != 0):
 
 			div_check_r += 1
-			j = s
-			b = r[j]
-			b = b.replace("(",'')
-			b = int(b)
-			
-			#this might be (()/())^c
-			if b != 2:
+			#print("s is currently "+str(s),r[s])
+			br_string = "("
+			k = s+1
+			var_check = False
+			while ")" not in r[k]:
 
-				c = b
-				k=j
-				x=1
-				exp_chk = False
-				while c != 1:
+				if var in r[k]:
 
-					if (r[k] == "^") and (r[k-1] == ")"+str(c)):
+					var_check = True
 
-						k+=1
-						x*=float(r[k])
-						exp_chk = True
-						c-=1
-
-					elif r[k-1] == ")"+str(c):
-
-						c-=1	
-
-					k+=1
-				
-			br = []
-			r[j-1]="$"
-			r[j]="$"
-			j+=1
-			while r[j] != ")"+str(b):
-
-				br.append(r[j])
-				r[j]="$"
-				j+=1
-
-			r[j]="$"
-			br_copy = br[:]
-			br_copy.insert(0,"(2")
-			br_copy.append(")2")
-			mul_br = br_copy[:]
-			if (r[j+1] == "^") and (is_number(r[j+2]) == True):
-
-				br_copy.append("^")
-				br_copy.append(r[j+2])
-
-			br_copy.insert(0,"(1")
-			br_copy.append(")1")
-
-			if x > 1:
-
-				mul_br.append("^")
-				mul_br.append(str(x))
-
-			mul_br.insert(0,"(1")
-			mul_br.append(")1")
-
-			mul_br = stringify(mul_br)
-
-			print("Identified bracket division: ", "br", br, "x", x, "mul_br", mul_br)
-
-			b=0
-			k=0
-			#print("r[s]", r[s], "br", br, "x", x)
-			while k != len(l):
-
-				#print("k = "+str(k), "b = "+str(b))
-
-				if "(" in l[k]:
-
-					b+=1
-
-				if ")" in l[k]:
-
-					b-=1
-
-				if (is_number(l[k]) == True) and (b == 1) and (("(" in l[k-1]) or (l[k-1] in "+-")):
-
-					print("l[k] = "+str(l[k]))
-					ini = k
-					term = l[k]
-
-					b_two = 0
-					m = 0
-					while m != len(l_copy):
-
-						if "(" in l_copy[m]:
-
-							b_two+=1
-
-						if ")" in l_copy[m]:
-
-							b_two-=1
-
-						if (l_copy[m] == term) and (b_two == 1) and (("(" in l_copy[m-1]) or (l_copy[m-1] in "+-")):
-
-							m+=1
-							l_copy.insert(m,"*")
-							m+=1
-							l_copy.insert(m,"("+str(b_two+1))
-							m+=1
-							for c in br:
-
-								l_copy.insert(m,c)
-								m+=1
-
-							l_copy.insert(m,")"+str(b_two+1))
-
-							if exp_chk == True:
-
-								m+=1
-								l_copy.insert(m,"^")
-								m+=1
-								l_copy.insert(m,str(x))
-
-							break
-
-						m+=1
-
-					while (l[ini] not in "+-"): 
-
-						if (l[ini] != ")1"):
-	
-							break
-
-						temp_l.append(l[ini])
-						l[ini] = "#"
-						
-						ini+=1
-						#print("deleting",l,l_copy)
-
-					temp_l.append(l[ini])
-					l[ini] = "#"
-					print("deleting",l,l_copy)
-					k=-1
-					b=0
-
-				elif (var in l[k]) and (b == 1) and (("(" in l[k-1]) or (l[k-1] in "+-")):
-
-					#print("we in here", l[k])
-					
-					ini = k
-					term = l[k]
-
-					b_two = 0
-					m = 0
-					while m != len(l_copy):
-
-						if "(" in l_copy[m]:
-
-							b_two+=1
-
-						if ")" in l_copy[m]:
-
-							b_two-=1
-
-						if (l_copy[m] == term) and (b_two == 1)and (("(" in l_copy[m-1]) or (l_copy[m-1] in "+-")):
-
-							m+=1
-							l_copy.insert(m,"*")
-							m+=1
-							l_copy.insert(m,"("+str(b_two+1))
-							m+=1
-							for c in br:
-
-								l_copy.insert(m,c)
-								m+=1
-
-							l_copy.insert(m,")"+str(b_two+1))
-
-							if exp_chk == True:
-
-								m+=1
-								l_copy.insert(m,"^")
-								m+=1
-								l_copy.insert(m,str(x))
-
-							break
-
-						m+=1
-
-					while (l[ini] not in "+-"):
-
-						if (l[ini] != ")1"):
-	
-							break
-
-						temp_l.append(l[ini])
-						l[ini] = "#"
-						ini+=1
-						#print("deleting",l,l_copy)
-
-					temp_l.append(l[ini])
-					l[ini] = "#"
-					#print("deleting",l,l_copy)
-					k=-1
-					b=0
-
-				elif ("(2" == l[k]) and (l[k-1] not in "*/"):
-
-					ini = k
-					term = l[k]
-
-					b_two = 0
-					m = 0
-					while m != len(l_copy):
-
-						if "(" in l_copy[m]:
-
-							b_two+=1
-
-						if ")" in l_copy[m]:
-
-							b_two-=1
-
-						if ("(2" == l_copy[m]) and (l_copy[m-1] not in "*/"):
-
-							l_copy.insert(m,"(2")
-							m+=1
-							for c in br:
-
-								l_copy.insert(m,c)
-								m+=1
-
-							l_copy.insert(m,")2")
-							m+=1
-							if exp_chk == True:
-
-								l_copy.insert(m,"^")
-								m+=1
-								l_copy.insert(m,str(x))
-								m+=1
-
-							l_copy.insert(m,"*")
-							break
-
-						m+=1
-					
-					br_temp=[]
-					while (l[ini] != ")2"):
-
-						br_temp.append(l[ini])
-						temp_l.append(l[ini])
-						l[ini] = "#"
-						ini+=1
-						#print("deleting",l,l_copy)
-
-					br_temp.append(l[ini])
-					temp_l.append(l[ini])
-					l[ini] = "#"
-					#print("deleting",l,l_copy)
-					while (l[ini] not in "+-"):
-						
-						if (l[ini] != ")1"):
-	
-							break
-
-						br_temp.append(l[ini])
-
-						temp_l.append(l[ini])
-						l[ini] = "#"
-						ini+=1 
-						#print("deleting",l,l_copy)
-					
-					br_temp.insert(0,"(1")
-					br_temp.append(")1")
-					br_temp_string = stringify(br_temp)
-					#print("br_temp_string = "+br_temp_string, "mul_br = "+mul_br)
-
-					br_copy = stringify(br_copy)
-
-					if "/"+br_copy in br_temp_string:
-
-						l_copy_string = stringify(l_copy)
-						#print("l_copy_string ="+l_copy_string)
-						l_copy_string = l_copy_string.replace(mul_br+"*"+br_temp_string,br_temp_string)
-						#print("l_copy_string ="+l_copy_string)
-						l_copy_string = l_copy_string.replace("/"+br_copy,"")
-						#print("l_copy_string ="+l_copy_string)
-						l_copy, l_copy_var = bracketify(l_copy_string)
-						l_copy, highest_deg = grouping(l_copy)
-
-					temp_l.append(l[ini])
-					l[ini] = "#"
-					#print("deleting",l_copy)
-					k=-1
-					b=0
-
+				br_string+=r[k]
 				k+=1
+
+			k+=1
+			br_string+=")"
 			
-			n=0
-			for d in range(0,len(l)):
+			exp_check = False
+			if r[k] == "^":
 
-				if l[d] == "#":
+				exp_check == True
+				br_string+="^"+r[k+1]
+				
+			if var_check == True:
 
-					l[d] = temp_l[n]
-					n+=1
+				temp, temp_var = bracketify(br_string)
+				temp, temp_deg = grouping(temp)
+				temp_string = stringify(temp)
 
-			temp_l=[]
+				print("AN ASYMPTOTE HAS BEEN FOUND", temp_string)
+				asy_temp = solving(temp, ["(1","0",")1"], temp_var[0], temp_deg[0])
 
-			print("Now RHS...")
-			b=0
-			k=0
-			#print("l[s]", l[s], "br", br, "x", x)
-			while k != len(r):
+				if not asymptote:
 
-				#print("k = "+str(k), "b = "+str(b))
+					asymptote.append(asy_temp)
+
+				if asy_temp not in asymptote:
+	
+					asymptote.append(asy_temp)
+
+				print("FOUND AN ASYMPTOTE: ", asymptote)
+
+			k = 0
+			b = 0
+			while k != s:
 
 				if "(" in r[k]:
 
 					b+=1
 
-				if ")" in r[k]:
+				elif ")" in r[k]:
 
 					b-=1
 
-				if (is_number(r[k]) == True) and (b == 1) and (("(" in r[k-1]) or (r[k-1] in "+-")):
+				k+=1
+ 
+			x = 1
+			c = b
+			while k != len(r):
 
-					print("r[k] = "+str(r[k]))
-					ini = k
-					term = r[k]
+				if "(" in r[k]:
 
-					b_two = 0
-					m = 0
-					while m != len(r_copy):
+					b+=1
 
-						if "(" in r_copy[m]:
+				elif ")" in r[k]:
 
-							b_two+=1
+					b-=1
 
-						if ")" in r_copy[m]:
+				if (is_number(r[k]) == True) and (r[k-1] == "^") and (r[k-2] == ")"+str(c)):
 
-							b_two-=1
+					x*=float(r[k])
+					c-=1
 
-						if (r_copy[m] == term) and (b_two == 1) and (("(" in r_copy[m-1]) or (r_copy[m-1] in "+-")):
+				elif (r[k-1] != "^") and (r[k-2] == ")"+str(c)):
 
-							m+=1
-							r_copy.insert(m,"*")
-							m+=1
-							r_copy.insert(m,"("+str(b_two+1))
-							m+=1
-							for c in br:
-
-								r_copy.insert(m,c)
-								m+=1
-
-							r_copy.insert(m,")"+str(b_two+1))
-
-							if exp_chk == True:
-
-								m+=1
-								r_copy.insert(m,"^")
-								m+=1
-								r_copy.insert(m,str(x))
-
-							break
-
-						m+=1
-
-					while (r[ini] not in "+-"): 
-
-						if (r[ini] != ")1"):
-	
-							break
-
-						temp_r.append(r[ini])
-						r[ini] = "#"
-						ini+=1
-						#print("deleting",l,l_copy)
-
-					temp_r.append(r[ini])
-					r[ini] = "#"
-					print("deleting",r,r_copy)
-					k=-1
-					b=0
-
-				elif (var in r[k]) and (b == 1) and (("(" in r[k-1]) or (r[k-1] in "+-")):
-
-					print("we in here", r[k])
-					
-					ini = k
-					term = r[k]
-
-					b_two = 0
-					m = 0
-					while m != len(r_copy):
-
-						if "(" in r_copy[m]:
-
-							b_two+=1
-
-						if ")" in r_copy[m]:
-
-							b_two-=1
-
-						if (r_copy[m] == term) and (b_two == 1) and (("(" in r_copy[m-1]) or (r_copy[m-1] in "+-")):
-
-							m+=1
-							r_copy.insert(m,"*")
-							m+=1
-							r_copy.insert(m,"("+str(b_two+1))
-							m+=1
-							for c in br:
-
-								r_copy.insert(m,c)
-								m+=1
-
-							r_copy.insert(m,")"+str(b_two+1))
-
-							if exp_chk == True:
-
-								m+=1
-								r_copy.insert(m,"^")
-								m+=1
-								r_copy.insert(m,str(x))
-
-							break
-
-						m+=1
-
-					while (r[ini] not in "+-"):
-
-						if (r[ini] != ")1"):
-	
-							break
-
-						temp_r.append(r[ini])
-						r[ini] = "#"
-						ini+=1
-						#print("deleting",l,l_copy)
-
-					temp_r.append(r[ini])
-					r[ini] = "#"
-					print("deleting",r,r_copy)
-					k=-1
-					b=0
-
-				elif ("(2" == r[k]) and (r[k-1] not in "*/"):
-
-					print("YEET")
-					ini = k
-					term = r[k]
-
-					b_two = 0
-					m = 0
-					while m != len(r_copy):
-
-						if "(" in r_copy[m]:
-
-							b_two+=1
-
-						if ")" in r_copy[m]:
-
-							b_two-=1
-
-						if ("(2" == r_copy[m]) and (r_copy[m-1] not in "*/"):
-
-							r_copy.insert(m,"(2")
-							m+=1
-							for c in br:
-
-								r_copy.insert(m,c)
-								m+=1
-
-							r_copy.insert(m,")2")
-							m+=1
-							if exp_chk == True:
-
-								r_copy.insert(m,"^")
-								m+=1
-								r_copy.insert(m,str(x))
-								m+=1
-
-							r_copy.insert(m,"*")
-							break
-
-						m+=1
-					
-					while (r[ini] != ")2"):
-
-						temp_r.append(r[ini])
-						r[ini] = "#"
-						ini+=1
-						#print("deleting",l,l_copy)
-
-					temp_r.append(r[ini])
-					r[ini] = "#"
-					
-					while (r[ini] not in "+-"):
-						
-						if (r[ini] != ")1"):
-	
-							break
-
-						temp_r.append(r[ini])
-						r[ini] = "#"
-						ini+=1 
-						#print("deleting",l,l_copy)
-					
-					temp_r.append(r[ini])
-					r[ini] = "#"
-					print("deleting",r,r_copy)
-					k=-1
-					b=0
+					c-=1
 
 				k+=1
 
-			n=0
-			for d in range(0,len(r)):
+			if (x > 1) and (exp_check == False):
 
-				if r[d] == "#":
+				br_string = br_string+"^"+str(x)
 
-					r[d] = temp_r[n]
-					n+=1
+			elif (x > 1) and (exp_check == True):
 
-			temp_r=[]
+				x_temp = float(br_string[len(br_string)-1])
+				x*=x_temp
+				new_br_string = ""
+				i=0
+				while br_string[i] != "^":
 
-			#br_copy = stringify(br_copy)
-			#print("br_copy="+br_copy)
-			#l_copy_string = stringify(l_copy)
-			#l_copy_string = l_copy_string.replace("/"+br_copy,"")
-			#l_copy, l_copy_var = bracketify(l_copy_string)
-			s=-1
+					new_br_string+=br_string[i]
+
+				new_br_string += "^"+str(x)
+				br_string = new_br_string
+				
+			#print("The divisor is: "+br_string)
+			
+			br, br_var = bracketify(br_string)
+			br, br_deg = grouping(br)
+			del br[0]
+			del br[len(br)-1]
+
+			print(br)
+
+			k=1
+			b=1
+			while r[k] != ")1":
+
+				if "(" in r[k]:
+
+					b+=1
+
+				elif ")" in r[k]:
+
+					b-=1
+
+				if ((is_number(r[k]) == True) or (var in r[k])) and (b == 1):
+
+					#pass
+					k+=1
+					r.insert(k,"*")
+					k+=1
+					for i in range(len(br)-1,-1,-1):
+
+						r.insert(k,br[i])
+
+					#print(r, k)
+
+					if k < s:
+
+						s+=len(br)+1
+
+					while r[k] != ")1":
+
+						if "(" in r[k]:
+
+							b+=1
+
+						elif ")" in r[k]:
+
+							b-=1
+
+						if (r[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(r)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(r)-1 = "+str(len(r)-1))
+
+				elif (r[k] == "(2"):
+
+					r.insert(k,"*")
+					for i in range(len(br)-1,-1,-1):
+
+						r.insert(k,br[i])
+
+					#print(r, k)
+
+					if k < s:
+
+						s+=len(br)+1
+
+					#print("s is now "+str(s), r[s])
+					k+=len(br)+1
+
+					while r[k] != ")1":
+
+						if "(" in r[k]:
+
+							b+=1
+
+						elif ")" in r[k]:
+
+							b-=1
+
+						if (r[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(r)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(r)-1 = "+str(len(r)-1))
+
+				k+=1
+
+			k=1
+			b=1
+			while l[k] != ")1":
+
+				if "(" in l[k]:
+
+					b+=1
+
+				elif ")" in l[k]:
+
+					b-=1
+
+				if ((is_number(l[k]) == True) or (var in l[k])) and (b == 1):
+
+					#pass
+					k+=1
+					l.insert(k,"*")
+					k+=1
+					for i in range(len(br)-1,-1,-1):
+
+						l.insert(k,br[i])
+
+					#print(l, k)
+
+					while l[k] != ")1":
+
+						if "(" in l[k]:
+
+							b+=1
+
+						elif ")" in l[k]:
+
+							b-=1
+
+						if (l[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(l)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(l)-1 = "+str(len(l)-1))
+
+				elif (l[k] == "(2"):
+
+					l.insert(k,"*")
+					for i in range(len(br)-1,-1,-1):
+
+						l.insert(k,br[i])
+
+					k+=len(br)+1
+					#print(l, k)
+
+					while l[k] != ")1":
+
+						if "(" in l[k]:
+
+							b+=1
+
+						elif ")" in l[k]:
+
+							b-=1
+
+						if (l[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(l)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(l)-1 = "+str(len(l)-1))
+
+				k+=1
+
+			print(l,r)
+
+		elif ((is_number(r[s]) == True) or (var in r[s])) and (r[s-1] == "/") and (s != 0):
+
+			#print("r[s] = /"+str(l[s]))
+			div_check_r += 1
+			br_string = r[s]
+
+			if var in r[s]:
+
+				temp=[]
+				temp.append(r[s])
+				temp.insert(0,"(1")
+				temp.append(")1")
+				temp_string = stringify(temp)
+				temp, temp_var = bracketify(temp_string)
+				temp, temp_deg = grouping(temp)
+
+				print("AN ASYMPTOTE HAS BEEN FOUND", temp_string)
+				asy_temp = solving(temp, ["(1","0",")1"], temp_var[0], temp_deg[0])
+				if not asymptote:
+
+					asymptote.append(asy_temp)
+
+				if asy_temp not in asymptote:
+	
+					asymptote.append(asy_temp)
+
+				print("FOUND AN ASYMPTOTE: ", asymptote)
+
+			k = 0
+			b = 0
+			b_open = 0
+			b_close = 0
+			while k != s:
+
+				if "(" in r[k]:
+
+					b_open+=1
+					b+=1
+
+				elif ")" in r[k]:
+
+					b_close+=1
+					b-=1
+
+				k+=1
+ 
+			x = 1
+			c = b
+			while k != len(r):
+
+				if "(" in r[k]:
+
+					b_open+=1
+					b+=1
+
+				elif ")" in r[k]:
+
+					b_close+=1
+					b-=1
+
+				if (is_number(r[k]) == True) and (r[k-1] == "^") and (r[k-2] == ")"+str(c)):
+
+					x*=float(r[k])
+					c-=1
+
+				elif (r[k-1] != "^") and (r[k-2] == ")"+str(c)):
+
+					c-=1
+
+				k+=1
+
+			if x > 1:
+
+				br_string = "("+br_string+")^"+str(x)
+				
+			#print("The divisor is: "+br_string)
+			
+			br, br_var = bracketify(br_string)
+			br, br_deg = grouping(br)
+			del br[0]
+			del br[len(br)-1]
+
+			#print(br)
+
+			k=1
+			b=1
+			while r[k] != ")1":
+
+				if "(" in r[k]:
+
+					b+=1
+
+				elif ")" in r[k]:
+
+					b-=1
+
+				if ((is_number(r[k]) == True) or (var in r[k])) and (b == 1):
+
+					#pass
+					k+=1
+					r.insert(k,"*")
+					k+=1
+					for i in range(len(br)-1,-1,-1):
+
+						r.insert(k,br[i])
+
+					#print(r, k)
+
+					if k < s:
+
+						s+=len(br)+1
+
+					while r[k] != ")1":
+
+						if "(" in r[k]:
+
+							b+=1
+
+						elif ")" in r[k]:
+
+							b-=1
+
+						if (r[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(r)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(r)-1 = "+str(len(r)-1))
+
+				elif (r[k] == "(2"):
+
+					r.insert(k,"*")
+					for i in range(len(br)-1,-1,-1):
+
+						r.insert(k,br[i])
+					
+					#print(r, k)
+
+					if k < s:
+
+						s+=len(br)+1
+
+					k+=len(br)+1
+
+					while r[k] != ")1":
+
+						if "(" in r[k]:
+
+							b+=1
+
+						elif ")" in r[k]:
+
+							b-=1
+
+						if (r[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(r)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(r)-1 = "+str(len(r)-1))
+
+				k+=1
+
+			k=1
+			b=1
+			while l[k] != ")1":
+
+				if "(" in l[k]:
+
+					b+=1
+
+				elif ")" in l[k]:
+
+					b-=1
+
+				if ((is_number(l[k]) == True) or (var in l[k])) and (b == 1):
+
+					#pass
+					k+=1
+					l.insert(k,"*")
+					k+=1
+					for i in range(len(br)-1,-1,-1):
+
+						l.insert(k,br[i])
+
+					#print(l, k)
+
+					while l[k] != ")1":
+
+						if "(" in l[k]:
+
+							b+=1
+
+						elif ")" in l[k]:
+
+							b-=1
+
+						if (l[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(l)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(l)-1 = "+str(len(l)-1))
+
+				elif (l[k] == "(2"):
+
+					l.insert(k,"*")
+					for i in range(len(br)-1,-1,-1):
+
+						l.insert(k,br[i])
+
+					k+=len(br)+1
+					#print(l, k)
+
+					while l[k] != ")1":
+
+						if "(" in l[k]:
+
+							b+=1
+
+						elif ")" in l[k]:
+
+							b-=1
+
+						if (l[k] in "+-") and (b == 1):
+
+							break
+
+						k+=1
+
+					if k == len(l)-1:
+
+						k-=1
+
+					#print("k = "+str(k), "len(l)-1 = "+str(len(l)-1))
+
+				k+=1
+
+			print(l,r)
 			
 		s+=1
 
-	l = l_copy[:]
-	r = r_copy[:]
 	l_string = stringify(l)
 	r_string = stringify(r)
 	print(l_string+"="+r_string)
@@ -1592,7 +1587,7 @@ def solving(l_prime, r, var, highest_deg):
 	r_string = stringify(r)
 	print(l_string+" = "+r_string)
 	#2.0.2 If b > 2, then we have to foil out
-	if (b >= 2) and (")/" in l_string):
+	if (b >= 2) and ("/" in l_string):
 
 		#now to remove any ()/()=1
 
@@ -1975,7 +1970,7 @@ def solving(l_prime, r, var, highest_deg):
 	l_string = stringify(l)
 	r_string = stringify(r)
 	print("SUKAAAA",l_string+" = "+r_string)
-	if (b >= 2) and (")/" in r_string):
+	if (b >= 2) and ("/" in r_string):
 
 		c = b
 		while c != 1:
@@ -2620,13 +2615,15 @@ def solving(l_prime, r, var, highest_deg):
 				br.insert(0,"("+str(b))
 				br.append(")"+str(b))
 
-				del l[s-2:k+1]
-				k = s-2
+				k = j
+				del l[j:s+1]
+				print(l)
 				for x in br:
 
 					l.insert(k,x)
 					k+=1
 
+				print(l)
 				l_string = stringify(l)
 				print("\n\n"+l_string)
 
@@ -4251,8 +4248,6 @@ def solving(l_prime, r, var, highest_deg):
 	r, r_deg = grouping(r)
 	print(l,r)
 
-	#return ans
-
 	#If there are nth order terms on RHS, move to LHS
 	v=0
 	while v != len(r)-1:
@@ -4689,20 +4684,17 @@ def solving(l_prime, r, var, highest_deg):
 
 				temp=str(l[s])
 				t=0
-				hat_check=0
 				temp_two=""
-				while t != len(temp):
-
-					if temp[t] == "^":
-		
-						hat_check=1
-						t=t+1
-
-					if hat_check == 1:
-
-						temp_two=temp_two+str(temp[t])
+				while temp[t] != "^":
 					
 					t=t+1
+
+				t+=1
+				while t != len(temp):
+
+					temp_two+=temp[t]
+
+					t+=1
 
 				if str(temp_two) not in lhs_n_order:
 
@@ -4711,9 +4703,9 @@ def solving(l_prime, r, var, highest_deg):
 
 			else:
 
-				if "1" not in lhs_n_order:
+				if "1.0" not in lhs_n_order:
 
-					lhs_n_order.insert(n,"1")
+					lhs_n_order.insert(n,"1.0")
 					n=n+1
 
 	if len(lhs_n_order) > 1:
@@ -4756,7 +4748,7 @@ def solving(l_prime, r, var, highest_deg):
 
 			for t in range(0,len(l)):
 
-				if int(new_n_order[s]) > 1:
+				if float(new_n_order[s]) > 1:
 
 					if (var in l[t]) & ("^"+str(new_n_order[s]) in l[t]):
 
@@ -4776,7 +4768,7 @@ def solving(l_prime, r, var, highest_deg):
 							v+=1
 
 						#print(b,new_n_order[s])
-						if int(b) == int(new_n_order[s]):
+						if float(b) == float(new_n_order[s]):
 
 							if l[t-1] == "-":
 						
@@ -4868,7 +4860,7 @@ def solving(l_prime, r, var, highest_deg):
 										rear_l.insert(n,l[t])
 										n=n+1
 
-				if int(new_n_order[s]) == 1:
+				if float(new_n_order[s]) == 1:
 
 					if (var in l[t]) & ("^" not in l[t]):
 
@@ -4980,14 +4972,12 @@ def solving(l_prime, r, var, highest_deg):
 	l_string = stringify(rear_l)
 	print(l_string)
 
-	#return ans
-
 	for s in range(0,len(new_n_order)):		
 
 		t=0
 		while t!=len(rear_l):
 
-			if int(new_n_order[s]) > 1:
+			if float(new_n_order[s]) > 1:
 
 				if rear_l[t] == "+":
 
@@ -5064,7 +5054,7 @@ def solving(l_prime, r, var, highest_deg):
 
 							y = y.real
 
-						if (int(exp_one) == int(exp_two)) and (int(exp_one) == int(new_n_order[s])) and (int(exp_two) == int(new_n_order[s])):
+						if (float(exp_one) == float(exp_two)) and (float(exp_one) == float(new_n_order[s])) and (float(exp_two) == float(new_n_order[s])):
 
 							z=x+y
 
@@ -5189,7 +5179,7 @@ def solving(l_prime, r, var, highest_deg):
 
 							y = y.real
 
-						if (int(exp_one) == int(exp_two)) and (int(exp_one) == int(new_n_order[s])) and (int(exp_two) == int(new_n_order[s])):
+						if (float(exp_one) == float(exp_two)) and (float(exp_one) == float(new_n_order[s])) and (float(exp_two) == float(new_n_order[s])):
 						
 							z=x-y
 
@@ -5233,7 +5223,7 @@ def solving(l_prime, r, var, highest_deg):
 							string += "="+stringify(r)
 							print(string,"\n")
 
-			if int(new_n_order[s]) == 1:
+			if float(new_n_order[s]) == 1:
 
 				if rear_l[t] == "+":
 
@@ -5461,7 +5451,7 @@ def solving(l_prime, r, var, highest_deg):
 	solution=[]
 	sol_cnt=0
 
-	if int(new_n_order[0]) == 1:
+	if float(new_n_order[0]) == 1:
 
 		n=0
 		while n != len(rear_l):
@@ -5500,9 +5490,16 @@ def solving(l_prime, r, var, highest_deg):
 
 		if (len(rear_l) == 3) and (rear_l[1] == var):
 
-			ans = r[1]
+			ans = []
+			temp = complex(r[1])
 
-	elif int(new_n_order[0]) == 2:
+			if round(temp.imag,6) == 0:
+
+				temp = temp.real
+
+			ans.append(temp)
+
+	elif float(new_n_order[0]) == 2:
 
 		if "-" in r[1]:
 
@@ -5535,7 +5532,7 @@ def solving(l_prime, r, var, highest_deg):
 
 	#3rd or polynomial
 
-	elif int(new_n_order[0]) == 3:
+	elif float(new_n_order[0]) == 3:
 
 		if "-" in r[1]:
 
@@ -5567,7 +5564,7 @@ def solving(l_prime, r, var, highest_deg):
 		#return ans		
 
 	#Ferrari's Method
-	elif int(new_n_order[0]) == 4:
+	elif float(new_n_order[0]) == 4:
 
 		if "-" in r[1]:
 
@@ -5616,9 +5613,9 @@ def solving(l_prime, r, var, highest_deg):
 		#print(new_n_order[0])
 
 		rear_l = Poly_Func(rear_l)
-		coeff=rear_l.get_coeff(int(new_n_order[0]),var)
-		test=rear_l.get_coeff(int(new_n_order[0]),var)
-		test_two=rear_l.get_coeff(int(new_n_order[0]),var)
+		coeff=rear_l.get_coeff(int(float(new_n_order[0])),var)
+		test=rear_l.get_coeff(int(float(new_n_order[0])),var)
+		test_two=rear_l.get_coeff(int(float(new_n_order[0])),var)
 		coeff=coeff.eqn
 		
 		#print("coeff before JT",coeff)
@@ -5670,7 +5667,7 @@ def solving(l_prime, r, var, highest_deg):
 						del test.eqn[len(test.eqn)-1]
 						coeff=test.eqn
 						#print(coeff)
-						ans = jenkins_traub.real_poly(coeff,int(new_n_order[0])-i)
+						ans = jenkins_traub.real_poly(coeff,int(float(new_n_order[0]))-i)
 
 					except ZeroDivisionError:
 
@@ -5743,7 +5740,7 @@ def solving(l_prime, r, var, highest_deg):
 			solution.insert(sol_cnt,"0 is not a root")
 			sol_cnt+=1
 
-			ans = jenkins_traub.real_poly(coeff,int(new_n_order[0]))
+			ans = jenkins_traub.real_poly(coeff,int(float(new_n_order[0])))
 
 		print(ans)
 
@@ -5755,6 +5752,26 @@ def solving(l_prime, r, var, highest_deg):
 			
 				ans[i] = ans[i].real
 	
+	#Last thing is removing asymptotes from the answers
+
+	print(asymptote)
+	for i in asymptote:
+
+		asy = complex(i[0])
+		print(asy)
+		k=0
+		while k != len(ans):
+
+			#print(round(ans[k].real,2)+round(ans[k].imag,2)*1j, asy, round(ans[k].real,2)+round(ans[k].imag,2)*1j == asy)
+			if round(ans[k].real,1)+round(ans[k].imag,1)*1j == asy:
+
+				#print("Deleting "+str(ans[k]))
+				del ans[k]
+				k=-1
+
+			k+=1
+
+	print("Ans leaving solving", ans)
 	return ans
 	 					
 
@@ -6027,21 +6044,17 @@ def isolate(l, r, var_type):
 
 				work_var_r.append(var)
 
-	if not work_var_l:
+	for i in range(0,len(l_new)):
 
-		for i in range(0,len(l_new)):
+		if (var_type[0] in l_new[i]) and (var_type[0] not in work_var_l):
 
-			if (var_type[0] in l_new[i]) and (var_type[0] not in work_var_l):
+			work_var_l.append(var_type[0])
 
-				work_var_l.append(var_type[0])
+	for i in range(0,len(r_new)):
 
-	if not work_var_r:
+		if (var_type[0] in r_new[i]) and (var_type[0] not in work_var_r):
 
-		for i in range(0,len(r_new)):
-
-			if (var_type[0] in r_new[i]) and (var_type[0] not in work_var_r):
-
-				work_var_r.append(var_type[0]) 
+			work_var_r.append(var_type[0]) 
 
 	print("YOOOOOOOOOOO", work_var_l, work_var_r, bracket_dict)
 
@@ -6242,12 +6255,24 @@ def isolate(l, r, var_type):
 					l_new_string = work_var[0]
 					print("bottle caps", l_new_string)
 					r_new=[]
-					for i in ans:
 
-						print(work_var[0]+" = "+str(i))
-						r_temp, r_var = bracketify(str(i))
-						r_temp, r_deg = grouping(r_temp)
-						r_new.append(r_temp)
+					if any(isinstance(sub, list) for sub in ans) == True:
+
+						for i in ans:
+
+							print(work_var[0]+" = "+str(i[0]))
+							r_temp, r_var = bracketify(str(i[0]))
+							r_temp, r_deg = grouping(r_temp)
+							r_new.append(r_temp)
+
+					else:
+
+						for i in ans:
+
+							print(work_var[0]+" = "+str(i))
+							r_temp, r_var = bracketify(str(i))
+							r_temp, r_deg = grouping(r_temp)
+							r_new.append(r_temp)
 
 					resub = False
 					for i in bracket_dict:
@@ -6368,8 +6393,36 @@ def isolate(l, r, var_type):
 
 	else:
 
-		#use OG equation then solve
-		pass
+		l_og_string = stringify(l_og)
+		l_og, l_var = bracketify(l_og_string)
+		l_og, l_deg = grouping(l_og)
+	
+		r_og_string = stringify(r_og)
+		r_og, r_var = bracketify(r_og_string)
+		r_og, r_deg = grouping(r_og)
+
+		if l_deg[0] > r_deg[0]:
+
+			work_deg = l_deg[0]
+
+		elif r_deg[0] > l_deg[0]:
+
+			work_deg = r_deg[0]
+
+		else:
+
+			work_deg = l_deg[0]
+	 
+		ans = solving(l_og, r_og, var_type[0], work_deg)
+
+		l_new, l_var = bracketify(var_type[0])
+
+		r_new=[]
+		for i in ans:
+
+			temp, temp_var = bracketify(str(i))
+			temp, temp_deg = grouping(temp)
+			r_new.append(temp)
 
 	print("Made it to the end","l", "r")
 
