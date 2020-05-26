@@ -40,4 +40,52 @@ b = b.bracket_remover()
 a_string = stringify(a.eqn)
 b_string = stringify(b.eqn)
 
-print("\n"+a_string+" = \n"+b_string)
+print("\n"+a_string+" = "+b_string)
+
+a.eqn, b.eqn, a_deg = rearrange(a.eqn, b.eqn, a.var)
+
+a_string = stringify(a.eqn)
+b_string = stringify(b.eqn)
+
+print("\n"+a_string+" = "+b_string, a_deg)
+
+ans = solver(a.eqn, b.eqn, a_deg, a.var)
+
+#print(ans) 
+
+a_asymptotes = find_asymptotes(a_div, a.var)
+#print(a_asymptotes)
+
+new_ans=[]
+for i in ans:
+
+	i = complex(i)
+	if round(i.imag, 5) == 0:
+
+		temp = round(i.real, 6)
+		new_ans.append(temp)
+
+	else:
+
+		temp = round(i.real, 6)+round(i.imag, 6)*1j
+		new_ans.append(temp)
+
+#print(new_ans)
+for i in a_asymptotes:
+
+	asy = complex(i)
+	k=0
+	while k != len(new_ans):
+
+		if round(new_ans[k].real,1)+round(new_ans[k].imag,1)*1j == asy:
+
+			del new_ans[k]
+			k=-1
+
+		k+=1
+
+for i in new_ans:
+
+	print(a.var+" = "+str(i))
+
+	

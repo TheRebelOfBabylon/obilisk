@@ -2591,10 +2591,12 @@ def grouping(eqn):
 
 		s+=1
 
-	if eqn[1] == "-":
+	if len(eqn) > 1:
 
-		eqn[1] = eqn[1]+eqn[2]
-		del eqn[2]
+		if eqn[1] == "-":
+
+			eqn[1] = eqn[1]+eqn[2]
+			del eqn[2]
 
 	#print("new_eqn_deg", new_eqn_deg)
 	return eqn, new_eqn_deg
