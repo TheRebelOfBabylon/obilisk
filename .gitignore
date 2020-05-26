@@ -1,1 +1,4 @@
 *.DS_Store
+*.egg
+*.log
+__pycache__/
