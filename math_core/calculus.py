@@ -1,6 +1,6 @@
 import math
 import cmath
-import algebra
+from math_core import algebra
 
 def poly_derivative(eqn,order,var_type):
 

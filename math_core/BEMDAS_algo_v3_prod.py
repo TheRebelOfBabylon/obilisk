@@ -2,9 +2,9 @@ import math
 import cmath
 import os
 import psutil
-import calculus
-from algebra import *
-import jenkins_traub
+from math_core import calculus
+from math_core.algebra import *
+from math_core import jenkins_traub
 
 process = psutil.Process(os.getpid())
 beginning = process.memory_info().rss

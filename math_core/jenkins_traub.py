@@ -1,9 +1,9 @@
 import math
 import cmath
 import random
-from algebra import *
-import calculus
-import algebra
+from math_core.algebra import *
+from math_core import calculus
+
 
 """
 

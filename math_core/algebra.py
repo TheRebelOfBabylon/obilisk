@@ -1,6 +1,6 @@
 import math
 import cmath
-import calculus
+from math_core import calculus
 import random
 
 def is_number(s):

@@ -1,8 +1,8 @@
 #Solve functions
-from BEMDAS_algo_v3 import bracketify, stringify, grouping, is_number, foiling, is_even, bracket_add, calculate
+from math_core.BEMDAS_algo_v3 import bracketify, stringify, grouping, is_number, foiling, is_even, bracket_add, calculate
 import copy
-import jenkins_traub
-from algebra import Poly_Func
+from math_core import jenkins_traub
+from math_core.algebra import Poly_Func
 
 #1. remove any divisions
 #1.1 check if there's any redundant brackets and remove ex: ((x-1)/(x-2))^8 = (x-1)^8/(x-2)^8
