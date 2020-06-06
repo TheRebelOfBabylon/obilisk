@@ -1,5 +1,5 @@
-from solve_functions import *
-from BEMDAS_algo_v3 import bracketify, stringify, grouping
+from math_core.solve_functions import *
+from math_core.BEMDAS_algo_v3 import bracketify, stringify, grouping
 
 a = input("Enter the LHS of an eqn: ")
 b = input("Enter the RHS of an eqn: ")
