@@ -3,7 +3,10 @@ import cmath
 from math_core import calculus
 import random
 
-def is_number(s):
+from typing import Tuple, List, Union
+from __future__ import annotations
+
+def is_number(s: str) -> bool:
 
 	try:
 			
@@ -21,7 +24,7 @@ def is_number(s):
 
 			return False
 
-def cube_root(x):
+def cube_root(x: Union[int, float, complex]) -> Union[int, float, complex]:
 
 	if isinstance(x, complex):
 
@@ -38,7 +41,7 @@ def cube_root(x):
 			return -(-x)**(1/3)
 
 #Takes two polynomials and adds them together
-def poly_add(left_p,right_p):
+def poly_add(left_p: List[Union[int, float, complex]],right_p: List[Union[int, float, complex]]) -> Poly_Func:
 
 	left_len = len(left_p)-1
 	right_len = len(right_p)-1
@@ -80,11 +83,11 @@ def poly_add(left_p,right_p):
 
 class Poly_Func:
 
-	def __init__(self,eqn):
+	def __init__(self,eqn: List[str]):
 
 		self.eqn = eqn
 
-	def stringify(self,var_type):
+	def stringify(self,var_type: str) -> str:
 
 		highest_deg = len(self.eqn)-1
 		temp=""
@@ -211,7 +214,7 @@ class Poly_Func:
 	""" Does synthetic division of a polynomial, only linear terms, no quadratics
 	    divisor - array of coefficients of divisor
 	"""
-	def lin_divide(self,divisor):
+	def lin_divide(self, divisor: List[Union[int, float, complex]]) -> Poly_Func:
 
 		a = (-1*divisor[1])/divisor[0]
 		b = 0
@@ -227,7 +230,7 @@ class Poly_Func:
 			
 
 	#Multiply a polynomial by a constant, x
-	def poly_multiply(self, x):
+	def poly_multiply(self, x: Union[int, float, complex]) -> Poly_Func:
 
 		new_eqn=[]
 		for i in self.eqn:
@@ -237,7 +240,7 @@ class Poly_Func:
 		return Poly_Func(new_eqn)
 
 	#Evaluates the polynomial at given value
-	def evaluate(self,value):
+	def evaluate(self, value: Union[int, float, complex]) -> Union[int, float, complex]:
 
 		exponent=len(self.eqn)-1
 		ans = 0
@@ -250,7 +253,7 @@ class Poly_Func:
 
 	
 	#Transforms polynomial equation into array of coefficients
-	def get_coeff(self,highest_deg,var_type):
+	def get_coeff(self, highest_deg: int, var_type: str) -> List[Union[int, float, complex]]:
 
 		coeff=[]
 
@@ -341,7 +344,7 @@ class Poly_Func:
 		return Poly_Func(coeff)
 
 	#Normalizes polynomial
-	def normalize(self):
+	def normalize(self) -> Poly_Func:
 
 		if (self.eqn[0] == 1) or (self.eqn[0] == 0):
 
@@ -357,7 +360,7 @@ class Poly_Func:
 			return Poly_Func(self.eqn)
 		
 	#Creates a cauchy polynomial
-	def cauchy_poly(self):
+	def cauchy_poly(self) -> Poly_Func:
 
 		self.normalize()
 		cauchy=[]
@@ -371,7 +374,7 @@ class Poly_Func:
 		return Poly_Func(cauchy)
 
 	#Finds root of polynomial using Newton-Raphson Method
-	def newton_raphson(self,err):
+	def newton_raphson(self, err: Union[int, float]) -> Union[int, float, complex]:
 
 		der = calculus.coeff_derivative(self.eqn)
 		x = random.uniform(0,1)
@@ -384,7 +387,7 @@ class Poly_Func:
 		return x
 
 	#Quadratic Formula
-	def quadratic(self, solution, sol_cnt):
+	def quadratic(self, solution: List[str], sol_cnt: int) -> Tuple[List[Union[int, float, complex]], List[str], int]:
 
 		solution.insert(sol_cnt,"")
 		sol_cnt+=1
@@ -421,7 +424,7 @@ class Poly_Func:
 		return ans, solution, sol_cnt
 
 	#Cubic root formula
-	def cardano(self, solution, sol_cnt):
+	def cardano(self, solution: List[str], sol_cnt: int) -> Tuple[List[Union[int, float, complex]], List[str], int]:
 
 		solution.insert(sol_cnt,"")
 		sol_cnt+=1
@@ -502,7 +505,7 @@ class Poly_Func:
 		return ans, solution, sol_cnt
 
 	#Quartic root formula
-	def ferrari(self, solution, sol_cnt):
+	def ferrari(self, solution: List[str], sol_cnt: int) -> Tuple[List[Union[int, float, complex]], List[str], int]:
 
 		solution.insert(sol_cnt,"")
 		sol_cnt+=1
