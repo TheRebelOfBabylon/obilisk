@@ -6141,7 +6141,10 @@ def bracketify(a):
 	#print("now for imaginary_num")
 	master=imaginary_num(master)
 	#print(master)
-	
+
+	if not var_type:
+
+		var_type.append("")
 	
 	return master, var_type
 

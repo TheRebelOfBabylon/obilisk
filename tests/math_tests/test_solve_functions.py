@@ -1,6 +1,6 @@
-import pytest
+"""Tests for the solve_functions module in the math_core package"""
 
-from math_core import solve_functions, BEMDAS_algo_v3
+import pytest
 
 from math_core.solve_functions import Solve_Func, rearrange, solver, find_asymptotes
 from math_core.BEMDAS_algo_v3 import bracketify, grouping, stringify
@@ -9,6 +9,7 @@ test_cases_l = [
     "69*(((x-1)/(x+2))^8-((x-1)/(x+2))^6)",
     "69*(((x-1)/(x+2))^8-((x-1)/(x+2))^6)",
     "69*(((x-1)/(x+2))^8-((x-1)/(x+2))^6)^2",
+#   "((3x-5)*((x-1)/(x+2))/(x+3))^8-(((x-1)/(x+2))/(x+3))^6",
 ]
 foiled_test_cases_l = [
     "-414.0x^13.0-2691.0x^12.0-2484.0x^11.0+15939.0x^10.0+26910.0x^9.0-42849.0x^8.0-84456.0x^7.0+75141.0x^6.0+126684.0x^5.0-95220.0x^4.0-86112.0x^3.0+69552.0x^2.0+13248.0x-13248.0",
@@ -20,7 +21,6 @@ foiled_test_cases_l = [
 #     "x/(x+3)",
 #     "x/(x+3)",
 #     "3",
-#     "((3x-5)*((x-1)/(x+2))/(x+3))^8-(((x-1)/(x+2))/(x+3))^6",
 # ]
 
 def test_all_cases():

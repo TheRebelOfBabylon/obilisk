@@ -3,6 +3,8 @@ from math_core.BEMDAS_algo_v3 import bracketify, stringify, grouping, is_number,
 import copy
 from math_core import jenkins_traub
 from math_core.algebra import Poly_Func
+from typing import List, Tuple, Union
+from __future__ import annotations
 
 #1. remove any divisions
 #1.1 check if there's any redundant brackets and remove ex: ((x-1)/(x-2))^8 = (x-1)^8/(x-2)^8
@@ -21,7 +23,7 @@ from math_core.algebra import Poly_Func
 #		- x (the float value of the exponent)
 #Outputs	- result (result in bracket form)
 
-def exp_foiling(br, x, var):
+def exp_foiling(br: List[str], x: float, var: str) -> List[str]:
 
 	br_one = br[:]
 	br_two = br[:]
@@ -29,7 +31,7 @@ def exp_foiling(br, x, var):
 	if is_even(x):
 
 		print("x is even and is "+str(x))
-		while x != 1:
+		while x != 1.0:
 
 			if is_even(x):
 
@@ -78,7 +80,7 @@ def exp_foiling(br, x, var):
 		br_one = br
 		x-=2
 
-		while x != 0:
+		while x != 0.0:
 
 			#print(br_one, br_two)
 			br = foiling(br_one, br_two, var)
@@ -99,7 +101,7 @@ def exp_foiling(br, x, var):
 #		- var (the variable character)
 #Outputs	- True or False
 
-def is_complex_coeff(string, var):
+def is_complex_coeff(string: str, var: str) -> bool:
 
 	if var in string:
 
@@ -149,9 +151,8 @@ def is_complex_coeff(string, var):
 #Outputs	- l (rearranged LHS of the equation in array format)
 #		- r (rearranged RHS of the equation in array format)
 
-def rearrange(l, r, var):
+def rearrange(l: List[str], r: List[str], var: str) -> Tuple[List[str], List[str], float]:
 
-	#print("Yo mom pussy so tight, hmmmmm",l, r, var)
 	#First all variable terms must go from RHS to LHS
 	s = 0
 	while s != len(r):
@@ -851,7 +852,7 @@ def rearrange(l, r, var):
 	#print(rear_r)
 
 	#Find the highest deg
-	highest_deg=0
+	highest_deg=0.0
 	for s in l:
 
 		if var+"^" in s:
@@ -885,9 +886,10 @@ def rearrange(l, r, var):
 
 #Function takes the divisors array and returns an array of unique asymptotes
 #Inputs		- divisors (array of divisors from an equation)
+#			- var (str of the single character variable)
 #Outputs	- asymptotes (array of asymptotes)
 
-def find_asymptotes(divisors, var):
+def find_asymptotes(divisors: [str], var: str) -> List[Union[int, float, complex]]:
 
 	asymptotes=[]
 	for i in divisors:
@@ -910,7 +912,22 @@ def find_asymptotes(divisors, var):
 
 					asymptotes.append(ans[0])
 
-				break 	
+				break
+
+			elif (temp[s] != "^") and (temp[s-1] == ")2") :
+
+				temp.insert(0, "(1")
+				temp.append(")1")
+				temp = Solve_Func(temp, var)
+				temp = temp.redundant_br()
+				temp.eqn, r_temp, temp_deg = rearrange(temp.eqn, ["(1", "0", ")1"], temp.var)
+				ans = solver(temp.eqn, r_temp, temp_deg, temp.var)
+
+				if ans[0] not in asymptotes:
+
+					asymptotes.append(ans[0])
+
+				break
 
 			s+=1
 
@@ -923,12 +940,12 @@ def find_asymptotes(divisors, var):
 #		- highest deg (float of the highest order term)
 #Outputs	- ans (array of answers)
 
-def solver(l, r, deg, var):
+def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, float, complex]]:
 
 	solution=[]
 	sol_cnt=0
 
-	if deg == 1:
+	if deg == 1.0:
 
 		#print("yeet", l ,r)
 		s = 0
@@ -976,7 +993,7 @@ def solver(l, r, deg, var):
 
 			ans.append(temp)
 
-	elif deg == 2:
+	elif deg == 2.0:
 
 		if "-" in r[1]:
 
@@ -1005,7 +1022,7 @@ def solver(l, r, deg, var):
 
 	#3rd or polynomial
 
-	elif deg == 3:
+	elif deg == 3.0:
 
 		if "-" in r[1]:
 
@@ -1033,7 +1050,7 @@ def solver(l, r, deg, var):
 				ans[s] = ans[s].real	
 
 	#Ferrari's Method
-	elif deg == 4:
+	elif deg == 4.0:
 
 		if "-" in r[1]:
 
@@ -1214,11 +1231,10 @@ def solver(l, r, deg, var):
 				ans[i] = ans[i].real
 
 	return ans
-						
 
 class Solve_Func:
 
-	def __init__(self, eqn, var):
+	def __init__(self, eqn: List[str], var: str):
 
 		self.eqn = eqn
 		self.var = var
@@ -1229,9 +1245,8 @@ class Solve_Func:
 	#		- var (single character string that is the variable in an equation ex: "x"
 	#Outputs	- divisors (array of divisors in array format)
 
-	def identify_div(self):
+	def identify_div(self) -> List[List[str]]:
 
-		
 		s=0
 		divisors=[]
 		while s != len(self.eqn):
@@ -1388,7 +1403,7 @@ class Solve_Func:
 	#Removes redundant brakets ex: (()+()) = ()+() or ex: (()/())^c = ()^c/()^c
 	#Inputs		-self (Solve_Func object)
 	#Outputs	-return initial eqn array with no redundant brackets
-	def redundant_br(self):
+	def redundant_br(self) -> Solve_Func:
 
 		b=0
 		for s in self.eqn:
@@ -1745,7 +1760,7 @@ class Solve_Func:
 	#	- divisors (array containing divisors in array form)
 	#Outputs	- self.eqn (the input equation modified)
 
-	def multiply_br(self,divers):
+	def multiply_br(self, divers: List[List[str]]) -> Solve_Func:
 
 		div_copy = copy.deepcopy(divers)
 		#print("At the beginning",self.eqn, div_copy)
@@ -2054,7 +2069,7 @@ class Solve_Func:
 	#	-divisors (an array of arrays of the divisors)
 	#outputs -self (the equation with modifications)
 
-	def redundant_div(self, divisors):
+	def redundant_div(self, divisors: List[List[str]]) -> Solve_Func:
 
 		#First determine the highest bracket level
 		b=0
@@ -2213,7 +2228,7 @@ class Solve_Func:
 	#Inputs	- self (the equation)
 	#Outputs	- self (the modified equation)
 
-	def bracket_remover(self):
+	def bracket_remover(self) -> Solve_Func:
 
 		b=0
 		for s in self.eqn:
@@ -2271,7 +2286,7 @@ class Solve_Func:
 					del bra[len(bra)-1]
 					#print(bra)
 					
-					if x > 1:
+					if x > 1.0:
 
 						new_br = exp_foiling(bra,x, self.var)
 						#print(new_br)

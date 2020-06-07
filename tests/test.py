@@ -1,5 +1,5 @@
-from BEMDAS_algo_v3 import bracketify, grouping, stringify
-from bracketing_test import solving, isolate
+from math_core.BEMDAS_algo_v3 import bracketify, grouping, stringify
+from tests.math_tests.bracketing_test import solving, isolate
 
 #LHS_4 = ["(1","69","*","(2","(3","(4","x","-","1",")4","/","(4","x","+","2",")4",")3","^","8","-","(3","(4","x","-","1",")4","/","(4","x","+","2",")4",")3","^","6",")2",")1"]
 #RHS_4 = ["(1","(2","x","-","1",")2","/","(2","x","+","2",")2",")1"]
