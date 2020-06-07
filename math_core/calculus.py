@@ -1,8 +1,9 @@
 import math
 import cmath
 from math_core import algebra
+from typing import List, Tuple, Union
 
-def poly_derivative(eqn,order,var_type):
+def poly_derivative(eqn: List[str],order: int,var_type: str) -> List[str]:
 
 	#loop from highest exponent to 1. Apply normal derivative rules
 	der=[]
@@ -92,7 +93,7 @@ def poly_derivative(eqn,order,var_type):
 
 #input eqn - array of coefficients of a given polynomial
 #output - array of coefficients of derivative
-def coeff_derivative(eqn):
+def coeff_derivative(eqn: List[Union[int, float, complex]]) -> algebra.Poly_Func:
 
 	expo = len(eqn)-1
 	der=[]
