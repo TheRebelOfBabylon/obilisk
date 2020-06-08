@@ -1,3 +1,7 @@
+"""
+Latest update: June 8th, 2020.
+Core string parsing methods as well as equation decoding. Arithmetic solving methods as well.
+"""
 import math
 import cmath
 import os
@@ -144,6 +148,7 @@ var_dict = {
 
 
 def inference(eqn: List[str]) -> List[str]:
+    """Equation adds * symbol between constants and brackets or constants and complex math operations."""
     master = []
     s = 0
     for i in range(0, len(eqn)):
@@ -173,6 +178,7 @@ def inference(eqn: List[str]) -> List[str]:
 
 # To detect divisions by zero
 def div_check(x: Union[int, float, complex], y: Union[int, float, complex]) -> bool:
+    """Detects divisions by zero."""
     try:
         x / y
 
@@ -186,6 +192,7 @@ def div_check(x: Union[int, float, complex], y: Union[int, float, complex]) -> b
 
 
 def operation(num_one: str, oper: str, num_two: str) -> Union[int, float, complex]:
+    """Takes two numbers in string format and performs specified input operation."""
     try:
 
         num_one = float(num_one)
@@ -424,6 +431,7 @@ def operation(num_one: str, oper: str, num_two: str) -> Union[int, float, comple
 
 
 def calculate(n: List[str], b: int) -> Union[int, float, complex]:
+    """Using the rules of BEMDAS, function solves any arithmetic problem."""
     op = "0"
     oper = "x"
     y = 0
@@ -665,6 +673,7 @@ def calculate(n: List[str], b: int) -> Union[int, float, complex]:
 ### equations that need to be considered in further development: 4xcos(x) + 6sin(x), 4cos(x)^2, anything where variable is in the exponent, 69tan(-x)
 
 def combining(eqn: List[str], var_type: List[str], highest_deg: int) -> List[str]:
+    """Function combines variables, coefficients and exponents together into a single index."""
     print("in combining", eqn, var_type, highest_deg)
 
     global oper_dict, solution, sol_cnt
@@ -2194,6 +2203,7 @@ def combining(eqn: List[str], var_type: List[str], highest_deg: int) -> List[str
 
 
 def is_number(s: str) -> bool:
+    """Function tests if a string is a number."""
     try:
 
         float(s)
@@ -2212,10 +2222,12 @@ def is_number(s: str) -> bool:
 
 
 def has_numbers(s: Union[str, List[str]]) -> bool:
+    """Function tests if any character in a string is a number. Returns True or False."""
     return any(char.isdigit() for char in s)
 
 
 def is_even(s: Union[int, float]) -> bool:
+    """Tests if number is even."""
     if s % 2 == 0:
 
         return True
@@ -2226,6 +2238,7 @@ def is_even(s: Union[int, float]) -> bool:
 
 
 def cube_root(x: Union[int, float, complex]) -> Union[float, complex]:
+    """Proper calculation of cubic root with proper sign."""
     print(x)
 
     if isinstance(x, complex):
@@ -2244,6 +2257,7 @@ def cube_root(x: Union[int, float, complex]) -> Union[float, complex]:
 
 
 def stringify(l: List[str]) -> str:
+    """Takes equation in format List of strings and returns human-readable string."""
     temp = ""
     for s in range(1, len(l) - 1):
 
@@ -2263,6 +2277,7 @@ def stringify(l: List[str]) -> str:
 
 
 def lower_b_lvl(b: List[str], lvl: int) -> List[str]:
+    """Don't quite remember what this function does."""
     print("lvl", lvl)
 
     for i in range(0, len(b)):
@@ -2288,9 +2303,8 @@ def lower_b_lvl(b: List[str], lvl: int) -> List[str]:
 
     return b
 
-
-# This function groups terms around variables into a single index
 def grouping(eqn: List[str]) -> List[str]:
+    """This function groups terms around variables into a single index."""
     global oper_dict
 
     # print("Inside grouping", eqn)
@@ -2540,16 +2554,10 @@ def grouping(eqn: List[str]) -> List[str]:
     # print("new_eqn_deg", new_eqn_deg)
     return eqn, new_eqn_deg
 
-
-# *** Add or subtract two bracket expressions***
-# ** br_one - is a list item not a string
-# ** op - is either "+" or "-". If op is anything else, Returns an error
-# ** br_two - is a list item not a string
-# ** var - is a single string of the variable that is common to both bracket expression, ex: "x"
-
 def bracket_add(br_one: List[str], op: str, br_two: List[str], var: str) -> List[str]:
+    """Add or subtract two bracket expressions."""
     if op not in "+-":
-        raise TypeError
+        raise Exception("Operation not supported.")
 
     br_one, br_one_deg = grouping(br_one)
     br_two, br_two_deg = grouping(br_two)
@@ -2820,10 +2828,8 @@ def bracket_add(br_one: List[str], op: str, br_two: List[str], var: str) -> List
 
     return ans
 
-
-# This function takes two brackets in array form and foils them out.
-# Both brackets must be of minimum degree 1
 def foiling(b_one: List[str], b_two: List[str], var_type: str) -> List[str]:
+    """Polynomial multiplication. Both polynomials must be of atleast degree 1."""
     # print(b_one,b_two)
 
     b_one, b_one_deg = grouping(b_one)
@@ -3160,8 +3166,8 @@ def foiling(b_one: List[str], b_two: List[str], var_type: str) -> List[str]:
     # print("ans = ", ans)
     return ans
 
-
 def bracketing(LHS: List[str], RHS: List[str], var_type: List[str]):
+    """Function that deals with variables and brackets."""
     global var_dict
 
     # LHS first
@@ -3403,6 +3409,7 @@ def bracketing(LHS: List[str], RHS: List[str], var_type: List[str]):
 
 
 def isolate(l: List[str], r: List[str], lvl: int, var_type: List[str]) -> List[Union[int, float, complex]]:
+    """Function isolates variables on LHS and constants on RHS then solves based on highest power."""
     global var_index_l, var_index_r, oper_dict_two, solution, sol_cnt
 
     op = ""
@@ -5411,6 +5418,7 @@ def isolate(l: List[str], r: List[str], lvl: int, var_type: List[str]) -> List[U
 
 
 def imaginary_num(br: List[str]) -> List[str]:
+    """Removes brackets around complex numbers."""
     i = 0
     mod_chk = False
     br_copy = br[:]
@@ -5491,6 +5499,7 @@ def imaginary_num(br: List[str]) -> List[str]:
 
 
 def bracketify(a: str) -> Tuple[List[str], List[str]]:
+    "Takes equation in string format and transforms into list of strings."
     # Gotta add a check for imaginary numbers
 
     master = []
@@ -5966,6 +5975,7 @@ def bracketify(a: str) -> Tuple[List[str], List[str]]:
 
 
 def main(a: str) -> Tuple[List[str], List[Union[int, float, complex]]]:
+    """Functions take inputted string, transforms into List of strings. Determines whether problem is arithmetic or polynomial root finding."""
     master = []
     numtemp = []
     bracket = []
