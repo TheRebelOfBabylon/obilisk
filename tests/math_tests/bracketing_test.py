@@ -1,7 +1,7 @@
-from BEMDAS_algo_v3 import is_number, stringify, grouping, combining, bracketify, is_even, foiling, oper_dict, bracket_add, calculate
-import jenkins_traub
-from algebra import Poly_Func
-from solve_functions import *
+from math_core.BEMDAS_algo_v3 import is_number, stringify, grouping, combining, bracketify, is_even, foiling, oper_dict, bracket_add, calculate
+from math_core import jenkins_traub
+from math_core.algebra import Poly_Func
+from math_core.solve_functions import *
 
 #LHS_1 = ["(1","x","^","2","+","x","^","3","/","x",")1"]
 #RHS_1 = ["(1","0",")1"]

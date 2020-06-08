@@ -2,7 +2,7 @@ from app import app, db
 from app.models import User
 from flask import Flask, render_template, request
 
-import BEMDAS_algo_v3_prod
+from math_core import BEMDAS_algo_v3_prod
 import json
 import rpc_pb2 as ln
 import rpc_pb2_grpc as lnrpc
