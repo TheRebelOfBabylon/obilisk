@@ -1,10 +1,11 @@
 #Solve functions
+from __future__ import annotations
 from math_core.BEMDAS_algo_v3 import bracketify, stringify, grouping, is_number, foiling, is_even, bracket_add, calculate
 import copy
 from math_core import jenkins_traub
 from math_core.algebra import Poly_Func
 from typing import List, Tuple, Union
-from __future__ import annotations
+
 
 #1. remove any divisions
 #1.1 check if there's any redundant brackets and remove ex: ((x-1)/(x-2))^8 = (x-1)^8/(x-2)^8
