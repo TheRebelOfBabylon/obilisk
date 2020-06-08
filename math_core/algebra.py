@@ -1,3 +1,4 @@
+"""Methods for polynomial root finding."""
 from __future__ import annotations
 import math
 import cmath
@@ -420,7 +421,7 @@ class Poly_Func:
 
 	def cardano(self, solution: List[str], sol_cnt: int) -> Tuple[List[Union[int, float, complex]], List[str], int]:
 		"""Root finding formula for cubic polynomials."""
-		
+
 		solution.insert(sol_cnt,"")
 		sol_cnt+=1
 		print("\n-- Using Cardano's Formula: --")
