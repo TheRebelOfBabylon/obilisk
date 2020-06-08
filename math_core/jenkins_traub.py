@@ -6,15 +6,8 @@ from math_core import calculus
 
 from typing import List, Union, Tuple
 
-"""
-
-	Finds all roots for the polynomial with real exponents by using Jenkins-Traub algorithm.
-
-	Assuming error bound of 10E-6
-
-"""
 def real_poly(eqn: List[Union[int, float, complex]],highest_deg: Union[int, float]) -> List[Union[int, float, complex]]:
-
+	"""Top level function which calls the rpoly, Jenkins-Traub algorithm."""
 	num_roots = highest_deg
 	ans = []			
 
@@ -40,7 +33,7 @@ def real_poly(eqn: List[Union[int, float, complex]],highest_deg: Union[int, floa
 	return ans
 
 def rpoly(eqn: List[Union[int, float, complex]]) -> Union[int, float, complex]:
-
+	"""RPOLY Jenkins-Traub algorithm for polynomial root finding."""
 	eqn = Poly_Func(eqn)
 	coeff = eqn.normalize()
 	#print(coeff.eqn)
@@ -153,7 +146,7 @@ def rpoly(eqn: List[Union[int, float, complex]]) -> Union[int, float, complex]:
 	return s
 	
 def get_random_root(eqn: Poly_Func) -> Union[int, float, complex]:
-
+	"""Function for finding random roots."""
 	cauchy_eqn = eqn.cauchy_poly()
 	#print("Cauchy",cauchy_eqn.eqn)
 	beta = cauchy_eqn.newton_raphson(10**(-5))
@@ -162,6 +155,6 @@ def get_random_root(eqn: Poly_Func) -> Union[int, float, complex]:
 	root = abs(beta)*cmath.exp(1j*rand)
 	return root
 
-#def imag_poly():
+
 
 	

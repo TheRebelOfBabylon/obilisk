@@ -1,4 +1,4 @@
-#Solve functions
+"""Solve functions"""
 from __future__ import annotations
 from math_core.BEMDAS_algo_v3 import bracketify, stringify, grouping, is_number, foiling, is_even, bracket_add, calculate
 import copy
@@ -6,25 +6,22 @@ from math_core import jenkins_traub
 from math_core.algebra import Poly_Func
 from typing import List, Tuple, Union
 
-
-#1. remove any divisions
-#1.1 check if there's any redundant brackets and remove ex: ((x-1)/(x-2))^8 = (x-1)^8/(x-2)^8
-#1.2 bracket or terms with variables distribution ex: 69*(x+2)^8*3x*((x-1)^8/(x+2)^8-(x-1)^6/(x+2)^6) = 69*(3x*(x+2)^8*(x-1)^8/(x+2)^8-3x*(x+2)^8*(x-1)^6/(x+2)^6)
-#1.3 check if there's any ()/() = 1 and remove
-#2. remove any exponents on brackets
-#2.1 check if there's any redundant brackets
-#3. foil out bracket multiplication starting inwards then out. Every change of level of bracket means removing redundant brackets
-#4. foil out bracket multiplied by a constant
-#5. Bracket addition or subtraction
-#7. Place in standard form (variables on one side, constants on the other, simplify)
-#8. Solve based on highest level variable
-
-#Function takes a bracket and foils it out per it's exponent ex: (x+2)^8 = x^8+16x^7+112x^6+448x^5+1120x^4+1792x^3+1792x^2+1024x+256
-#Inputs		- br (the bracket in array form)
-#		- x (the float value of the exponent)
-#Outputs	- result (result in bracket form)
+"""
+1. remove any divisions
+1.1 check if there's any redundant brackets and remove ex: ((x-1)/(x-2))^8 = (x-1)^8/(x-2)^8
+1.2 bracket or terms with variables distribution ex: 69*(x+2)^8*3x*((x-1)^8/(x+2)^8-(x-1)^6/(x+2)^6) = 69*(3x*(x+2)^8*(x-1)^8/(x+2)^8-3x*(x+2)^8*(x-1)^6/(x+2)^6)
+1.3 check if there's any ()/() = 1 and remove
+2. remove any exponents on brackets
+2.1 check if there's any redundant brackets
+3. foil out bracket multiplication starting inwards then out. Every change of level of bracket means removing redundant brackets
+4. foil out bracket multiplied by a constant
+5. Bracket addition or subtraction
+7. Place in standard form (variables on one side, constants on the other, simplify)
+8. Solve based on highest level variable
+"""
 
 def exp_foiling(br: List[str], x: float, var: str) -> List[str]:
+	"""Function will foil out polynomial expressions raised to a certain power ex: (x+3)^8."""
 
 	br_one = br[:]
 	br_two = br[:]
@@ -97,13 +94,8 @@ def exp_foiling(br: List[str], x: float, var: str) -> List[str]:
 
 	return result
 
-#Function checks if a string has a complex number in it. Returns True or False
-#Inputs		- string (the string we are checking)
-#		- var (the variable character)
-#Outputs	- True or False
-
 def is_complex_coeff(string: str, var: str) -> bool:
-
+	"""Function checks if a monomial string has a complex coefficient. Returns True or False."""
 	if var in string:
 
 		coeff = ""
@@ -144,16 +136,13 @@ def is_complex_coeff(string: str, var: str) -> bool:
 
 			return True
 
-#Function that takes two sides of an equation and then puts all variable terms on LHS, constants on RHS, combines the terms. Returns rearranged equations and highest degree of the equation
-#***ATTENTION*** Equation must be rid of all brackets, must be in proper polynomial format to use. Might have to add a check and return an error ***
-#Inputs		- l (LHS of the equation in array format)
-#		- r (RHS of the equation in array format)
-#		- var (single character string of the variable)
-#Outputs	- l (rearranged LHS of the equation in array format)
-#		- r (rearranged RHS of the equation in array format)
-
 def rearrange(l: List[str], r: List[str], var: str) -> Tuple[List[str], List[str], float]:
+	"""
+	Function takes LHS and RHS, moves all variables to LHS, constants to RHS and combines all similar terms.
+	Equation must be rid of all brackets, and in proper polynomial format to use. Returns rearranged LHS and RHS.
+	"""
 
+	"""TO-DO: Add a check to ensure LHS and RHS inputs are of proper format."""
 	#First all variable terms must go from RHS to LHS
 	s = 0
 	while s != len(r):
@@ -885,13 +874,8 @@ def rearrange(l: List[str], r: List[str], var: str) -> Tuple[List[str], List[str
 
 	return rear_l, rear_r, highest_deg
 
-#Function takes the divisors array and returns an array of unique asymptotes
-#Inputs		- divisors (array of divisors from an equation)
-#			- var (str of the single character variable)
-#Outputs	- asymptotes (array of asymptotes)
-
 def find_asymptotes(divisors: [str], var: str) -> List[Union[int, float, complex]]:
-
+	"""Functions takes array of divisors and returns asymptotes."""
 	asymptotes=[]
 	for i in divisors:
 
@@ -934,15 +918,8 @@ def find_asymptotes(divisors: [str], var: str) -> List[Union[int, float, complex
 
 	return asymptotes
 
-#Function solves an equation using a method determined by the highest order term. Returns an array of answers
-#Inputs		- l (LHS of the equation in array format) Must be simplified
-#		- r (RHS of the equation in array format) Must be simplified
-#		- var (single character string that is the variable in the equation)
-#		- highest deg (float of the highest order term)
-#Outputs	- ans (array of answers)
-
 def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, float, complex]]:
-
+	"""Function takes LHS and RHS of an equation with all variables on LHS, and single constant on RHS and solves based on highest power term."""
 	solution=[]
 	sol_cnt=0
 
@@ -1234,20 +1211,14 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 	return ans
 
 class Solve_Func:
-
+	"""Class for putting polynomial equations into standard form."""
 	def __init__(self, eqn: List[str], var: str):
 
 		self.eqn = eqn
 		self.var = var
 
-	#1. remove any divisions
-	#1.1 Identify divisors in an eqn
-	#Inputs 	- eqn (LHS or RHS of equation in array format)
-	#		- var (single character string that is the variable in an equation ex: "x"
-	#Outputs	- divisors (array of divisors in array format)
-
 	def identify_div(self) -> List[List[str]]:
-
+		"""Method identifies divisors and returns them in array format."""
 		s=0
 		divisors=[]
 		while s != len(self.eqn):
@@ -1401,11 +1372,8 @@ class Solve_Func:
 
 		return divisors
 
-	#Removes redundant brakets ex: (()+()) = ()+() or ex: (()/())^c = ()^c/()^c
-	#Inputs		-self (Solve_Func object)
-	#Outputs	-return initial eqn array with no redundant brackets
 	def redundant_br(self) -> Solve_Func:
-
+		"""Method removes redundant brackets ex: (()+()) = ()+() or ex: (()/())^c = ()^c/()^c."""
 		b=0
 		for s in self.eqn:
 
@@ -1756,13 +1724,8 @@ class Solve_Func:
 
 		return self
 
-	#Function to multiply in divisors to the highest bracket level
-	#Inputs	- self (the Solve_Func object)
-	#	- divisors (array containing divisors in array form)
-	#Outputs	- self.eqn (the input equation modified)
-
 	def multiply_br(self, divers: List[List[str]]) -> Solve_Func:
-
+		"""Method takes divisors and multiplies them into an equation."""
 		div_copy = copy.deepcopy(divers)
 		#print("At the beginning",self.eqn, div_copy)
 		#First determine the highest bracket level
@@ -2225,12 +2188,8 @@ class Solve_Func:
 
 		return self
 
-	#Function removes all brackets by finding brackets with exponents, bracket multiplication, add or sub and foils out 
-	#Inputs	- self (the equation)
-	#Outputs	- self (the modified equation)
-
 	def bracket_remover(self) -> Solve_Func:
-
+		"""Function removes all brackets by performing various operations to make expressions mathematically equivalent."""
 		b=0
 		for s in self.eqn:
 
