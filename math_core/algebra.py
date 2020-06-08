@@ -8,7 +8,7 @@ from typing import Tuple, List, Union
 
 
 def is_number(s: str) -> bool:
-
+	"""Function tests if a string is a number of type float or complex. Returns boolean True or False."""
 	try:
 			
 		float(s)
@@ -26,7 +26,7 @@ def is_number(s: str) -> bool:
 			return False
 
 def cube_root(x: Union[int, float, complex]) -> Union[int, float, complex]:
-
+	"""Function takes the cubic root of a number. Created to ensure proper sign of answer is given."""
 	if isinstance(x, complex):
 
 		return x**(1/3)
@@ -41,9 +41,9 @@ def cube_root(x: Union[int, float, complex]) -> Union[int, float, complex]:
 
 			return -(-x)**(1/3)
 
-#Takes two polynomials and adds them together
-def poly_add(left_p: List[Union[int, float, complex]],right_p: List[Union[int, float, complex]]) -> Poly_Func:
 
+def poly_add(left_p: List[Union[int, float, complex]],right_p: List[Union[int, float, complex]]) -> Poly_Func:
+	"""Function takes two polynomials and adds them together."""
 	left_len = len(left_p)-1
 	right_len = len(right_p)-1
 	ans = []
@@ -83,13 +83,13 @@ def poly_add(left_p: List[Union[int, float, complex]],right_p: List[Union[int, f
 		return Poly_Func(ans)
 
 class Poly_Func:
-
+	"""This class is used in polynomial root finding problems. Objects of this class have a single attribute being the equation in List[str] format."""
 	def __init__(self,eqn: List[str]):
 
 		self.eqn = eqn
 
 	def stringify(self,var_type: str) -> str:
-
+		"""This function takes an equation in List format and transforms it into a human-readable string."""
 		highest_deg = len(self.eqn)-1
 		temp=""
 		i=0
@@ -212,11 +212,10 @@ class Poly_Func:
 
 		return temp
 
-	""" Does synthetic division of a polynomial, only linear terms, no quadratics
-	    divisor - array of coefficients of divisor
-	"""
-	def lin_divide(self, divisor: List[Union[int, float, complex]]) -> Poly_Func:
 
+
+	def lin_divide(self, divisor: List[Union[int, float, complex]]) -> Poly_Func:
+		"""Function does synthetic division of a polynomial. Divisor can only be a linear polynomial."""
 		a = (-1*divisor[1])/divisor[0]
 		b = 0
 		ans = []
@@ -228,10 +227,9 @@ class Poly_Func:
 			n += 1
 
 		return Poly_Func(ans)
-			
 
-	#Multiply a polynomial by a constant, x
 	def poly_multiply(self, x: Union[int, float, complex]) -> Poly_Func:
+		"""Multiply a polynomial by a constant."""
 
 		new_eqn=[]
 		for i in self.eqn:
@@ -240,8 +238,8 @@ class Poly_Func:
 
 		return Poly_Func(new_eqn)
 
-	#Evaluates the polynomial at given value
 	def evaluate(self, value: Union[int, float, complex]) -> Union[int, float, complex]:
+		"""Evaluates the polynomial at a given value."""
 
 		exponent=len(self.eqn)-1
 		ans = 0
@@ -252,10 +250,8 @@ class Poly_Func:
 
 		return ans
 
-	
-	#Transforms polynomial equation into array of coefficients
 	def get_coeff(self, highest_deg: int, var_type: str) -> List[Union[int, float, complex]]:
-
+		"""Transforms polynomial equation into a list of coefficients in order of highest to lowest power."""
 		coeff=[]
 
 		for s in range(highest_deg,-1,-1):
@@ -344,9 +340,8 @@ class Poly_Func:
 
 		return Poly_Func(coeff)
 
-	#Normalizes polynomial
 	def normalize(self) -> Poly_Func:
-
+		"""Normalizes the polynomial."""
 		if (self.eqn[0] == 1) or (self.eqn[0] == 0):
 
 			return Poly_Func(self.eqn)
@@ -362,6 +357,7 @@ class Poly_Func:
 		
 	#Creates a cauchy polynomial
 	def cauchy_poly(self) -> Poly_Func:
+		"""Normalizes polynomial and takes the absolute value of each coefficient."""
 
 		self.normalize()
 		cauchy=[]
@@ -374,9 +370,8 @@ class Poly_Func:
 
 		return Poly_Func(cauchy)
 
-	#Finds root of polynomial using Newton-Raphson Method
 	def newton_raphson(self, err: Union[int, float]) -> Union[int, float, complex]:
-
+		"""Finds roots of polynomial using Newton-Raphson method."""
 		der = calculus.coeff_derivative(self.eqn)
 		x = random.uniform(0,1)
 		
@@ -387,9 +382,8 @@ class Poly_Func:
 
 		return x
 
-	#Quadratic Formula
 	def quadratic(self, solution: List[str], sol_cnt: int) -> Tuple[List[Union[int, float, complex]], List[str], int]:
-
+		"""Solve quadratic polynomials using the quadratic formula."""
 		solution.insert(sol_cnt,"")
 		sol_cnt+=1
 		print("\n-- Using the quadratic formula --")
@@ -424,9 +418,9 @@ class Poly_Func:
 
 		return ans, solution, sol_cnt
 
-	#Cubic root formula
 	def cardano(self, solution: List[str], sol_cnt: int) -> Tuple[List[Union[int, float, complex]], List[str], int]:
-
+		"""Root finding formula for cubic polynomials."""
+		
 		solution.insert(sol_cnt,"")
 		sol_cnt+=1
 		print("\n-- Using Cardano's Formula: --")
@@ -506,7 +500,8 @@ class Poly_Func:
 		return ans, solution, sol_cnt
 
 	#Quartic root formula
-
+	def ferrari(self, solution: List[str], sol_cnt: int) -> Tuple[List[Union[int, float, complex]], List[str], int]:
+		"""Root finding formula for quartic polynomials."""
 		solution.insert(sol_cnt,"")
 		sol_cnt+=1
 		print("\n-- Using Ferrari's Method: --")
