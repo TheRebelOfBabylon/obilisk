@@ -1,5 +1,5 @@
-from test import solve
-from BEMDAS_algo_v3 import bracketify, grouping, stringify
+from tests.test import solve
+from math_core.BEMDAS_algo_v3 import bracketify, grouping, stringify
 
 l = input("Please enter the LHS of an equation: ")
 r = input("Please enter the RHS of an equation: ")

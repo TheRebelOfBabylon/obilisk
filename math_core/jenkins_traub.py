@@ -1,19 +1,13 @@
 import math
 import cmath
 import random
-from algebra import *
-import calculus
-import algebra
+from math_core.algebra import *
+from math_core import calculus
 
-"""
+from typing import List, Union, Tuple
 
-	Finds all roots for the polynomial with real exponents by using Jenkins-Traub 		algorithm.
-
-	Assuming error bound of 10E-6
-
-"""
-def real_poly(eqn,highest_deg):
-
+def real_poly(eqn: List[Union[int, float, complex]],highest_deg: Union[int, float]) -> List[Union[int, float, complex]]:
+	"""Top level function which calls the rpoly, Jenkins-Traub algorithm."""
 	num_roots = highest_deg
 	ans = []			
 
@@ -21,7 +15,7 @@ def real_poly(eqn,highest_deg):
 	i = 0
 	while i != highest_deg:
 
-		root = rpoly(eqn,highest_deg)
+		root = rpoly(eqn)
 		ans.append(root)
 		i += 1
 		last_run = (num_roots - 1 == i)		
@@ -38,8 +32,8 @@ def real_poly(eqn,highest_deg):
 
 	return ans
 
-def rpoly(eqn,highest_deg):
-
+def rpoly(eqn: List[Union[int, float, complex]]) -> Union[int, float, complex]:
+	"""RPOLY Jenkins-Traub algorithm for polynomial root finding."""
 	eqn = Poly_Func(eqn)
 	coeff = eqn.normalize()
 	#print(coeff.eqn)
@@ -55,7 +49,7 @@ def rpoly(eqn,highest_deg):
 		#print("Constant is",constant)
 		P_z = coeff.poly_multiply(constant)
 		#print("P_z",P_z.eqn)
-		K_prime = algebra.poly_add(K.eqn,P_z.eqn)
+		K_prime = poly_add(K.eqn,P_z.eqn)
 		#print("K_prime",K_prime.eqn)
 		divisor = [1,0]
 		new_K = K_prime.lin_divide(divisor)
@@ -81,7 +75,7 @@ def rpoly(eqn,highest_deg):
 				
 				constant = -1*K.evaluate(s)/coeff.evaluate(s)
 				P_z = coeff.poly_multiply(constant)
-				K_prime = algebra.poly_add(K.eqn,P_z.eqn)
+				K_prime = poly_add(K.eqn,P_z.eqn)
 				divisor = [1,-1*s]
 				new_K = K_prime.lin_divide(divisor)
 				del new_K.eqn[len(new_K.eqn)-1]
@@ -124,7 +118,7 @@ def rpoly(eqn,highest_deg):
 
 			constant = -1*K.evaluate(s)/coeff.evaluate(s)
 			P_z = coeff.poly_multiply(constant)
-			K_prime = algebra.poly_add(K.eqn,P_z.eqn)
+			K_prime = poly_add(K.eqn,P_z.eqn)
 			divisor = [1,-1*s]
 			new_K = K_prime.lin_divide(divisor)
 			del new_K.eqn[len(new_K.eqn)-1]
@@ -151,8 +145,8 @@ def rpoly(eqn,highest_deg):
 
 	return s
 	
-def get_random_root(eqn):
-
+def get_random_root(eqn: Poly_Func) -> Union[int, float, complex]:
+	"""Function for finding random roots."""
 	cauchy_eqn = eqn.cauchy_poly()
 	#print("Cauchy",cauchy_eqn.eqn)
 	beta = cauchy_eqn.newton_raphson(10**(-5))
@@ -161,6 +155,6 @@ def get_random_root(eqn):
 	root = abs(beta)*cmath.exp(1j*rand)
 	return root
 
-#def imag_poly():
+
 
 	
