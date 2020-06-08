@@ -1,10 +1,11 @@
+from __future__ import annotations
 import math
 import cmath
 from math_core import calculus
 import random
 
 from typing import Tuple, List, Union
-from __future__ import annotations
+
 
 def is_number(s: str) -> bool:
 
@@ -505,7 +506,6 @@ class Poly_Func:
 		return ans, solution, sol_cnt
 
 	#Quartic root formula
-	def ferrari(self, solution: List[str], sol_cnt: int) -> Tuple[List[Union[int, float, complex]], List[str], int]:
 
 		solution.insert(sol_cnt,"")
 		sol_cnt+=1
