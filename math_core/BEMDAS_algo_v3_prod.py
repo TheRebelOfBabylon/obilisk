@@ -1,3 +1,4 @@
+"""Copy of what is on live website. Core string parsing methods as well as equation decoding. Arithmetic solving methods as well."""
 import math
 import cmath
 import os
@@ -80,7 +81,7 @@ oper_dict_two = {
 }
 
 def inference(eqn):
-
+	"""Equation adds * symbol between constants and brackets or constants and complex math operations."""
 	master=[]
 	s=0
 	for i in range(0,len(eqn)):
@@ -102,9 +103,8 @@ def inference(eqn):
 	print(master)
 	return master
 
-#To detect divisions by zero
 def div_check(x,y):
-
+	"""Detects divisions by zero."""
 	try:
 		x/y
 
@@ -117,7 +117,7 @@ def div_check(x,y):
 		return False
 
 def operation(num_one,oper,num_two):
-
+	"""Takes two numbers in string format and performs specified input operation."""
 	try:
 
 		num_one = float(num_one)
@@ -355,7 +355,7 @@ def operation(num_one,oper,num_two):
 	return operation_ans
 
 def calculate(n,b):
-	
+	"""Using the rules of BEMDAS, function solves any arithmetic problem."""
 	op="0"
 	oper="x"
 	y=0
@@ -581,7 +581,7 @@ def calculate(n,b):
 	return calc
 
 def simplify(eqn):
-
+	"""Function will take equations with variables and try to compute low hanging fruit."""
 	s=0
 	b=1
 	k=0
@@ -631,7 +631,7 @@ def simplify(eqn):
 	return eqn
 
 def is_number(s):
-
+	"""Function tests if a string is a number."""
 	try:
 			
 		float(s)
@@ -642,11 +642,11 @@ def is_number(s):
 		return False
 
 def has_numbers(s):
-
+	"""Function tests if any character in a string is a number. Returns True or False."""
 	return any(char.isdigit() for char in s)
 
 def is_even(s):
-
+	"""Tests if number is even."""
 	if s % 2 == 0:
 
 		return True
@@ -656,7 +656,7 @@ def is_even(s):
 		return False
 
 def cube_root(x):
-
+	"""Proper calculation of cubic root with proper sign."""
 	print(x)
 
 	if isinstance(x, complex):
@@ -674,7 +674,7 @@ def cube_root(x):
 			return -(-x)**(1/3)
 
 def stringify(l,r):
-
+	"""Takes LHS and RHS of equation and transforms into a string."""
 	temp=""
 	for s in range(1,len(l)-1):
 
@@ -709,7 +709,7 @@ def stringify(l,r):
 	return temp
 
 def isolate(l, r, lvl, var_type):
-
+	"""Function isolates variables on LHS and constants on RHS then solves based on highest power."""
 	global var_index_l, var_index_r, oper_dict_two, solution, sol_cnt
 	
 	op=""
@@ -2726,7 +2726,7 @@ def isolate(l, r, lvl, var_type):
 		return ans
 
 def main(a):
-
+	"""Functions take inputted string, transforms into List of strings. Determines whether problem is arithmetic or polynomial root finding."""
 	master=[]
 	numtemp=[]
 	bracket=[]
