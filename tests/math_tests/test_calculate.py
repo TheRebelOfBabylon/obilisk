@@ -1,6 +1,7 @@
 """Tests for the calculate function in the BEMDAS_algo_v3 module."""
 
-from math_core.BEMDAS_algo_v3 import bracketify, calculate
+#from math_core.BEMDAS_algo_v3 import bracketify, calculate
+from math_core.Arithmetic import Arithmetic
 import pytest
 
 test_cases = [
@@ -20,7 +21,8 @@ test_case_answers = [
 def test_all_cases():
 
     for i in range(0, len(test_cases)):
-        br_tc, var_type = bracketify(test_cases[i])
-        ans = calculate(br_tc, 0)
+
+        br_tc = Arithmetic(test_cases[i])
+        ans = br_tc.calculate()
 
         assert complex(ans) == pytest.approx(test_case_answers[i])
