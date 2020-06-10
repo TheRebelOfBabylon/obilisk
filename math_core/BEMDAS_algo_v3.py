@@ -9,6 +9,7 @@ import psutil
 from math_core import calculus
 from math_core.algebra import *
 from math_core import jenkins_traub
+from math_core.Arithmetic import Arithmetic
 from math_core.Equation import Equation, is_number, bracketify
 from typing import List, Tuple, Union
 
@@ -5556,7 +5557,8 @@ def main(a: str) -> Tuple[List[str], List[Union[int, float, complex]]]:
     else:
 
         ans = ["0"]
-        ans[0] = calculate(eqn.eqn, 0)
+        eqn = Arithmetic(eqn.eqn_string)
+        ans[0] = eqn.calculate()
 
         #This bit of code can be replaced by is_complex
         try:
