@@ -9,6 +9,7 @@ import psutil
 from math_core import calculus
 from math_core.algebra import *
 from math_core import jenkins_traub
+from math_core.Equation import Equation, is_number, bracketify
 from typing import List, Tuple, Union
 
 process = psutil.Process(os.getpid())
@@ -146,37 +147,6 @@ var_dict = {
 
 }
 
-
-def inference(eqn: List[str]) -> List[str]:
-    """Equation adds * symbol between constants and brackets or constants and complex math operations."""
-    master = []
-    s = 0
-    for i in range(0, len(eqn)):
-
-        if ("(" in eqn[i]) and (is_number(eqn[i - 1]) == True):
-
-            master.append("*")
-            master.append(eqn[i])
-
-        elif (eqn[i] in oper_dict.values()) and (is_number(eqn[i - 1]) == True):
-
-            master.append("*")
-            master.append(eqn[i])
-
-        elif ("(" in eqn[i]) and (")" in eqn[i - 1]) and (s != 0):
-
-            master.append("*")
-            master.append(eqn[i])
-
-        else:
-
-            master.append(eqn[i])
-
-    # print(master)
-    return master
-
-
-# To detect divisions by zero
 def div_check(x: Union[int, float, complex], y: Union[int, float, complex]) -> bool:
     """Detects divisions by zero."""
     try:
@@ -5416,582 +5386,22 @@ def isolate(l: List[str], r: List[str], lvl: int, var_type: List[str]) -> List[U
 
         return ans
 
-
-def imaginary_num(br: List[str]) -> List[str]:
-    """Removes brackets around complex numbers."""
-    i = 0
-    mod_chk = False
-    br_copy = br[:]
-    while i != len(br_copy):
-
-        if (")" in br_copy[i]) and (br_copy[i] != ")1") and (br_copy[i - 1] == "j") and (
-                is_number(br_copy[i - 2]) == True):
-
-            b = br_copy[i]
-            b = b.replace(')', '')
-            b = int(b)
-            k = i - 1
-            temp = []
-            while br_copy[k] != "(" + str(b):
-                temp.insert(0, br_copy[k])
-                k -= 1
-
-            temp_string = ""
-            for s in temp:
-                temp_string += s
-
-            temp = temp_string
-
-            # print("temp = "+temp, is_number(temp))
-            # let's double check it is an imaginary number
-            if is_number(temp) == True:
-
-                # print("It's a number")
-                if isinstance(complex(temp), complex) == True:
-                    del br_copy[k:i]
-                    br_copy[k] = temp
-                    mod_chk = True
-                    i = -1
-
-        if (")" in br_copy[i]) and (br_copy[i] == ")1") and (br_copy[i - 1] == "j") and (
-                is_number(br_copy[i - 2]) == True):
-
-            b = br_copy[i]
-            b = b.replace(')', '')
-            b = int(b)
-            k = i - 1
-            temp = []
-            while br_copy[k] != "(" + str(b):
-
-                if ")" in br_copy[k]:
-
-                    temp.insert(0, ")")
-
-                else:
-
-                    temp.insert(0, br_copy[k])
-
-                k -= 1
-
-            temp_string = ""
-            for s in temp:
-                temp_string += s
-
-            temp = temp_string
-
-            # print("temp = "+temp, is_number(temp))
-            # let's double check it is an imaginary number
-            if is_number(temp) == True:
-
-                # print("It's a number")
-                if isinstance(complex(temp), complex) == True:
-                    del br_copy[k + 1:i]
-                    br_copy.insert(k + 1, temp)
-                    mod_chk = True
-                    i = -1
-
-        i += 1
-
-    if mod_chk == True:
-        br = br_copy[:]
-
-    return br
-
-
-def bracketify(a: str) -> Tuple[List[str], List[str]]:
-    "Takes equation in string format and transforms into list of strings."
-    # Gotta add a check for imaginary numbers
-
-    master = []
-    numtemp = []
-    var_type = []
-    a = "(" + a + ")00000"
-
-    i = 0
-    j = 0  # walk the master array
-    b = 0
-    k = 0
-    temp = ""
-    s = 0
-    var_num = 0
-    # Transform input string array into code-readable format
-    while s != len(a) - 5:
-
-        # print(master, a[s], s)
-        if a[s] == "(":
-
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        elif a[s] == "^":
-
-            master.insert(j, "^")
-            j = j + 1
-
-        elif a[s] == "/":
-
-            master.insert(j, "/")
-            j = j + 1
-
-        elif a[s] == "*":
-
-            master.insert(j, "*")
-            j = j + 1
-
-        elif a[s] == "+":
-
-            master.insert(j, "+")
-            j = j + 1
-
-        # checks if previous digit is a number so that it doesn't mistake a negative number for an operation
-        elif (a[s] == "-") & ((a[s - 1] == ")") or (a[s - 1].isdigit() == True) or (a[s - 1].isalpha() == True)):
-
-            master.insert(j, "-")
-            j = j + 1
-
-        # Sine
-        elif (a[s] == "s") & (a[s + 1] == "i") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "SIN")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Cosine
-        elif (a[s] == "c") & (a[s + 1] == "o") & (a[s + 2] == "s") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "COS")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Tangent
-        elif (a[s] == "t") & (a[s + 1] == "a") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "TAN")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Secant
-        elif (a[s] == "s") & (a[s + 1] == "e") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "SEC")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Cosecant
-        elif (a[s] == "c") & (a[s + 1] == "s") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "CSC")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Cotangent
-        elif (a[s] == "c") & (a[s + 1] == "o") & (a[s + 2] == "t") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "COT")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Arc Sine
-        elif (a[s] == "a") & (a[s + 1] == "s") & (a[s + 2] == "i") & (a[s + 4] != "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ASIN")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Arc Cosine
-        elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "o") & (a[s + 3] == "s") & (a[s + 4] != "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ACOS")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Arc Tangent
-        elif (a[s] == "a") & (a[s + 1] == "t") & (a[s + 4] != "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ATAN")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Arc Secant
-        elif (a[s] == "a") & (a[s + 1] == "s") & (a[s + 2] == "e") & (a[s + 4] != "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ASEC")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Arc Cosecant
-        elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "s") & (a[s + 4] != "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ACSC")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Arc Cotangent
-        elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "o") & (a[s + 3] == "t") & (a[s + 4] != "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ACOT")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Sine
-        elif (a[s] == "s") & (a[s + 1] == "i") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "SINH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Cosine
-        elif (a[s] == "c") & (a[s + 1] == "o") & (a[s + 2] == "s") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "COSH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Tangent
-        elif (a[s] == "t") & (a[s + 1] == "a") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "TANH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Secant
-        elif (a[s] == "s") & (a[s + 1] == "e") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "SECH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Cosecant
-        elif (a[s] == "c") & (a[s + 1] == "s") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "CSCH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Cotangent
-        elif (a[s] == "c") & (a[s + 1] == "o") & (a[s + 2] == "t") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "COTH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Arc Sine
-        elif (a[s] == "a") & (a[s + 1] == "s") & (a[s + 2] == "i") & (a[s + 4] == "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ASINH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Arc Cosine
-        elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "o") & (a[s + 3] == "s") & (a[s + 4] == "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ACOSH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Arc Tangent
-        elif (a[s] == "a") & (a[s + 1] == "t") & (a[s + 2] == "a") & (a[s + 4] == "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ATANH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Arc Secant
-        elif (a[s] == "a") & (a[s + 1] == "s") & (a[s + 2] == "e") & (a[s + 4] == "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ASECH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Arc Cosecant
-        elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "s") & (a[s + 4] == "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ACSCH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Arc Cotangent
-        elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "o") & (a[s + 3] == "t") & (a[s + 4] == "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ACOTH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Natural Logarithm
-        elif (a[s] == "l") & (a[s + 1] == "n"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "LN")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Logarithm
-        elif (a[s] == "l") & (a[s + 1] == "o"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "LOG")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        elif a[s] == ",":
-
-            master.insert(j, ")" + str(b))
-            b = b - 1
-            j = j + 1
-            b = b + 1
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Square Root
-        elif (a[s] == "s") & (a[s + 1] == "q"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "SQRT")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # PI
-        elif (a[s] == "P") & (a[s + 1] == "I"):
-
-            master.insert(j, str(math.pi))
-            s = s + 1
-            j = j + 1
-
-        # Euler's number
-        elif a[s] == "E":
-
-            master.insert(j, str(math.e))
-            j = j + 1
-
-        elif a[s] == ")":
-
-            master.insert(j, ")" + str(b))
-            b = b - 1
-            j = j + 1
-
-        elif a[s] == "=":
-
-            master.insert(j, "=")
-            j = j + 1
-
-        # The following code is for single character variables
-        elif (a[s].isalpha() == True) & (a[s - 1].isalpha() == False) & (a[s + 1].isalpha() == False) & (a[s] != "d"):
-
-            master.insert(j, str(a[s]))
-            if str(a[s]) not in var_type:
-                var_type.insert(var_num, str(a[s]))
-                var_num = var_num + 1
-
-            j = j + 1
-
-        # the following code is for handling large numbers and decimals
-        else:
-
-            numtemp.insert(i, a[s])
-
-            if (a[s + 1].isdigit() == True) or (a[s + 1] == "."):  # if the next index is a number or a period or j
-
-                i = i + 1
-
-            elif (a[s + 1] == "e") and (a[s + 2] in "+-") and (a[s + 3].isdigit() == True):
-
-                # print(a[s],str(s)+" out of "+str(len(a)-1))
-
-                i += 1
-                s += 1
-                numtemp.insert(i, a[s])
-                # print(numtemp)
-                i += 1
-                s += 1
-                numtemp.insert(i, a[s])
-                # print(numtemp)
-                i += 1
-
-            elif (a[s] == "-") & (a[s - 1].isdigit() == False):
-
-                master.insert(j, "-1")
-                j = j + 1
-                master.insert(j, "*")
-                j = j + 1
-                numtemp.clear()
-
-            else:
-
-                for k in range(0, i + 1):
-                    temp = str(temp) + str(numtemp[k])
-
-                master.insert(j, str(float(temp)))
-                j = j + 1
-                i = 0
-                numtemp.clear()
-                temp = ""  # clear up temp
-
-        s = s + 1
-
-    # print("now for inference")
-    master = inference(master)
-    # print(master)
-    # print("now for imaginary_num")
-    master = imaginary_num(master)
-    # print(master)
-
-    if not var_type:
-        var_type.append("")
-
-    return master, var_type
-
-
 def main(a: str) -> Tuple[List[str], List[Union[int, float, complex]]]:
     """Functions take inputted string, transforms into List of strings. Determines whether problem is arithmetic or polynomial root finding."""
-    master, var_type = bracketify(a)
 
-    global sol_cnt, solution
+    eqn = Equation(a)
+
     sol_cnt = 0
-    solution = []
+    eqn.solution.append("The inputted equation is " + str(eqn.eqn_string))
+    print("The inputted equation is " + str(eqn.eqn_string))
+    sol_cnt += 1
 
-    solution.insert(sol_cnt, "The inputted equation is " + str(a))
-    print(solution[sol_cnt])
-    sol_cnt = sol_cnt + 1
+    if eqn.var_type[0] != "":
 
-    if var_type[0] != "":
+        if len(eqn.var_type) > 1:
 
-        if len(var_type) > 1:
-
-            solution.insert(sol_cnt, "Multivariable problems are not yet supported.")
-            print(solution)
+            eqn.solution.append("Multivariable problems are not yet supported.")
+            print(eqn.solution)
             raise ValueError("Multivariable problems are not yet supported.")
 
         else:
@@ -6010,13 +5420,13 @@ def main(a: str) -> Tuple[List[str], List[Union[int, float, complex]]]:
             var_ranges_l = []
             var_ranges_r = []
             m = 0
-            master.insert(len(master), "0")
-            master.insert(len(master) + 1, "0")
-            c = len(master)
+            eqn.eqn.insert(len(eqn.eqn), "0")
+            eqn.eqn.insert(len(eqn.eqn) + 1, "0")
+            c = len(eqn.eqn)
             s = 0
             while s != c - 2:
 
-                if master[s] == "=":
+                if eqn.eqn[s] == "=":
 
                     equal_cnt = 1
                     LHS.insert(i, ")1")
@@ -6027,23 +5437,23 @@ def main(a: str) -> Tuple[List[str], List[Union[int, float, complex]]]:
 
                     if equal_cnt == 0:
 
-                        LHS.insert(i, str(master[s]))
+                        LHS.insert(i, str(eqn.eqn[s]))
 
-                        if "(" in master[s]:
+                        if "(" in eqn.eqn[s]:
                             b_open = b_open + 1
                             b = b + 1
                             b_open_index = s
 
-                        if ")" in master[s]:
+                        if ")" in eqn.eqn[s]:
                             b_close = b_close + 1
                             b = b - 1
 
-                        if (master[s].isalpha() == True) & (len(master[s]) == 1):
+                        if (eqn.eqn[s].isalpha() == True) & (len(eqn.eqn[s]) == 1):
 
-                            if (master[s + 1] == "^") & ("(" not in master[s + 2]):
-                                LHS[i] = str(LHS[i]) + str(master[s + 1]) + str(master[s + 2])
-                                del master[s + 1:s + 3]
-                                c = len(master)
+                            if (eqn.eqn[s + 1] == "^") & ("(" not in eqn.eqn[s + 2]):
+                                LHS[i] = str(LHS[i]) + str(eqn.eqn[s + 1]) + str(eqn.eqn[s + 2])
+                                del eqn.eqn[s + 1:s + 3]
+                                c = len(eqn.eqn)
 
                             if LHS[i - 1].isdigit() == True:
                                 LHS[i - 1] = str(LHS[i - 1]) + str(LHS[i])
@@ -6055,7 +5465,7 @@ def main(a: str) -> Tuple[List[str], List[Union[int, float, complex]]]:
                             if b_open != b_close:
 
                                 t = s
-                                while (")" not in master[t]) & (str(b) not in master[t]):
+                                while (")" not in eqn.eqn[t]) & (str(b) not in eqn.eqn[t]):
                                     t = t + 1
 
                                 var_ranges_l.insert(m, str(b_open_index) + ":" + str(t))
@@ -6069,23 +5479,23 @@ def main(a: str) -> Tuple[List[str], List[Union[int, float, complex]]]:
 
                     else:
 
-                        RHS.insert(j, str(master[s]))
+                        RHS.insert(j, str(eqn.eqn[s]))
 
-                        if "(" in master[s]:
+                        if "(" in eqn.eqn[s]:
                             b_open = b_open + 1
                             b = b + 1
                             b_open_index = s
 
-                        if ")" in master[s]:
+                        if ")" in eqn.eqn[s]:
                             b_close = b_close + 1
                             b = b - 1
 
-                        if (master[s].isalpha() == True) & (len(master[s]) == 1):
+                        if (eqn.eqn[s].isalpha() == True) & (len(eqn.eqn[s]) == 1):
 
-                            if (master[s + 1] == "^") & ("(" not in master[s + 2]):
-                                RHS[j] = str(RHS[j]) + str(master[s + 1]) + str(master[s + 2])
-                                del master[s + 1:s + 3]
-                                c = len(master)
+                            if (eqn.eqn[s + 1] == "^") & ("(" not in eqn.eqn[s + 2]):
+                                RHS[j] = str(RHS[j]) + str(eqn.eqn[s + 1]) + str(eqn.eqn[s + 2])
+                                del eqn.eqn[s + 1:s + 3]
+                                c = len(eqn.eqn)
 
                             if RHS[j - 1].isdigit() == True:
                                 RHS[j - 1] = str(RHS[j - 1]) + str(RHS[j])
@@ -6097,7 +5507,7 @@ def main(a: str) -> Tuple[List[str], List[Union[int, float, complex]]]:
                             if b_open != b_close:
 
                                 t = s
-                                while (")" not in master[t]) & (str(b) not in master[t]):
+                                while (")" not in eqn.eqn[t]) & (str(b) not in eqn.eqn[t]):
                                     t = t + 1
 
                                 var_ranges_r.insert(m, str(b_open_index) + ":" + str(t))
@@ -6118,35 +5528,35 @@ def main(a: str) -> Tuple[List[str], List[Union[int, float, complex]]]:
             # elif var_index_r != 0:
 
             # then the variable is on the RHS of the equation
-            print(LHS,RHS, var_type)
-            ans = isolate(LHS, RHS, 1, var_type)
+            print(LHS, RHS, eqn.var_type)
+            ans = isolate(LHS, RHS, 1, eqn.var_type)
             # print("YEEEEHAAAWWW",ans)
             if len(ans) == 1:
-                solution.insert(sol_cnt, "The value of " + str(var_type[0]) + " is " + str(ans[0]))
-                print(solution[sol_cnt])
+                eqn.solution.append("The value of " + str(eqn.var_type[0]) + " is " + str(ans[0]))
+                print("The value of " + str(eqn.var_type[0]) + " is " + str(ans[0]))
                 the_end = process.memory_info().rss
                 mem_tot = abs(the_end - beginning)
-                solution.insert(sol_cnt + 1, mem_tot)
+                eqn.solution.append(mem_tot)
 
             if len(ans) > 1:
 
-                solution.insert(sol_cnt, "The values of " + str(var_type[0]) + " are")
-                print(solution[sol_cnt])
+                eqn.solution.append("The values of " + str(eqn.var_type[0]) + " are")
+                print("The values of " + str(eqn.var_type[0]) + " are")
                 for s in range(0, len(ans)):
-                    solution.insert(sol_cnt + 1 + s, str(ans[s]))
-                    print(solution[sol_cnt + 1 + s])
+                    eqn.solution.append(str(ans[s]))
+                    print(str(ans[s]))
 
                 print("")
                 the_end = process.memory_info().rss
                 mem_tot = abs(the_end - beginning)
-                solution.insert(sol_cnt + 2 + s, mem_tot)
+                eqn.solution.append(mem_tot)
 
-            return solution, ans
+            return eqn.solution, ans
 
     else:
 
         ans = ["0"]
-        ans[0] = calculate(master, 0)
+        ans[0] = calculate(eqn.eqn, 0)
 
         #This bit of code can be replaced by is_complex
         try:
@@ -6163,14 +5573,14 @@ def main(a: str) -> Tuple[List[str], List[Union[int, float, complex]]]:
                 ans[0] = str(ans[0].real)
 
         print(ans)
-        solution.insert(sol_cnt, "The final answer is " + str(ans))
-        print(solution[sol_cnt])
+        eqn.solution.append("The final answer is " + str(ans))
+        print("The final answer is " + str(ans))
         # print(solution)
         the_end = process.memory_info().rss
         mem_tot = abs(the_end - beginning)
-        solution.insert(sol_cnt + 1, mem_tot)
+        eqn.solution.append(mem_tot)
         # print(mem_tot, "bytes", beginning, "bytes", the_end, "bytes")
 
-        return solution, ans
+        return eqn.solution, ans
 
 

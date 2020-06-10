@@ -2,7 +2,7 @@ import math
 import cmath
 import random
 from math_core.algebra import *
-from math_core import calculus
+from math_core.calculus import coeff_derivative
 
 from typing import List, Union, Tuple
 
@@ -40,7 +40,7 @@ def rpoly(eqn: List[Union[int, float, complex]]) -> Union[int, float, complex]:
 
 	#Stage 1: No-shift process. Assuming M = 5
 
-	K = calculus.coeff_derivative(coeff.eqn)
+	K = coeff_derivative(coeff.eqn)
 	#print(K.eqn)
 
 	for i in range(0,5):
