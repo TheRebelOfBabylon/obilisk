@@ -525,6 +525,31 @@ def bracketify(a: str) -> Tuple[List[str], List[str]]:
 
     return master, var_type
 
+def stringify(l: List[str]) -> str:
+    """Takes equation in format List of strings and returns human-readable string."""
+    temp = ""
+    for s in range(1, len(l) - 1):
+
+        if ("(" in str(l[s])) and ("j" not in str(l[s])):
+
+            temp += "("
+
+        elif (")" in str(l[s])) and ("j" not in str(l[s])):
+
+            temp += ")"
+
+        else:
+
+            temp = temp + str(l[s])
+
+    for i in oper_dict.values():
+
+        if i in temp:
+
+            temp = temp.replace(i, i.lower())
+
+    return temp
+
 def inference(eqn: List[str]) -> List[str]:
     """Equation adds * symbol between constants and brackets or constants and complex math operations."""
     master = []
