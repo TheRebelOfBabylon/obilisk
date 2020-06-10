@@ -2,7 +2,7 @@
 from __future__ import annotations
 import math
 import cmath
-from math_core import calculus
+from math_core.calculus import coeff_derivative
 import random
 
 from typing import Tuple, List, Union
@@ -373,7 +373,7 @@ class Poly_Func:
 
 	def newton_raphson(self, err: Union[int, float]) -> Union[int, float, complex]:
 		"""Finds roots of polynomial using Newton-Raphson method."""
-		der = calculus.coeff_derivative(self.eqn)
+		der = coeff_derivative(self.eqn)
 		x = random.uniform(0,1)
 		
 		while abs(self.evaluate(x)) > abs(err):

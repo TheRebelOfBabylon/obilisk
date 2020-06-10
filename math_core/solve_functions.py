@@ -1,6 +1,7 @@
 """Solve functions"""
 from __future__ import annotations
-from math_core.BEMDAS_algo_v3 import bracketify, stringify, grouping, is_number, foiling, is_even, bracket_add, calculate
+from math_core.BEMDAS_algo_v3 import stringify, grouping, foiling, is_even, bracket_add, calculate
+from math_core.Equation import is_number, bracketify
 import copy
 from math_core import jenkins_traub
 from math_core.algebra import Poly_Func
