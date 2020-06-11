@@ -288,7 +288,7 @@ trig_two = {
 
 class Arithmetic(Equation):
 
-    def calculate(self, b: int = 1) -> Union[int, float, complex]:
+    def calculate(self, solution: List[Union[str, int]] = [1], is_first: bool = True) -> Union[int, float, complex]:
         """Using the rules of BEMDAS, function solves any arithmetic problem."""
         #print("At the beginning b = "+str(b), self.eqn)
         op = "0"
@@ -296,6 +296,7 @@ class Arithmetic(Equation):
         y = 0
         z = 0
         t = 0
+        b = 1
         bracket = []
         if len(self.eqn) == 3:
             calc = complex(self.eqn_string)
@@ -328,8 +329,11 @@ class Arithmetic(Equation):
                 #print(bracket, bracket_string, "b = "+str(b))
                 bracket_inst = Arithmetic(bracket_string)
                 #print("do we ever get here?")
-                self.eqn[t] = str(bracket_inst.calculate())
-                #print("Over here", self.eqn)
+                self.eqn[t] = str(bracket_inst.calculate(solution=solution, is_first=False))
+                if is_first:
+                    self.eqn_string_update()
+                    if solution[len(solution)-1] != "Equation is now " + self.eqn_string:
+                        solution.append("Equation is now " + self.eqn_string)
                 b = b - 1
                 bracket.clear()
 
@@ -353,8 +357,10 @@ class Arithmetic(Equation):
                     if op in trig_one:
 
                         calc = operation(0, op, self.eqn[t + 1])
-                        self.solution.append(op + "(" + self.eqn[t + 1] + ") = " + str(calc))
-                        print(op + "(" + self.eqn[t + 1] + ") = " + str(calc))
+                        solution.append("Step "+str(solution[0])+":")
+                        solution[0]=solution[0]+1
+                        solution.append(op.lower() + "(" + self.eqn[t + 1] + ") = " + str(calc))
+                        #print(solution)
                         self.eqn[t] = str(calc)
                         del self.eqn[t + 1]
                         length = len(self.eqn)
@@ -363,8 +369,10 @@ class Arithmetic(Equation):
                     elif op in trig_two:
 
                         calc = operation(0, op, self.eqn[t + 1])
-                        self.solution.append(op + "(" + self.eqn[t + 1] + ") = 1/"+trig_two[op]+"(" + self.eqn[t + 1] + ") = " + str(calc))
-                        print(op + "(" + self.eqn[t + 1] + ") = 1/"+trig_two[op]+"("+self.eqn[t + 1] + ") = " + str(calc))
+                        solution.append("Step " + str(solution[0]) + ":")
+                        solution[0] = solution[0] + 1
+                        solution.append(op.lower() + "(" + self.eqn[t + 1] + ") = 1/"+trig_two[op]+"(" + self.eqn[t + 1] + ") = " + str(calc))
+                        #print(solution)
                         self.eqn[t] = str(calc)
                         del self.eqn[t + 1]
                         length = len(self.eqn)
@@ -373,12 +381,19 @@ class Arithmetic(Equation):
                     elif op == "LOG":
 
                         calc = operation(self.eqn[t + 1], op, self.eqn[t + 2])
-                        self.solution.append("Log of " + self.eqn[t + 2] + " to the base of " + self.eqn[t + 1] + " = " + str(calc))
-                        print("Log of " + self.eqn[t + 2] + " to the base of " + self.eqn[t + 1] + " = " + str(calc))
+                        solution.append("Step " + str(solution[0]) + ":")
+                        solution[0] = solution[0] + 1
+                        solution.append("Log(" + self.eqn[t + 1] + ", " + self.eqn[t + 2] + ") = " + str(calc))
+                        #print(solution)
                         self.eqn[t] = str(calc)
                         del self.eqn[t + 1:t + 3]
                         # print(self.eqn)
                         length = len(self.eqn)
+
+                    if is_first:
+                        self.eqn_string_update()
+                        if solution[len(solution) - 1] != "Equation is now " + self.eqn_string:
+                            solution.append("Equation is now " + self.eqn_string)
 
                 t = t + 1
 
@@ -406,26 +421,45 @@ class Arithmetic(Equation):
                 if self.eqn[t] == op:
 
                     calc = operation(self.eqn[t - 1], op, self.eqn[t + 1])
-                    self.solution.append(self.eqn[t - 1] + op + self.eqn[t + 1] + " = " + str(calc))
-                    print(self.eqn[t - 1] + op + self.eqn[t + 1] + " = " + str(calc))
+                    solution.append("Step " + str(solution[0]) + ":")
+                    solution[0] = solution[0] + 1
+                    solution.append(self.eqn[t - 1] + op + self.eqn[t + 1] + " = " + str(calc))
+                    #print(solution)
                     self.eqn[t - 1] = str(calc)
                     del self.eqn[t:t + 2]
                     t = t - 1  # line added to make sure all ops are performed
                     length = len(self.eqn)
+                    if is_first:
+                        self.eqn_string_update()
+                        if solution[len(solution) - 1] != "Equation is now " + self.eqn_string:
+                            solution.append("Equation is now " + self.eqn_string)
                 # print(n, calc)
 
                 elif self.eqn[t] == op1:
 
                     calc = operation(self.eqn[t - 1], op1, self.eqn[t + 1])
-                    self.solution.append(self.eqn[t - 1] + op1 + self.eqn[t + 1] + " = " + str(calc))
-                    print(self.eqn[t - 1] + op1 + self.eqn[t + 1] + " = " + str(calc))
+                    solution.append("Step " + str(solution[0]) + ":")
+                    solution[0] = solution[0] + 1
+                    solution.append(self.eqn[t - 1] + op1 + self.eqn[t + 1] + " = " + str(calc))
+                    #print(solution)
                     self.eqn[t - 1] = str(calc)
                     del self.eqn[t:t + 2]
                     t = t - 1  # line added to make sure all ops are performed
                     length = len(self.eqn)
+                    if is_first:
+                        self.eqn_string_update()
+                        if solution[len(solution) - 1] != "Equation is now " + self.eqn_string:
+                            solution.append("Equation is now " + self.eqn_string)
                 # print(n, calc)
 
                 t = t + 1
+
+        if is_first:
+
+            solution.append("Final answer is "+str(calc))
+
+            for i in range(1, len(solution)):
+                self.solution.append(solution[i])
 
         return calc
 
