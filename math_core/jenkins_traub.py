@@ -1,8 +1,8 @@
 import math
 import cmath
 import random
-from math_core.algebra import *
-from math_core.calculus import coeff_derivative
+from math_core.Algebra import Algebra
+from math_core.Calculus import coeff_derivative
 
 from typing import List, Union, Tuple
 
@@ -22,19 +22,19 @@ def real_poly(eqn: List[Union[int, float, complex]],highest_deg: Union[int, floa
 
 		#if not last_run:
 
-		eqn = Poly_Func(eqn)
+		eqn = Algebra(eqn)
 		divisor = [1,-1*root]
 		#print("x+"+str(divisor[1]))
 		new_eqn = eqn.lin_divide(divisor)
-		del new_eqn.eqn[len(new_eqn.eqn)-1]
+		del new_eqn.coeff[len(new_eqn.coeff)-1]
 		#print(new_eqn.eqn)
-		eqn = new_eqn.eqn 
+		eqn = new_eqn.coeff
 
 	return ans
 
 def rpoly(eqn: List[Union[int, float, complex]]) -> Union[int, float, complex]:
 	"""RPOLY Jenkins-Traub algorithm for polynomial root finding."""
-	eqn = Poly_Func(eqn)
+	eqn = Algebra(eqn)
 	coeff = eqn.normalize()
 	#print(coeff.eqn)
 
@@ -49,11 +49,11 @@ def rpoly(eqn: List[Union[int, float, complex]]) -> Union[int, float, complex]:
 		#print("Constant is",constant)
 		P_z = coeff.poly_multiply(constant)
 		#print("P_z",P_z.eqn)
-		K_prime = poly_add(K.eqn,P_z.eqn)
+		K_prime = Algebra.poly_add(K.coeff,P_z.coeff)
 		#print("K_prime",K_prime.eqn)
 		divisor = [1,0]
 		new_K = K_prime.lin_divide(divisor)
-		del new_K.eqn[len(new_K.eqn)-1]
+		del new_K.coeff[len(new_K.coeff)-1]
 		#print("new_K",new_K.eqn)
 		K = new_K
 		#print(i)
@@ -75,10 +75,10 @@ def rpoly(eqn: List[Union[int, float, complex]]) -> Union[int, float, complex]:
 				
 				constant = -1*K.evaluate(s)/coeff.evaluate(s)
 				P_z = coeff.poly_multiply(constant)
-				K_prime = poly_add(K.eqn,P_z.eqn)
+				K_prime = Algebra.poly_add(K.coeff,P_z.coeff)
 				divisor = [1,-1*s]
 				new_K = K_prime.lin_divide(divisor)
-				del new_K.eqn[len(new_K.eqn)-1]
+				del new_K.coeff[len(new_K.coeff)-1]
 
 				K_bar = K.normalize()
 				new_K_bar = new_K.normalize()
@@ -118,10 +118,10 @@ def rpoly(eqn: List[Union[int, float, complex]]) -> Union[int, float, complex]:
 
 			constant = -1*K.evaluate(s)/coeff.evaluate(s)
 			P_z = coeff.poly_multiply(constant)
-			K_prime = poly_add(K.eqn,P_z.eqn)
+			K_prime = Algebra.poly_add(K.coeff,P_z.coeff)
 			divisor = [1,-1*s]
 			new_K = K_prime.lin_divide(divisor)
-			del new_K.eqn[len(new_K.eqn)-1]
+			del new_K.coeff[len(new_K.coeff)-1]
 			new_K_bar = new_K.normalize()
 
 			s = s-(coeff.evaluate(s)/new_K_bar.evaluate(s))
@@ -145,7 +145,7 @@ def rpoly(eqn: List[Union[int, float, complex]]) -> Union[int, float, complex]:
 
 	return s
 	
-def get_random_root(eqn: Poly_Func) -> Union[int, float, complex]:
+def get_random_root(eqn: Algebra) -> Union[int, float, complex]:
 	"""Function for finding random roots."""
 	cauchy_eqn = eqn.cauchy_poly()
 	#print("Cauchy",cauchy_eqn.eqn)

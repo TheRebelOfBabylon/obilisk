@@ -22,7 +22,7 @@ def decode(input_eqn: str) -> Tuple[Equation, str]:
 
 def compute(input: Equation) -> Tuple[List[str], List[Union[int, float, complex]]]:
 
-    ans=[]
+    ans = []
     eqn = Arithmetic(input.eqn_string)
     ans.append(eqn.calculate())
 

@@ -4,7 +4,7 @@ import os
 import time
 import codecs
 import calculus
-from algebra import *
+from Algebra import *
 import jenkins_traub
 from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects

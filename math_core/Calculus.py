@@ -1,7 +1,7 @@
 """All methods related to calculus type problems."""
 import math
 import cmath
-from math_core.algebra import Poly_Func
+from math_core.Algebra import Algebra
 from typing import List, Tuple, Union
 
 def poly_derivative(eqn: List[str],order: int,var_type: str) -> List[str]:
@@ -94,7 +94,7 @@ def poly_derivative(eqn: List[str],order: int,var_type: str) -> List[str]:
 
 #input eqn - array of coefficients of a given polynomial
 #output - array of coefficients of derivative
-def coeff_derivative(eqn: List[Union[int, float, complex]]) -> Poly_Func:
+def coeff_derivative(eqn: List[Union[int, float, complex]]) -> Algebra:
 	"""Takes first derivative of a polynomial. Input eqn is a list of coefficients."""
 	expo = len(eqn)-1
 	der=[]
@@ -109,6 +109,6 @@ def coeff_derivative(eqn: List[Union[int, float, complex]]) -> Poly_Func:
 			der.append(i*expo)
 			expo -= 1
 
-	return Poly_Func(der)
+	return Algebra(der)
 
 		

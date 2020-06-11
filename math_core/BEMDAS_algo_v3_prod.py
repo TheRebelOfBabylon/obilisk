@@ -3,8 +3,8 @@ import math
 import cmath
 import os
 import psutil
-from math_core import calculus
-from math_core.algebra import *
+from math_core import Calculus
+from math_core.Algebra import *
 from math_core import jenkins_traub
 
 process = psutil.Process(os.getpid())
