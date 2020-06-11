@@ -4,7 +4,7 @@ from math_core.BEMDAS_algo_v3 import stringify, grouping, foiling, is_even, brac
 from math_core.Equation import is_number, bracketify
 import copy
 from math_core import jenkins_traub
-from math_core.algebra import Poly_Func
+from math_core.Algebra import Poly_Func
 from typing import List, Tuple, Union
 
 """

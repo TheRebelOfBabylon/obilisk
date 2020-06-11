@@ -6,8 +6,8 @@ import math
 import cmath
 import os
 import psutil
-from math_core import calculus
-from math_core.algebra import *
+from math_core import Calculus
+from math_core.Algebra import *
 from math_core import jenkins_traub
 from math_core.Arithmetic import Arithmetic
 from math_core.Equation import Equation, is_number, bracketify
@@ -5128,10 +5128,10 @@ def isolate(l: List[str], r: List[str], lvl: int, var_type: List[str]) -> List[U
             simp_r[1] = "0"
 
         # Quadratic Formula
-
-        rear_l = Poly_Func(rear_l)
-        coeff = rear_l.get_coeff(int(new_n_order[0]), var_type[0])
-        ans, solution, sol_cnt = coeff.quadratic(solution, sol_cnt)
+        # TODO
+        rear_l = Algbera(rear_l)
+        coeff = rear_l.get_coeff()
+        ans = coeff.quadratic()
 
         for s in range(0, len(ans)):
 
@@ -5163,10 +5163,10 @@ def isolate(l: List[str], r: List[str], lvl: int, var_type: List[str]) -> List[U
             simp_r[1] = "0"
 
         # Cubic Function Formula
-
-        rear_l = Poly_Func(rear_l)
-        coeff = rear_l.get_coeff(int(new_n_order[0]), var_type[0])
-        ans, solution, sol_cnt = coeff.cardano(solution, sol_cnt)
+        # TODO
+        rear_l = Algebra(rear_l)
+        coeff = rear_l.get_coeff()
+        ans = coeff.cardano()
 
         for s in range(0, len(ans)):
 
@@ -5200,11 +5200,11 @@ def isolate(l: List[str], r: List[str], lvl: int, var_type: List[str]) -> List[U
             rear_l.insert(len(rear_l) - 1, "-")
             rear_l.insert(len(rear_l) - 1, simp_r[1])
             simp_r[1] = "0"
-
-        rear_l = Poly_Func(rear_l)
-        coeff = rear_l.get_coeff(int(new_n_order[0]), var_type[0])
+        # TODO
+        rear_l = Algebra(rear_l)
+        coeff = rear_l.get_coeff()
         # print(coeff.eqn)
-        ans, solution, sol_cnt = coeff.ferrari(solution, sol_cnt)
+        ans = coeff.ferrari()
 
         for s in range(0, len(ans)):
 
@@ -5240,12 +5240,12 @@ def isolate(l: List[str], r: List[str], lvl: int, var_type: List[str]) -> List[U
             simp_r[1] = "0"
 
         # print(new_n_order[0])
-
-        rear_l = Poly_Func(rear_l)
-        coeff = rear_l.get_coeff(int(new_n_order[0]), var_type[0])
-        test = rear_l.get_coeff(int(new_n_order[0]), var_type[0])
-        test_two = rear_l.get_coeff(int(new_n_order[0]), var_type[0])
-        coeff = coeff.eqn
+        # TODO
+        rear_l = Algebra(rear_l)
+        coeff = rear_l.get_coeff()
+        test = rear_l.get_coeff()
+        test_two = rear_l.get_coeff()
+        coeff = coeff.coeff
 
         # print("coeff before JT",coeff)
         print("Checking if 0 is a root via synthetic division...\n")
