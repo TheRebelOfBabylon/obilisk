@@ -5573,10 +5573,6 @@ def main(a: str) -> Tuple[List[str], List[Union[int, float, complex]]]:
 
             if ans[0].imag == 0:
                 ans[0] = str(ans[0].real)
-
-        print(ans)
-        eqn.solution.append("The final answer is " + str(ans))
-        print("The final answer is " + str(ans))
         # print(solution)
         the_end = process.memory_info().rss
         mem_tot = abs(the_end - beginning)

@@ -665,6 +665,7 @@ class Equation():
         self.eqn = []
         self.var_type = []
         self.solution = []
+        self.solution.append("The inputted equation is "+eqn_string)
         self.bracketify()
 
     def bracketify(self) -> Tuple[List[str], List[str]]:
@@ -1146,7 +1147,8 @@ class Equation():
     def eqn_string_update(self) -> str:
         """Takes objects equation in format List of strings and updates eqn_string parameter."""
         temp = ""
-        for s in range(1, len(self.eqn) - 1):
+        s=1
+        while s != len(self.eqn) - 1:
 
             if ("(" in str(self.eqn[s])) and ("j" not in str(self.eqn[s])):
 
@@ -1156,8 +1158,66 @@ class Equation():
 
                 temp += ")"
 
+            elif self.eqn[s] == "LOG":
+
+                temp += self.eqn[s].lower()
+                i = s+1
+                if "(" in self.eqn[i]:
+                    temp_two = self.eqn[i]
+                    temp_two = temp_two.replace("(",'')
+                    temp += "("
+                    i+=1
+                    while self.eqn[i] != ")"+temp_two:
+                        temp += str(self.eqn[i])
+                        i+=1
+                    i+=1
+                    if "(" in self.eqn[i]:
+                        temp += ","
+                        temp_two = self.eqn[i]
+                        temp_two = temp_two.replace("(", '')
+                        i+=1
+                        while self.eqn[i] != ")"+temp_two:
+                            temp += str(self.eqn[i])
+                            i+=1
+                        temp += ")"
+                        if i+1 >= len(self.eqn)-1:
+                            break
+                        else:
+                            s = i+1
+                else:
+                    temp += "("
+                    temp += str(self.eqn[i])
+                    temp += ","
+                    if "(" in self.eqn[i+1]:
+                        i += 1
+                        temp_two = self.eqn[i]
+                        temp_two = temp_two.replace("(", '')
+                        i+=1
+                        while self.eqn[i] != ")"+temp_two:
+                            temp += str(self.eqn[i])
+                            i+=1
+                        temp += ")"
+                        if i+1 >= len(self.eqn)-1:
+                            break
+                        else:
+                            s = i+1
+                    elif i+3 >= len(self.eqn)-1:
+                        temp += str(self.eqn[i+1])
+                        temp += ")"
+                        break
+                    else:
+                        i+=1
+                        temp += str(self.eqn[i])
+                        temp += ")"
+                        s = i+1
+
             else:
 
                 temp = temp + str(self.eqn[s])
 
+            s+=1
+
+        for i in oper_dict.values():
+            if i in temp:
+                temp = temp.replace(i, i.lower())
         self.eqn_string = temp
