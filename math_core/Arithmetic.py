@@ -332,7 +332,7 @@ class Arithmetic(Equation):
                 self.eqn[t] = str(bracket_inst.calculate(solution=solution, is_first=False))
                 if is_first:
                     self.eqn_string_update()
-                    if solution[len(solution)-1] != "Equation is now " + self.eqn_string:
+                    if solution[-1] != "Equation is now " + self.eqn_string:
                         solution.append("Equation is now " + self.eqn_string)
                 b = b - 1
                 bracket.clear()
@@ -392,7 +392,7 @@ class Arithmetic(Equation):
 
                     if is_first:
                         self.eqn_string_update()
-                        if solution[len(solution) - 1] != "Equation is now " + self.eqn_string:
+                        if solution[-1] != "Equation is now " + self.eqn_string:
                             solution.append("Equation is now " + self.eqn_string)
 
                 t = t + 1
@@ -431,7 +431,7 @@ class Arithmetic(Equation):
                     length = len(self.eqn)
                     if is_first:
                         self.eqn_string_update()
-                        if solution[len(solution) - 1] != "Equation is now " + self.eqn_string:
+                        if solution[-1] != "Equation is now " + self.eqn_string:
                             solution.append("Equation is now " + self.eqn_string)
                 # print(n, calc)
 
@@ -448,7 +448,7 @@ class Arithmetic(Equation):
                     length = len(self.eqn)
                     if is_first:
                         self.eqn_string_update()
-                        if solution[len(solution) - 1] != "Equation is now " + self.eqn_string:
+                        if solution[-1] != "Equation is now " + self.eqn_string:
                             solution.append("Equation is now " + self.eqn_string)
                 # print(n, calc)
 

@@ -4,7 +4,7 @@ from math_core.BEMDAS_algo_v3 import stringify, grouping, foiling, is_even, brac
 from math_core.Equation import is_number, bracketify
 import copy
 from math_core import jenkins_traub
-from math_core.Algebra import Poly_Func
+from math_core.Algebra import Algebra
 from typing import List, Tuple, Union
 
 """
@@ -989,7 +989,7 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 
 		#Quadratic Formula
 
-		l = Poly_Func(l)
+		l = Algebra(l)
 		coeff = l.get_coeff(int(deg),var)
 		ans, solution, sol_cnt = coeff.quadratic(solution, sol_cnt)
 
@@ -1018,7 +1018,7 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 
 		#Cubic Function Formula
 
-		l = Poly_Func(l)
+		l = Algebra(l)
 		coeff = l.get_coeff(int(deg),var)
 		ans, solution, sol_cnt = coeff.cardano(solution, sol_cnt)
 
@@ -1044,7 +1044,7 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 			l.insert(len(l)-1,r[1])
 			r[1] = "0"
 
-		l = Poly_Func(l)
+		l = Algebra(l)
 		coeff = l.get_coeff(int(deg),var)
 		#print(coeff.eqn)
 		ans, solution, sol_cnt = coeff.ferrari(solution, sol_cnt)
@@ -1071,7 +1071,7 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 			l.insert(len(l)-1,r[1])
 			r[1] = "0"
 
-		l = Poly_Func(l)
+		l = Algebra(l)
 		coeff=l.get_coeff(int(float(deg)),var)
 		test=l.get_coeff(int(float(deg)),var)
 		test_two=l.get_coeff(int(float(deg)),var)
@@ -1088,9 +1088,9 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 
 		test = test.lin_divide([1,0])
 		test_two = test_two.lin_divide([1,0])
-		remainder = test.eqn[len(test.eqn)-1]
+		remainder = test.eqn[-1]
 
-		del test_two.eqn[len(test_two.eqn)-1]
+		del test_two.eqn[-1]
 
 		test_temp = test_two.stringify(var)
 
@@ -1113,7 +1113,7 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 		solution.insert(sol_cnt,"")
 		sol_cnt+=1
 
-		if test.eqn[len(test.eqn)-1] == 0:
+		if test.eqn[-1] == 0:
 
 			success_attempt = False
 			ans=[]
@@ -1123,7 +1123,7 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 				if len(test.eqn)-2 >= 5:
 
 					try:
-						del test.eqn[len(test.eqn)-1]
+						del test.eqn[-1]
 						coeff=test.eqn
 						#print(coeff)
 						ans = jenkins_traub.real_poly(coeff,int(float(deg))-i)
@@ -1143,9 +1143,9 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 						sol_cnt+=1
 
 						test_two = test_two.lin_divide([1,0])
-						remainder = test.eqn[len(test.eqn)-1]
+						remainder = test.eqn[-1]
 
-						del test_two.eqn[len(test_two.eqn)-1]
+						del test_two.eqn[-1]
 
 						test_temp = test_two.stringify(var)
 
@@ -1180,7 +1180,7 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 
 				elif len(test.eqn)-2 == 4:
 
-					del test.eqn[len(test.eqn)-1]
+					del test.eqn[-1]
 					ans, solution, sol_cnt = test.ferrari(solution,sol_cnt)
 					success_attempt = True
 
@@ -1287,7 +1287,7 @@ class Solve_Func:
 
 				elif (x > 1) and (exp_check == True):
 
-					x_temp = float(br_string[len(br_string)-1])
+					x_temp = float(br_string[-1])
 					x*=x_temp
 					new_br_string = ""
 					i=0
@@ -1303,7 +1303,7 @@ class Solve_Func:
 				br, br_var = bracketify(br_string)
 				br, br_deg = grouping(br)
 				del br[0]
-				del br[len(br)-1]
+				del br[-1]
 
 				print(br)
 				divisors.append(br)
@@ -1364,7 +1364,7 @@ class Solve_Func:
 				br, br_var = bracketify(br_string)
 				br, br_deg = grouping(br)
 				del br[0]
-				del br[len(br)-1]
+				del br[-1]
 
 				print(br)
 				divisors.append(br)
@@ -1704,7 +1704,7 @@ class Solve_Func:
 
 				s+=1
 
-		if (self.eqn[1] == "(2") and (self.eqn[len(self.eqn)-2] == ")2"):
+		if (self.eqn[1] == "(2") and (self.eqn[-2] == ")2"):
 
 			s=1
 			d=0
@@ -1720,7 +1720,7 @@ class Solve_Func:
 
 			if chk_var == False:
 
-				del self.eqn[len(self.eqn)-2]
+				del self.eqn[-2]
 				del self.eqn[1]			
 
 		return self
@@ -2071,8 +2071,8 @@ class Solve_Func:
 							k+=1
 
 						br.append(self.eqn[k])
-						#print(br[0] != "(1", br[len(br)-1] != ")1", br)
-						if (br[0] != "(1") and (br[len(br)-1] != ")1"):
+						#print(br[0] != "(1", br[-1] != ")1", br)
+						if (br[0] != "(1") and (br[-1] != ")1"):
 
 							br.insert(0,"(1")
 							br.append(")1")
@@ -2244,7 +2244,7 @@ class Solve_Func:
 					bra, bra_var = bracketify(br)
 					bra, bra_deg = grouping(bra)
 					del bra[0]
-					del bra[len(bra)-1]
+					del bra[-1]
 					#print(bra)
 					
 					if x > 1.0:
@@ -2342,12 +2342,12 @@ class Solve_Func:
 						br_one, br_one_var = bracketify(br_string_one)
 						br_one, br_one_deg = grouping(br_one)
 						del br_one[0]
-						del br_one[len(br_one)-1]
+						del br_one[-1]
 
 						br_two, br_two_var = bracketify(br_string_two)
 						br_two, br_two_deg = grouping(br_two)
 						del br_two[0]
-						del br_two[len(br_two)-1]
+						del br_two[-1]
 
 						br = foiling(br_one, br_two, self.var)
 						
@@ -2416,12 +2416,12 @@ class Solve_Func:
 						br_one, br_one_var = bracketify(br_string_one)
 						br_one, br_one_deg = grouping(br_one)
 						del br_one[0]
-						del br_one[len(br_one)-1]
+						del br_one[-1]
 
 						br_two, br_two_var = bracketify("("+br_string_two+")")
 						br_two, br_two_deg = grouping(br_two)
 						del br_two[0]
-						del br_two[len(br_two)-1]
+						del br_two[-1]
 
 						br = foiling(br_one, br_two, self.var)
 						
@@ -2493,12 +2493,12 @@ class Solve_Func:
 						br_one, br_one_var = bracketify("("+br_string_one+")")
 						br_one, br_one_deg = grouping(br_one)
 						del br_one[0]
-						del br_one[len(br_one)-1]
+						del br_one[-1]
 
 						br_two, br_two_var = bracketify(br_string_two)
 						br_two, br_two_deg = grouping(br_two)
 						del br_two[0]
-						del br_two[len(br_two)-1]
+						del br_two[-1]
 
 						br = foiling(br_one, br_two, self.var)
 						
@@ -2601,12 +2601,12 @@ class Solve_Func:
 						br_one, br_one_var = bracketify(br_string_one)
 						br_one, br_one_deg = grouping(br_one)
 						del br_one[0]
-						del br_one[len(br_one)-1]
+						del br_one[-1]
 
 						br_two, br_two_var = bracketify(br_string_two)
 						br_two, br_two_deg = grouping(br_two)
 						del br_two[0]
-						del br_two[len(br_two)-1]
+						del br_two[-1]
 
 						br = bracket_add(br_one, op, br_two, self.var)
 						

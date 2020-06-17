@@ -2,7 +2,6 @@
 from __future__ import annotations
 import math
 import cmath
-from math_core.Calculus import coeff_derivative
 from math_core.Equation import Equation, is_number, oper_dict
 import random
 
@@ -63,14 +62,15 @@ def poly_add(left_p: List[Union[int, float, complex]],right_p: List[Union[int, f
 
 class Algebra(Equation):
 	"""This class is used in polynomial root finding problems. Objects of this class have a single attribute being the equation in List[str] format."""
-	def __init__(self, eqn: List[str]):
-		self.eqn = eqn
+	def __init__(self, eqn_string: str):
+		Equation.__init__(self, eqn_string)
 		self.deg = []
 		self.coeff = []
 		self.grouping()
 		self.eqn_string_update()
+		self.get_coeff()
 
-	def lin_divide(self, divisor: List[Union[int, float, complex]]) -> Algebra:
+	def lin_divide(self, divisor: List[Union[int, float, complex]]) -> List[Union[int, float, complex]]:
 		"""Function does synthetic division of a polynomial. Divisor can only be a linear polynomial."""
 		a = (-1*divisor[1])/divisor[0]
 		b = 0
@@ -79,12 +79,11 @@ class Algebra(Equation):
 		for i in self.coeff:
 
 			ans.append(i+b)
-			b = ans[n]*a
-			n += 1
+			b = ans[-1]*a
 
-		return Algebra(ans)
+		return ans
 
-	def poly_multiply(self, x: Union[int, float, complex]) -> Algebra:
+	def poly_multiply(self, x: Union[int, float, complex]) -> List[Union[int, float, complex]]:
 		"""Multiply a polynomial by a constant."""
 
 		new_eqn=[]
@@ -92,21 +91,19 @@ class Algebra(Equation):
 
 			new_eqn.append(x*i)
 
-		return Algebra(new_eqn)
+		return new_eqn
 
 	def evaluate(self, value: Union[int, float, complex]) -> Union[int, float, complex]:
 		"""Evaluates the polynomial at a given value."""
 
-		exponent=len(self.coeff)-1
 		ans = 0
-		for i in self.coeff:
+		for i, j in zip(self.coeff, self.deg):
 
-			ans += i*(value ** exponent)
-			exponent -= 1
+			ans += i*(value ** j)
 
 		return ans
 
-	def get_coeff(self) -> Algebra:
+	def get_coeff(self):
 		"""Transforms polynomial equation into a list of coefficients in order of highest to lowest power."""
 		coeff=[]
 
@@ -195,52 +192,54 @@ class Algebra(Equation):
 				coeff.append(0) 
 
 		self.coeff = coeff
-		return Algebra(coeff)
 
-	def normalize(self) -> Algebra:
+	def normalize(self) -> List[Union[int, float, complex]]:
 		"""Normalizes the polynomial."""
-		if (self.coeff[0] == 1) or (self.coeff[0] == 0):
+		norm=self.coeff[:]
+		if (norm[0] == 1) or (norm[0] == 0):
 
-			return Algebra(self.coeff)
+			return norm
 
 		else:
 
-			const = self.coeff[0]
-			for i in range(0,len(self.coeff)):
+			const = norm[0]
+			for i in range(0,len(norm)):
 
-				self.coeff[i] /= const
+				norm[i] /= const
 
-			return Algebra(self.coeff)
+			return norm
 		
 	#Creates a cauchy polynomial
-	def cauchy_poly(self) -> Algebra:
+	def cauchy_poly(self) -> List[Union[int, float, complex]]:
 		"""Normalizes polynomial and takes the absolute value of each coefficient."""
+		cauchy = []
+		norm = self.normalize()
+		for i in range(0,len(norm)-1):
 
-		self.normalize()
-		cauchy=[]
+			cauchy.append(abs(norm[i]))
 
-		for i in range(0,len(self.coeff)-1):
+		cauchy.append(-1*abs(norm[i+1]))
 
-			cauchy.append(abs(self.coeff[i]))
+		return cauchy
 
-		cauchy.insert(len(cauchy),-1*abs(self.coeff[i+1]))
-
-		return Algebra(cauchy)
-
-	def newton_raphson(self, err: Union[int, float]) -> Union[int, float, complex]:
+	def newton_raphson(self, err: Union[int, float] = 1e-5) -> Union[int, float, complex]:
 		"""Finds roots of polynomial using Newton-Raphson method."""
-		der = coeff_derivative(self.coeff)
+		from math_core.Calculus import Calculus
+		der = Calculus(self.eqn_string)
+		der.coeff = der.coeff_derivative()
 		x = random.uniform(0,1)
 		
 		while abs(self.evaluate(x)) > abs(err):
 
 			x = x-((self.evaluate(x))/(der.evaluate(x)))
-			#print("x",x, self.evaluate(x))
+			#print("x",x)
 
 		return x
 
 	def quadratic(self) -> List[Union[int, float, complex]]:
 		"""Solve quadratic polynomials using the quadratic formula."""
+		if len(self.coeff) != 3:
+			raise ValueError("Quadratics must have 3 terms.")
 		self.solution.append("")
 		print("\n-- Using the quadratic formula --")
 		self.solution.append("-- Using the quadratic formula --")
@@ -263,13 +262,18 @@ class Algebra(Equation):
 
 		ans=[0,0]
 		ans[0] = ((-1*b)+((b**2)-(4*a*c))**0.5)/(2*a)
-		ans[1] = ((-1*b)-((b**2)-(4*a*c))**0.5)/(2*a)
+		ans[-1] = ((-1*b)-((b**2)-(4*a*c))**0.5)/(2*a)
+
+		self.solution.append("\nThe final answers are:")
+		for i in ans:
+			self.solution.append(str(i))
 
 		return ans
 
 	def cardano(self) -> List[Union[int, float, complex]]:
 		"""Root finding formula for cubic polynomials."""
-
+		if len(self.coeff) != 4:
+			raise ValueError("Cubics must have 4 terms.")
 		self.solution.append("")
 		print("\n-- Using Cardano's Formula: --")
 		self.solution.append("-- Using Cardano's Formula: --")
@@ -324,13 +328,19 @@ class Algebra(Equation):
 		ans = [0,0,0]
 		ans[0] = s+t-(b/(3*a))
 		ans[1] = (-1*((s+t)/2))-(b/(3*a))+(((1j*(3**0.5))/2)*(s-t))
-		ans[2] = (-1*((s+t)/2))-(b/(3*a))-(((1j*(3**0.5))/2)*(s-t))
+		ans[-1] = (-1*((s+t)/2))-(b/(3*a))-(((1j*(3**0.5))/2)*(s-t))
+
+		self.solution.append("\nThe final answers are:")
+		for i in ans:
+			self.solution.append(str(i))
 
 		return ans
 
 	#Quartic root formula
 	def ferrari(self) -> List[Union[int, float, complex]]:
 		"""Root finding formula for quartic polynomials."""
+		if len(self.coeff) != 5:
+			raise ValueError("Quartics must have 5 terms.")
 		self.solution.append("")
 		print("\n-- Using Ferrari's Method: --")
 		self.solution.append("-- Using Ferrari's Method: --")
@@ -397,15 +407,16 @@ class Algebra(Equation):
 		#resolvent cubic
 		print("Resolvent cubic: 8z^3 - 4pz^2 - 8rz + (4pr - q^2) = 0")
 		self.solution.append("Resolvent cubic: 8z^3 - 4pz^2 - 8rz + (4pr - q^2) = 0")
-		resolvent = "8z^3+"+str(-4*p)+"z^2+"+str(-8*r)+"z+"+str((4*p*r)-(q**2))+"=0"
-		print(resolvent)
-		self.solution.append(resolvent)
+		resolvent = "8z^3+"+str(-4*p)+"z^2+"+str(-8*r)+"z+"+str((4*p*r)-(q**2))
+		print(resolvent+"=0")
+		self.solution.append(resolvent+"=0")
 
-		#TODO - pretty sure this won't initialize properly since the init override specifies inputting an array not a string
-		resolvent_eqn = Equation.bracketify(resolvent)
-		cubic = Algebra(resolvent_eqn)
-		cubic.coeff = [8,-4*p,-8*r,(4*p*r)-(q**2)]
+		cubic = Algebra(resolvent)
 		cubic_ans = cubic.cardano()
+
+		for i in cubic.solution:
+
+			self.solution.append(i)
 
 		self.solution.append("")
 		print("the values of z of "+resolvent+" are")
@@ -463,9 +474,18 @@ class Algebra(Equation):
 		ans = [0,0,0,0]
 
 		ans[0] = y_one-(b/(4*a))
+		self.solution.append("x = "+str(y_one)+"-("+str(b)+"/(4*"+str(a)+"))")
 		ans[1] = y_two-(b/(4*a))
+		self.solution.append("x = "+str(y_two)+"-("+str(b)+"/(4*"+str(a)+"))")
 		ans[2] = y_three-(b/(4*a))
-		ans[3] = y_four-(b/(4*a))
+		self.solution.append("x = "+str(y_three)+"-("+str(b)+"/(4*"+str(a)+"))")
+		ans[-1] = y_four-(b/(4*a))
+		self.solution.append("x = "+str(y_four)+"-("+str(b)+"/(4*"+str(a)+"))")
+
+		self.solution.append("\nThe final answers are:")
+		for i in ans:
+
+			self.solution.append(str(i))
 
 		return ans
 
@@ -495,7 +515,7 @@ class Algebra(Equation):
 
 				for op in oper_dict.values():
 
-					if op == eqn[i - 1]:
+					if op == self.eqn[i - 1]:
 						p_b = b
 						p = i
 
@@ -609,7 +629,7 @@ class Algebra(Equation):
 						else:
 
 							temp = self.eqn[i]
-							x = temp[len(temp) - 1]
+							x = temp[-1]
 
 							if x not in var:
 								var.append(x)
