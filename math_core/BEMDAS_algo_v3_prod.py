@@ -880,7 +880,7 @@ def isolate(l, r, lvl, var_type):
 		s=s+1
 
 	#print(simp_l)
-	del simp_l[len(simp_l)-2:len(simp_l)]
+	del simp_l[-2:]
 	#print(simp_l)
 
 	if bracket_temp != "":
@@ -1083,7 +1083,7 @@ def isolate(l, r, lvl, var_type):
 
 		s=s+1
 
-	del simp_r[len(simp_r)-2:len(simp_r)]
+	del simp_r[-2:]
 
 	if bracket_temp_r != "":
 
@@ -2594,9 +2594,9 @@ def isolate(l, r, lvl, var_type):
 
 		test = test.lin_divide([1,0])
 		test_two = test_two.lin_divide([1,0])
-		remainder = test.eqn[len(test.eqn)-1]
+		remainder = test.eqn[-1]
 
-		del test_two.eqn[len(test_two.eqn)-1]
+		del test_two.eqn[-1]
 
 		test_temp = test_two.stringify(var_type[0])
 
@@ -2618,7 +2618,7 @@ def isolate(l, r, lvl, var_type):
 		solution.insert(sol_cnt,"")
 		sol_cnt+=1
 
-		if test.eqn[len(test.eqn)-1] == 0:
+		if test.eqn[-1] == 0:
 
 			success_attempt = False
 			ans=[]
@@ -2628,7 +2628,7 @@ def isolate(l, r, lvl, var_type):
 				if len(test.eqn)-2 >= 5:
 
 					try:
-						del test.eqn[len(test.eqn)-1]
+						del test.eqn[-1]
 						coeff=test.eqn
 						#print(coeff)
 						ans = jenkins_traub.real_poly(coeff,int(new_n_order[0])-i)
@@ -2648,9 +2648,9 @@ def isolate(l, r, lvl, var_type):
 						sol_cnt+=1
 
 						test_two = test_two.lin_divide([1,0])
-						remainder = test.eqn[len(test.eqn)-1]
+						remainder = test.eqn[-1]
 
-						del test_two.eqn[len(test_two.eqn)-1]
+						del test_two.eqn[-1]
 
 						test_temp = test_two.stringify(var_type[0])
 
@@ -2685,7 +2685,7 @@ def isolate(l, r, lvl, var_type):
 
 				elif len(test.eqn)-2 == 4:
 
-					del test.eqn[len(test.eqn)-1]
+					del test.eqn[-1]
 					ans, solution, sol_cnt = test.ferrari(solution,sol_cnt)
 					success_attempt = True
 
