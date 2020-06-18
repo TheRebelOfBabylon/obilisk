@@ -661,13 +661,20 @@ def imaginary_num(br: List[str]) -> List[str]:
 
 class Equation():
 
-    def __init__(self, eqn_string: str):
-        self.eqn_string = eqn_string
-        self.eqn = []
-        self.var_type = []
-        self.solution = []
-        self.solution.append("The inputted equation is "+eqn_string)
-        self.bracketify()
+    def __init__(self, eqn_string: str = None):
+
+        if not eqn_string:
+            self.eqn_string = ""
+            self.eqn = []
+            self.var_type = []
+            self.solution = []
+        else:
+            self.eqn_string = eqn_string
+            self.eqn = []
+            self.var_type = []
+            self.solution = []
+            self.solution.append("The inputted equation is "+eqn_string)
+            self.bracketify()
 
     def bracketify(self) -> Tuple[List[str], List[str]]:
         "Takes equation in string format and transforms into list of strings."

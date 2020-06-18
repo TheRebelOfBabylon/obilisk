@@ -95,7 +95,7 @@ class Calculus(Algebra):
 
 		return der
 
-	def coeff_derivative(self) -> List[Union[int, float, complex]]:
+	def coeff_derivative(self, update_self_coeff: bool = False) -> List[Union[int, float, complex]]:
 		"""Takes first derivative of a polynomial. Input eqn is a list of coefficients."""
 		der=[]
 		expo = len(self.coeff)-1
@@ -110,5 +110,6 @@ class Calculus(Algebra):
 				der.append(i*expo)
 				expo -= 1
 
-		self.coeff = der
+		if update_self_coeff:
+			self.coeff = der
 		return der

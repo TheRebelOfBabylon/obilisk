@@ -24,7 +24,7 @@ def cube_root(x: Union[int, float, complex]) -> Union[int, float, complex]:
 			return -(-x)**(1/3)
 
 
-def poly_add(left_p: List[Union[int, float, complex]],right_p: List[Union[int, float, complex]]) -> Algebra:
+def poly_add(left_p: List[Union[int, float, complex]], right_p: List[Union[int, float, complex]]) -> List[Union[int, float, complex]]:
 	"""Function takes two polynomials and adds them together."""
 	left_len = len(left_p)-1
 	right_len = len(right_p)-1
@@ -58,17 +58,25 @@ def poly_add(left_p: List[Union[int, float, complex]],right_p: List[Union[int, f
 			left_len -= 1
 			right_len -= 1
 
-	return Algebra(ans)
+	return ans
 
 class Algebra(Equation):
 	"""This class is used in polynomial root finding problems. Objects of this class have a single attribute being the equation in List[str] format."""
-	def __init__(self, eqn_string: str):
-		Equation.__init__(self, eqn_string)
-		self.deg = []
-		self.coeff = []
-		self.grouping()
-		self.eqn_string_update()
-		self.get_coeff()
+	def __init__(self, eqn_string: str = None):
+		if not eqn_string:
+			self.eqn_string = ""
+			self.eqn = []
+			self.var_type = []
+			self.solution = []
+			self.deg = []
+			self.coeff = []
+		else:
+			Equation.__init__(self, eqn_string)
+			self.deg = []
+			self.coeff = []
+			self.grouping()
+			self.eqn_string_update()
+			self.get_coeff()
 
 	def lin_divide(self, divisor: List[Union[int, float, complex]]) -> List[Union[int, float, complex]]:
 		"""Function does synthetic division of a polynomial. Divisor can only be a linear polynomial."""
@@ -97,9 +105,15 @@ class Algebra(Equation):
 		"""Evaluates the polynomial at a given value."""
 
 		ans = 0
-		for i, j in zip(self.coeff, self.deg):
+		if not self.deg:
+			j = len(self.coeff)-1
+			for i in self.coeff:
+				ans += i*(value ** j)
+				j-=1
+		else:
+			for i, j in zip(self.coeff, self.deg):
 
-			ans += i*(value ** j)
+				ans += i*(value ** j)
 
 		return ans
 
@@ -193,6 +207,136 @@ class Algebra(Equation):
 
 		self.coeff = coeff
 
+	def update_params_from_coeff(self):
+		"""Update object attributes from self.coeff."""
+		if not self.coeff:
+			raise ValueError("Nothing given for self.coeff.")
+		if not self.var_type:
+			raise ValueError("No value given for self.var_type.")
+		if not self.deg:
+			j = len(self.coeff)-1
+			temp_string = ""
+			for i in self.coeff:
+				if j > 1:
+					if temp_string:
+						if i < 0:
+							temp_string += "-"
+							if abs(i) == 1.0:
+								temp_string += self.var_type[0] + "^" + str(j)
+							else:
+								temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
+						else:
+							temp_string += "+"
+							if i == 1.0:
+								temp_string += self.var_type[0] + "^" + str(j)
+							else:
+								temp_string += str(i) + self.var_type[0] + "^" + str(j)
+					else:
+						if i == 1.0:
+							temp_string += self.var_type[0] + "^" + str(j)
+						elif i == -1.0:
+							temp_string += "-"+self.var_type[0] + "^" + str(j)
+						else:
+							temp_string += str(i) + self.var_type[0] + "^" + str(j)
+				elif j == 1:
+					if temp_string:
+						if i < 0:
+							temp_string += "-"
+							if abs(i) == 1.0:
+								temp_string += self.var_type[0]
+							else:
+								temp_string += str(abs(i)) + self.var_type[0]
+						else:
+							temp_string += "+"
+							if i == 1.0:
+								temp_string += self.var_type[0]
+							else:
+								temp_string += str(i) + self.var_type[0]
+					else:
+						if i == 1.0:
+							temp_string += self.var_type[0]
+						elif i == -1.0:
+							temp_string += "-"+self.var_type[0]
+						else:
+							temp_string += str(i) + self.var_type[0]
+				else:
+					if i > 0:
+						if not temp_string:
+							temp_string += str(i)
+						else:
+							temp_string += "+"+str(i)
+					else:
+						temp_string += str(i)
+				self.deg.append(j)
+				j-=1
+		else:
+			temp_string = ""
+			for i, j in zip(self.coeff, self.deg):
+				if j > 1:
+					if temp_string:
+						if i < 0:
+							temp_string += "-"
+							if abs(i) == 1.0:
+								temp_string += self.var_type[0] + "^" + str(j)
+							else:
+								temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
+						else:
+							temp_string += "+"
+							if i == 1.0:
+								temp_string += self.var_type[0] + "^" + str(j)
+							else:
+								temp_string += str(i) + self.var_type[0] + "^" + str(j)
+					else:
+						if i == 1.0:
+							temp_string += self.var_type[0] + "^" + str(j)
+						elif i == -1.0:
+							temp_string += "-" + self.var_type[0] + "^" + str(j)
+						else:
+							temp_string += str(i) + self.var_type[0] + "^" + str(j)
+				elif j == 1:
+					if temp_string:
+						if i < 0:
+							temp_string += "-"
+							if abs(i) == 1.0:
+								temp_string += self.var_type[0]
+							else:
+								temp_string += str(abs(i)) + self.var_type[0]
+						else:
+							temp_string += "+"
+							if i == 1.0:
+								temp_string += self.var_type[0]
+							else:
+								temp_string += str(i) + self.var_type[0]
+					else:
+						if i == 1.0:
+							temp_string += self.var_type[0]
+						elif i == -1.0:
+							temp_string += "-" + self.var_type[0]
+						else:
+							temp_string += str(i) + self.var_type[0]
+				else:
+					if i > 0:
+						if not temp_string:
+							temp_string += str(i)
+						else:
+							temp_string += "+" + str(i)
+					else:
+						temp_string += str(i)
+		self.eqn_string = temp_string
+		if not self.solution:
+			self.solution.append("The inputted equation is "+self.eqn_string)
+		self.bracketify()
+		self.grouping()
+
+	def reset_params(self):
+		"""Function resets all object attributes"""
+		self.eqn_string = ""
+		self.eqn = []
+		self.var_type = []
+		self.solution = []
+		self.deg = []
+		self.coeff = []
+
 	def normalize(self) -> List[Union[int, float, complex]]:
 		"""Normalizes the polynomial."""
 		norm=self.coeff[:]
@@ -225,8 +369,8 @@ class Algebra(Equation):
 	def newton_raphson(self, err: Union[int, float] = 1e-5) -> Union[int, float, complex]:
 		"""Finds roots of polynomial using Newton-Raphson method."""
 		from math_core.Calculus import Calculus
-		der = Calculus(self.eqn_string)
-		der.coeff = der.coeff_derivative()
+		der = Calculus()
+		der.coeff = self.coeff_derivative()
 		x = random.uniform(0,1)
 		
 		while abs(self.evaluate(x)) > abs(err):
