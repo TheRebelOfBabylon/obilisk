@@ -65,7 +65,8 @@ class Algebra(Equation):
 	def __init__(self, eqn_string: str = None):
 		if not eqn_string:
 			self.eqn_string = ""
-			self.eqn = []
+			self.lhs = []
+			self.rhs = []
 			self.var_type = []
 			self.solution = []
 			self.deg = []
@@ -219,54 +220,76 @@ class Algebra(Equation):
 			for i in self.coeff:
 				if j > 1:
 					if temp_string:
-						if i < 0:
-							temp_string += "-"
-							if abs(i) == 1.0:
-								temp_string += self.var_type[0] + "^" + str(j)
-							else:
-								temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
-						else:
+						#Checking if the coefficient is complex
+						if isinstance(i, complex):
 							temp_string += "+"
+							temp_string += str(i) + self.var_type[0] + "^" + str(j)
+						else:
+							if i < 0.0:
+								temp_string += "-"
+								if abs(i) == 1.0:
+									temp_string += self.var_type[0] + "^" + str(j)
+								else:
+									temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
+							else:
+								temp_string += "+"
+								if i == 1.0:
+									temp_string += self.var_type[0] + "^" + str(j)
+								else:
+									temp_string += str(i) + self.var_type[0] + "^" + str(j)
+					else:
+						if isinstance(i, complex):
+							temp_string += str(i) + self.var_type[0] + "^" + str(j)
+						else:
 							if i == 1.0:
 								temp_string += self.var_type[0] + "^" + str(j)
+							elif i == -1.0:
+								temp_string += "-"+self.var_type[0] + "^" + str(j)
 							else:
 								temp_string += str(i) + self.var_type[0] + "^" + str(j)
-					else:
-						if i == 1.0:
-							temp_string += self.var_type[0] + "^" + str(j)
-						elif i == -1.0:
-							temp_string += "-"+self.var_type[0] + "^" + str(j)
-						else:
-							temp_string += str(i) + self.var_type[0] + "^" + str(j)
 				elif j == 1:
 					if temp_string:
-						if i < 0:
-							temp_string += "-"
-							if abs(i) == 1.0:
-								temp_string += self.var_type[0]
-							else:
-								temp_string += str(abs(i)) + self.var_type[0]
-						else:
+						# Checking if the coefficient is complex
+						if isinstance(i, complex):
 							temp_string += "+"
+							temp_string += str(i) + self.var_type[0]
+						else:
+							if i < 0.0:
+								temp_string += "-"
+								if abs(i) == 1.0:
+									temp_string += self.var_type[0]
+								else:
+									temp_string += str(abs(i)) + self.var_type[0]
+							else:
+								temp_string += "+"
+								if i == 1.0:
+									temp_string += self.var_type[0]
+								else:
+									temp_string += str(i) + self.var_type[0]
+					else:
+						if isinstance(i, complex):
+							temp_string += str(i) + self.var_type[0]
+						else:
 							if i == 1.0:
 								temp_string += self.var_type[0]
+							elif i == -1.0:
+								temp_string += "-"+self.var_type[0]
 							else:
 								temp_string += str(i) + self.var_type[0]
-					else:
-						if i == 1.0:
-							temp_string += self.var_type[0]
-						elif i == -1.0:
-							temp_string += "-"+self.var_type[0]
-						else:
-							temp_string += str(i) + self.var_type[0]
 				else:
-					if i > 0:
+					if isinstance(i, complex):
 						if not temp_string:
 							temp_string += str(i)
 						else:
-							temp_string += "+"+str(i)
+							temp_string += "+" + str(i)
 					else:
-						temp_string += str(i)
+						if i > 0.0:
+							if not temp_string:
+								temp_string += str(i)
+							else:
+								temp_string += "+"+str(i)
+						else:
+							temp_string += str(i)
 				self.deg.append(j)
 				j-=1
 		else:
@@ -274,54 +297,76 @@ class Algebra(Equation):
 			for i, j in zip(self.coeff, self.deg):
 				if j > 1:
 					if temp_string:
-						if i < 0:
-							temp_string += "-"
-							if abs(i) == 1.0:
-								temp_string += self.var_type[0] + "^" + str(j)
-							else:
-								temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
-						else:
+						# Checking if the coefficient is complex
+						if isinstance(i, complex):
 							temp_string += "+"
+							temp_string += str(i) + self.var_type[0] + "^" + str(j)
+						else:
+							if i < 0.0:
+								temp_string += "-"
+								if abs(i) == 1.0:
+									temp_string += self.var_type[0] + "^" + str(j)
+								else:
+									temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
+							else:
+								temp_string += "+"
+								if i == 1.0:
+									temp_string += self.var_type[0] + "^" + str(j)
+								else:
+									temp_string += str(i) + self.var_type[0] + "^" + str(j)
+					else:
+						if isinstance(i, complex):
+							temp_string += str(i) + self.var_type[0] + "^" + str(j)
+						else:
 							if i == 1.0:
 								temp_string += self.var_type[0] + "^" + str(j)
+							elif i == -1.0:
+								temp_string += "-" + self.var_type[0] + "^" + str(j)
 							else:
 								temp_string += str(i) + self.var_type[0] + "^" + str(j)
-					else:
-						if i == 1.0:
-							temp_string += self.var_type[0] + "^" + str(j)
-						elif i == -1.0:
-							temp_string += "-" + self.var_type[0] + "^" + str(j)
-						else:
-							temp_string += str(i) + self.var_type[0] + "^" + str(j)
 				elif j == 1:
 					if temp_string:
-						if i < 0:
-							temp_string += "-"
-							if abs(i) == 1.0:
-								temp_string += self.var_type[0]
-							else:
-								temp_string += str(abs(i)) + self.var_type[0]
-						else:
+						# Checking if the coefficient is complex
+						if isinstance(i, complex):
 							temp_string += "+"
+							temp_string += str(i) + self.var_type[0]
+						else:
+							if i < 0.0:
+								temp_string += "-"
+								if abs(i) == 1.0:
+									temp_string += self.var_type[0]
+								else:
+									temp_string += str(abs(i)) + self.var_type[0]
+							else:
+								temp_string += "+"
+								if i == 1.0:
+									temp_string += self.var_type[0]
+								else:
+									temp_string += str(i) + self.var_type[0]
+					else:
+						if isinstance(i, complex):
+							temp_string += str(i) + self.var_type[0]
+						else:
 							if i == 1.0:
 								temp_string += self.var_type[0]
+							elif i == -1.0:
+								temp_string += "-" + self.var_type[0]
 							else:
 								temp_string += str(i) + self.var_type[0]
-					else:
-						if i == 1.0:
-							temp_string += self.var_type[0]
-						elif i == -1.0:
-							temp_string += "-" + self.var_type[0]
-						else:
-							temp_string += str(i) + self.var_type[0]
 				else:
-					if i > 0:
+					if isinstance(i, complex):
 						if not temp_string:
 							temp_string += str(i)
 						else:
 							temp_string += "+" + str(i)
 					else:
-						temp_string += str(i)
+						if i > 0.0:
+							if not temp_string:
+								temp_string += str(i)
+							else:
+								temp_string += "+" + str(i)
+						else:
+							temp_string += str(i)
 		self.eqn_string = temp_string
 		if not self.solution:
 			self.solution.append("The inputted equation is "+self.eqn_string)
