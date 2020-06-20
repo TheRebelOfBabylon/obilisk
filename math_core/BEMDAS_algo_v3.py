@@ -7,7 +7,7 @@ import cmath
 import os
 import psutil
 from math_core import Calculus
-from math_core.Algebra import *
+from math_core.Algebra import Algebra
 from math_core import jenkins_traub
 from math_core.Arithmetic import Arithmetic
 from math_core.Equation import Equation, is_number, bracketify
@@ -5390,11 +5390,8 @@ def isolate(l: List[str], r: List[str], lvl: int, var_type: List[str]) -> List[U
 def main(a: str) -> Tuple[List[str], List[Union[int, float, complex]]]:
     """Functions take inputted string, transforms into List of strings. Determines whether problem is arithmetic or polynomial root finding."""
 
-    eqn = Equation(a)
-
     sol_cnt = 0
-    eqn.solution.append("The inputted equation is " + str(eqn.eqn_string))
-    print("The inputted equation is " + str(eqn.eqn_string))
+    eqn = Equation(a)
     sol_cnt += 1
 
     if eqn.var_type[0] != "":
@@ -5407,129 +5404,8 @@ def main(a: str) -> Tuple[List[str], List[Union[int, float, complex]]]:
 
         else:
 
-            equal_cnt = 0
-            LHS = []
-            i = 0
-            RHS = []
-            j = 0
-            b = 0
-            b_open = 0
-            b_open_index = 0
-            b_close = 0
-            var_num_l = 0
-            var_num_r = 0
-            var_ranges_l = []
-            var_ranges_r = []
-            m = 0
-            eqn.eqn.insert(len(eqn.eqn), "0")
-            eqn.eqn.insert(len(eqn.eqn) + 1, "0")
-            c = len(eqn.eqn)
-            s = 0
-            while s != c - 2:
+            eqn = Algebra(eqn.eqn_string)
 
-                if eqn.eqn[s] == "=":
-
-                    equal_cnt = 1
-                    LHS.insert(i, ")1")
-                    RHS.insert(j, "(1")
-                    j = j + 1
-
-                else:
-
-                    if equal_cnt == 0:
-
-                        LHS.insert(i, str(eqn.eqn[s]))
-
-                        if "(" in eqn.eqn[s]:
-                            b_open = b_open + 1
-                            b = b + 1
-                            b_open_index = s
-
-                        if ")" in eqn.eqn[s]:
-                            b_close = b_close + 1
-                            b = b - 1
-
-                        if (eqn.eqn[s].isalpha() == True) & (len(eqn.eqn[s]) == 1):
-
-                            if (eqn.eqn[s + 1] == "^") & ("(" not in eqn.eqn[s + 2]):
-                                LHS[i] = str(LHS[i]) + str(eqn.eqn[s + 1]) + str(eqn.eqn[s + 2])
-                                del eqn.eqn[s + 1:s + 3]
-                                c = len(eqn.eqn)
-
-                            if LHS[i - 1].isdigit() == True:
-                                LHS[i - 1] = str(LHS[i - 1]) + str(LHS[i])
-                                del LHS[i]
-                                i = i - 1
-
-                            var_num_l = var_num_l + 1
-
-                            if b_open != b_close:
-
-                                t = s
-                                while (")" not in eqn.eqn[t]) & (str(b) not in eqn.eqn[t]):
-                                    t = t + 1
-
-                                var_ranges_l.insert(m, str(b_open_index) + ":" + str(t))
-                                m = m + 1
-
-                            else:
-
-                                var_ranges_l.insert(m, str(i))
-
-                        i = i + 1
-
-                    else:
-
-                        RHS.insert(j, str(eqn.eqn[s]))
-
-                        if "(" in eqn.eqn[s]:
-                            b_open = b_open + 1
-                            b = b + 1
-                            b_open_index = s
-
-                        if ")" in eqn.eqn[s]:
-                            b_close = b_close + 1
-                            b = b - 1
-
-                        if (eqn.eqn[s].isalpha() == True) & (len(eqn.eqn[s]) == 1):
-
-                            if (eqn.eqn[s + 1] == "^") & ("(" not in eqn.eqn[s + 2]):
-                                RHS[j] = str(RHS[j]) + str(eqn.eqn[s + 1]) + str(eqn.eqn[s + 2])
-                                del eqn.eqn[s + 1:s + 3]
-                                c = len(eqn.eqn)
-
-                            if RHS[j - 1].isdigit() == True:
-                                RHS[j - 1] = str(RHS[j - 1]) + str(RHS[j])
-                                del RHS[j]
-                                j = j - 1
-
-                            var_num_r = var_num_r + 1
-
-                            if b_open != b_close:
-
-                                t = s
-                                while (")" not in eqn.eqn[t]) & (str(b) not in eqn.eqn[t]):
-                                    t = t + 1
-
-                                var_ranges_r.insert(m, str(b_open_index) + ":" + str(t))
-                                m = m + 1
-
-                            else:
-
-                                var_ranges_r.insert(m, str(j))
-
-                        j = j + 1
-
-                s = s + 1
-
-            # if var_index_l != 0:
-
-            # then the variable is on the LHS of the equation
-
-            # elif var_index_r != 0:
-
-            # then the variable is on the RHS of the equation
-            print(LHS, RHS, eqn.var_type)
             ans = isolate(LHS, RHS, 1, eqn.var_type)
             # print("YEEEEHAAAWWW",ans)
             if len(ans) == 1:

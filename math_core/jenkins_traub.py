@@ -14,7 +14,7 @@ def real_poly(eqn: Calculus) -> List[Union[int, float, complex]]:
 
 	#Fundamental theorem of algebra says number of highest exponent is the number of roots
 	i = 0
-	while i != eqn.deg[0]:
+	while i != num_roots:
 
 		root = rpoly(eqn)
 		ans.append(root)
@@ -37,6 +37,7 @@ def real_poly(eqn: Calculus) -> List[Union[int, float, complex]]:
 
 def rpoly(eqn: Calculus) -> Union[int, float, complex]:
 	"""RPOLY Jenkins-Traub algorithm for polynomial root finding."""
+	print(eqn.eqn)
 	coeff = Calculus()
 	coeff.coeff = eqn.normalize()
 	coeff.var_type = eqn.var_type
@@ -96,7 +97,7 @@ def rpoly(eqn: Calculus) -> Union[int, float, complex]:
 
 				K_bar = Calculus()
 				K_bar.coeff = K.normalize()
-				new_K_bar = Calculus
+				new_K_bar = Calculus()
 				new_K_bar.coeff = new_K.normalize()
 
 				t_curr = s-(coeff.evaluate(s)/K_bar.evaluate(s))
