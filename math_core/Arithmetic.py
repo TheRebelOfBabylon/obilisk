@@ -3,6 +3,16 @@ from math_core.Equation import Equation, stringify
 import math, cmath
 from typing import List, Tuple, Union
 
+def is_even(s: Union[int, float]) -> bool:
+    """Tests if number is even."""
+    if s % 2 == 0:
+
+        return True
+
+    else:
+
+        return False
+
 def div_check(x: Union[int, float, complex], y: Union[int, float, complex]) -> bool:
     """Detects divisions by zero."""
     try:

@@ -1,11 +1,11 @@
+#TODO - Fix circular referencing between Algebra.py and this file
 """Solve functions"""
 from __future__ import annotations
-from math_core.BEMDAS_algo_v3 import stringify, grouping, foiling, is_even, bracket_add, calculate
-from math_core.Equation import is_number, bracketify
+from math_core.Equation import is_number, bracketify, stringify
+from math_core.Arithmetic import is_even
 import copy
-from math_core import jenkins_traub
-from math_core.Algebra import Algebra
-from typing import List, Tuple, Union
+from math_core.Algebra import Algebra, bracket_add
+from typing import List, Tuple, Union, Dict
 
 """
 1. remove any divisions
@@ -20,6 +20,375 @@ from typing import List, Tuple, Union
 7. Place in standard form (variables on one side, constants on the other, simplify)
 8. Solve based on highest level variable
 """
+
+var_dict = {
+
+	"a":"b",
+	"b":"c",
+	"c":"d",
+	"d":"e",
+	"e":"f",
+	"f":"g",
+	"g":"h",
+	"h":"i",
+	"i":"j",
+	"j":"k",
+	"k":"l",
+	"l":"m",
+	"m":"n",
+	"n":"o",
+	"o":"p",
+	"p":"q",
+	"q":"r",
+	"r":"s",
+	"s":"t",
+	"t":"u",
+	"u":"v",
+	"v":"w",
+	"w":"x",
+	"x":"y",
+	"y":"z",
+	"z":"a"
+
+}
+
+def foiling(b_one: List[str], b_two: List[str], var_type: str) -> List[str]:
+    """Polynomial multiplication. Both polynomials must be of atleast degree 1."""
+    # print(b_one,b_two)
+
+    b_one, b_one_deg = grouping(b_one)
+    # print("b_one", b_one, "b_one_deg", b_one_deg)
+
+    b_two, b_two_deg = grouping(b_two)
+    # print("b_two", b_two, "b_two_deg", b_two_deg)
+
+    # Create array with only coefficients
+    b_one = Poly_Func(b_one)
+    b_one_coeff = b_one.get_coeff(b_one_deg[0], var_type)
+
+    b_two = Poly_Func(b_two)
+    b_two_coeff = b_two.get_coeff(b_two_deg[0], var_type)
+
+    # print("b_one_coeff = ", b_one_coeff.eqn, "b_two_coeff = ", b_two_coeff.eqn)
+
+    ans_coeff = []
+    ans_powers = []
+    b_one_pow = len(b_one_coeff.eqn) - 1
+    b_two_pow = len(b_two_coeff.eqn) - 1
+
+    # Foiling
+    for i in range(0, len(b_one_coeff.eqn)):
+
+        for j in range(0, len(b_two_coeff.eqn)):
+            ans_coeff.append(b_one_coeff.eqn[i] * b_two_coeff.eqn[j])
+            ans_powers.append((b_one_pow - i) + (b_two_pow - j))
+
+    # print("ans_coeff = ", ans_coeff)
+    # Simplifying the answer
+    simp_ans_coeff = []
+    temp_ind = []
+    temp = 0
+    for i in range(ans_powers[0], -1, -1):
+
+        for j in range(0, len(ans_powers)):
+
+            if ans_powers[j] == i:
+                temp += ans_coeff[j]
+
+        simp_ans_coeff.append(temp)
+        temp = 0
+
+    # print("simp_ans_coeff = ", simp_ans_coeff)
+    ans = []
+    j = 0
+    highest_deg_ans = len(simp_ans_coeff) - 1
+
+    if highest_deg_ans > 1:
+
+        for i in range(highest_deg_ans, 1, -1):
+
+            if not ans:
+
+                if simp_ans_coeff[j].imag == 0:
+
+                    if simp_ans_coeff[j] == 1:
+
+                        ans.append(var_type)
+                        ans.append("^")
+                        ans.append(str(float(i)))
+                        j += 1
+
+                    elif simp_ans_coeff[j] == 0:
+
+                        pass
+                        j += 1
+
+                    elif simp_ans_coeff[j] < 0:
+
+                        if simp_ans_coeff[j] == -1:
+
+                            ans.append("-" + var_type)
+                            ans.append("^")
+                            ans.append(str(float(i)))
+                            j += 1
+
+                        else:
+
+                            ans.append(str(simp_ans_coeff[j]))
+                            ans.append(var_type)
+                            ans.append("^")
+                            ans.append(str(float(i)))
+                            j += 1
+
+                    else:
+
+                        ans.append(str(simp_ans_coeff[j]))
+                        ans.append(var_type)
+                        ans.append("^")
+                        ans.append(str(float(i)))
+                        j += 1
+
+                # simp_coeff_ans[j] is a complex number
+                else:
+
+                    ans.append(str(simp_ans_coeff[j]))
+                    ans.append(var_type)
+                    ans.append("^")
+                    ans.append(str(float(i)))
+                    j += 1
+
+            else:
+
+                if simp_ans_coeff[j].imag == 0:
+
+                    if simp_ans_coeff[j] == 1:
+
+                        ans.append("+")
+                        ans.append(var_type)
+                        ans.append("^")
+                        ans.append(str(float(i)))
+                        j += 1
+
+                    elif simp_ans_coeff[j] == 0:
+
+                        pass
+                        j += 1
+
+                    elif simp_ans_coeff[j] < 0:
+
+                        if simp_ans_coeff[j] == -1:
+
+                            ans.append("-")
+                            ans.append(var_type)
+                            ans.append("^")
+                            ans.append(str(float(i)))
+                            j += 1
+
+                        else:
+
+                            ans.append("-")
+                            ans.append(str(abs(simp_ans_coeff[j])))
+                            ans.append(var_type)
+                            ans.append("^")
+                            ans.append(str(float(i)))
+                            j += 1
+
+                    else:
+
+                        ans.append("+")
+                        ans.append(str(simp_ans_coeff[j]))
+                        ans.append(var_type)
+                        ans.append("^")
+                        ans.append(str(float(i)))
+                        j += 1
+
+                # simp_coeff_ans[j] is a complex number
+                else:
+
+                    ans.append("+")
+                    ans.append(str(simp_ans_coeff[j]))
+                    ans.append(var_type)
+                    ans.append("^")
+                    ans.append(str(float(i)))
+                    j += 1
+
+        if simp_ans_coeff[j].imag == 0:
+
+            if simp_ans_coeff[j] == 1:
+
+                ans.append("+")
+                ans.append(var_type)
+                j += 1
+
+            elif simp_ans_coeff[j] == 0:
+
+                pass
+                j += 1
+
+            elif simp_ans_coeff[j] < 0:
+
+                if simp_ans_coeff[j] == -1:
+
+                    ans.append("-")
+                    ans.append(var_type)
+                    j += 1
+
+                else:
+
+                    ans.append("-")
+                    ans.append(str(abs(simp_ans_coeff[j])))
+                    ans.append(var_type)
+                    j += 1
+
+            else:
+
+                ans.append("+")
+                ans.append(str(simp_ans_coeff[j]))
+                ans.append(var_type)
+                j += 1
+
+        else:
+
+            ans.append("+")
+            ans.append(str(simp_ans_coeff[j]))
+            ans.append(var_type)
+            j += 1
+
+        if simp_ans_coeff[j].imag == 0:
+
+            if simp_ans_coeff[j] == 0:
+
+                pass
+
+            else:
+
+                if simp_ans_coeff[j] < 0:
+
+                    ans.append("-")
+                    ans.append(str(abs(simp_ans_coeff[j])))
+
+                else:
+
+                    ans.append("+")
+                    ans.append(str(simp_ans_coeff[j]))
+
+        else:
+
+            ans.append("+")
+            ans.append(str(simp_ans_coeff[j]))
+
+    else:
+
+        if not ans:
+
+            if simp_ans_coeff[j].imag == 0:
+
+                if simp_ans_coeff[j] == 1:
+
+                    ans.append(var_type)
+                    j += 1
+
+                elif simp_ans_coeff[j] == 0:
+
+                    pass
+                    j += 1
+
+                elif simp_ans_coeff[j] < 0:
+
+                    if simp_ans_coeff[j] == -1:
+
+                        ans.append("-")
+                        ans.append(var_type)
+                        j += 1
+
+                    else:
+
+                        ans.append("-")
+                        ans.append(str(abs(simp_ans_coeff[j])))
+                        ans.append(var_type)
+                        j += 1
+
+                else:
+
+                    ans.append(str(simp_ans_coeff[j]))
+                    ans.append(var_type)
+                    j += 1
+
+            else:
+
+                ans.append(str(simp_ans_coeff[j]))
+                ans.append(var_type)
+                j += 1
+
+        else:
+
+            if simp_ans_coeff[j].imag == 0:
+
+                if simp_ans_coeff[j] == 1:
+
+                    ans.append("+")
+                    ans.append(var_type)
+                    j += 1
+
+                elif simp_ans_coeff[j] == 0:
+
+                    pass
+                    j += 1
+
+                elif simp_ans_coeff[j] < 0:
+
+                    if simp_ans_coeff[j] == -1:
+
+                        ans.append("-")
+                        ans.append(var_type)
+                        j += 1
+
+                    else:
+
+                        ans.append("-")
+                        ans.append(str(abs(simp_ans_coeff[j])))
+                        ans.append(var_type)
+                        j += 1
+
+                else:
+
+                    ans.append("+")
+                    ans.append(str(simp_ans_coeff[j]))
+                    ans.append(var_type)
+                    j += 1
+
+            else:
+
+                ans.append("+")
+                ans.append(str(simp_ans_coeff[j]))
+                ans.append(var_type)
+                j += 1
+
+        if simp_ans_coeff[j].imag == 0:
+
+            if simp_ans_coeff[j] == 0:
+
+                pass
+
+            else:
+
+                if simp_ans_coeff[j] < 0:
+
+                    ans.append("-")
+                    ans.append(str(abs(simp_ans_coeff[j])))
+
+                else:
+
+                    ans.append("+")
+                    ans.append(str(simp_ans_coeff[j]))
+
+        else:
+
+            ans.append("+")
+            ans.append(str(simp_ans_coeff[j]))
+
+    # print("ans = ", ans)
+    return ans
 
 def exp_foiling(br: List[str], x: float, var: str) -> List[str]:
 	"""Function will foil out polynomial expressions raised to a certain power ex: (x+3)^8."""
@@ -839,7 +1208,8 @@ def rearrange(l: List[str], r: List[str], var: str) -> Tuple[List[str], List[str
 	#print(l_string)
 
 	rear_r = ["(1", "0", ")1"]
-	rear_r[1] = calculate(r,0)
+	#TODO - uncomment this v
+	#rear_r[1] = calculate(r,0)
 	#print(rear_r)
 
 	#Find the highest deg
@@ -1007,7 +1377,7 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 
 			r[1] = r[1].replace('-','')
 			l.insert(len(l)-1,"+")
-			rear_l.insert(len(l)-1,r[1])
+			l.insert(len(l)-1,r[1])
 			r[1] = "0"
 
 		else:
@@ -1057,6 +1427,7 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 
 	#For any polynomial of nth degree where n>=5
 	else:
+		from math_core.jenkins_traub import real_poly
 
 		if "-" in r[1]:
 
@@ -1126,7 +1497,7 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 						del test.eqn[-1]
 						coeff=test.eqn
 						#print(coeff)
-						ans = jenkins_traub.real_poly(coeff,int(float(deg))-i)
+						ans = real_poly(coeff,int(float(deg))-i)
 
 					except ZeroDivisionError:
 
@@ -1199,7 +1570,7 @@ def solver(l: List[str], r: List[str], deg: float, var: str) -> List[Union[int, 
 			solution.insert(sol_cnt,"0 is not a root")
 			sol_cnt+=1
 
-			ans = jenkins_traub.real_poly(coeff,int(float(deg)))
+			ans = real_poly(coeff,int(float(deg)))
 
 		print(ans)
 
@@ -2641,6 +3012,3 @@ class Solve_Func:
 			print(eqn_string)
 
 		return self
-
-
-	
