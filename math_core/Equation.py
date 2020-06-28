@@ -666,15 +666,19 @@ class Equation():
         if not eqn_string:
             self.eqn_string = ""
             self.eqn = []
+            self.deg = []
             self.var_type = []
             self.solution = []
         else:
             self.eqn_string = eqn_string
             self.eqn = []
+            self.deg = []
             self.var_type = []
             self.solution = []
             self.solution.append("The inputted equation is "+eqn_string)
             self.bracketify()
+            if self.var_type[0] != "":
+                self.grouping()
 
     def bracketify(self) -> Tuple[List[str], List[str]]:
         "Takes equation in string format and transforms into list of strings."
@@ -1151,6 +1155,258 @@ class Equation():
 
         self.eqn = master
         self.var_type = var_type
+
+    def grouping(self):
+        """This function groups terms around variables into a single index."""
+
+        # print("Inside grouping", eqn)
+        # Start with combining with constants and powers into one index
+        i = 0
+        p = 0
+        b = 0
+        p_b = 0
+        var = []
+        b_open = 0
+        b_close = 0
+        b_loc = 0
+        while i != len(self.eqn):
+
+            mod = False
+            # print(eqn)
+            # This index has a variable in it
+            if ("(" in self.eqn[i]) & (self.eqn[i] not in oper_dict.values()):
+
+                b += 1
+                b_open += 1
+                b_loc = i
+
+                for op in oper_dict.values():
+
+                    if op == self.eqn[i - 1]:
+                        p_b = b
+                        p = i
+
+            if (")" in self.eqn[i]) & (self.eqn[i] not in oper_dict.values()):
+
+                if self.eqn[i] == ")" + str(p_b):
+                    p_b = 0
+                    p = 0
+
+                b -= 1
+                b_close += 1
+
+            if (self.eqn[i].isalpha() == True) and (len(self.eqn[i]) == 1):
+
+                # print("eqn[i]", eqn[i])
+                if self.eqn[i] not in var:
+                    var.append(self.eqn[i])
+
+                if (self.eqn[i + 1] == "^") and (is_number(self.eqn[i + 2]) == True):
+                    self.eqn[i] = self.eqn[i] + "^" + self.eqn[i + 2]
+                    del self.eqn[i + 1:i + 3]
+                    mod = True
+                # print(eqn)
+
+                if (is_number(self.eqn[i - 1]) == True):
+                    self.eqn[i - 1] = self.eqn[i - 1] + self.eqn[i]
+                    del self.eqn[i]
+                    mod = True
+                # print(eqn)
+
+                if (self.eqn[i - 1] == "*") and (is_number(self.eqn[i - 2]) == True):
+                    self.eqn[i - 2] = self.eqn[i - 2] + self.eqn[i]
+                    del self.eqn[i - 1:i + 1]
+                    mod = True
+                # print(eqn)
+
+                if ((b_open != b_close) and (self.eqn[b_loc - 1] in oper_dict.values())) or (p != 0):
+
+                    if p != 0:
+                        b_loc = p
+
+                    temp = self.eqn[b_loc - 1]
+                    # print(temp)
+                    j = self.eqn[b_loc]
+                    j = j.replace('(', '')
+                    u = b_loc
+                    while self.eqn[u] != ")" + j:
+
+                        if "(" in self.eqn[u]:
+
+                            temp += "("
+
+                        elif ")" in self.eqn[u]:
+
+                            temp += ")"
+
+                        else:
+
+                            temp += self.eqn[u]
+
+                        u += 1
+
+                    temp += ")"
+                    self.eqn[b_loc - 1] = temp
+                    del self.eqn[b_loc:u + 1]
+                    # print("eqn[b_loc]",eqn[b_loc])
+
+                    if (self.eqn[b_loc] == "^") and (is_number(self.eqn[b_loc + 1]) == True):
+                        temp = self.eqn[b_loc - 1] + "^" + self.eqn[b_loc + 1]
+                        self.eqn[b_loc - 1] = temp
+                        del self.eqn[b_loc:b_loc + 2]
+
+                    mod = True
+                # print(eqn)
+
+                if mod == True:
+                    i = 0
+
+            i += 1
+
+        # This section of code was added because when grouping is fed an equation that is already grouped, it fails
+        # print("Made it here", eqn)
+        if len(var) == 0:
+
+            for i in range(0, len(self.eqn)):
+
+                if ("(" not in self.eqn[i]) and (")" not in self.eqn[i]) and (self.eqn[i] not in "*/+-") and (
+                        is_number(self.eqn[i]) == False):
+
+                    check = False
+                    oper = ""
+                    for op in oper_dict.values():
+
+                        if op in self.eqn[i]:
+                            check == True
+                            oper = op
+
+                    if check == False:
+
+                        if "^" in self.eqn[i]:
+
+                            temp = self.eqn[i]
+                            j = 0
+                            while temp[j] != "^":
+                                j += 1
+
+                            j -= 1
+                            if temp[j] not in var:
+                                var.append(temp[j])
+
+                        else:
+
+                            temp = self.eqn[i]
+                            x = temp[-1]
+
+                            if x not in var:
+                                var.append(x)
+
+                    else:
+
+                        temp = self.eqn[i]
+                        temp = temp.replace(oper, '')
+                        j = 0
+                        x = ""
+                        while j != len(temp):
+
+                            if temp[j].isalpha() == True:
+                                x = temp[j]
+
+                            j += 1
+
+                        if x != "":
+
+                            if x not in var:
+                                var.append(x)
+
+        # print("Now we here", eqn)
+        eqn_deg = []
+        for s in self.eqn:
+
+            for t in var:
+
+                if t in s:
+
+                    if "^" in s:
+
+                        check = False
+                        for op in oper_dict.values():
+
+                            if op in s:
+                                check = True
+
+                        if check == False:
+
+                            q = 0
+                            temp = s
+                            # print("temp",temp)
+
+                            while temp[q] != "^":
+                                q += 1
+
+                            q += 1
+                            pow = ""
+                            while (q != len(temp)):
+
+                                if (is_number(temp[q]) == True) or (temp[q] == "."):
+                                    pow += temp[q]
+                                    # print(pow, "q = "+str(q), "len(temp) = "+str(len(temp)))
+                                    q += 1
+
+                            pow = int(float(pow))
+
+                            if pow not in eqn_deg:
+                                eqn_deg.append(pow)
+                        # print(s, eqn_deg)
+
+                    else:
+
+                        check = False
+                        for op in oper_dict.values():
+
+                            if op in s:
+                                check = True
+
+                        if check == False:
+
+                            if 1 not in eqn_deg:
+                                eqn_deg.append(1)
+                        # print(s, eqn_deg)
+
+            if is_number(s) == True:
+
+                if 0 not in eqn_deg:
+                    eqn_deg.append(0)
+            # print(s, eqn_deg)
+
+        # print("eqn_deg", eqn_deg, eqn)
+        new_eqn_deg = []
+        s = 0
+        while s != len(eqn_deg):
+
+            k = 0
+
+            for t in eqn_deg:
+
+                if eqn_deg[s] < t:
+                    k = 1
+
+            if k != 1:
+                new_eqn_deg.append(eqn_deg[s])
+                del eqn_deg[s]
+                s = -1
+
+            s += 1
+
+        if len(self.eqn) > 1:
+
+            if self.eqn[1] == "-":
+                self.eqn[1] = self.eqn[1] + self.eqn[2]
+                del self.eqn[2]
+
+        # print("new_eqn_deg", new_eqn_deg)
+        self.deg = new_eqn_deg
+        self.eqn_string_update()
 
     def eqn_string_update(self) -> str:
         """Takes objects equation in format List of strings and updates eqn_string parameter."""
