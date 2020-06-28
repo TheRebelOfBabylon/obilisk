@@ -1,5 +1,6 @@
 from math_core.Equation import Equation
 from math_core.Arithmetic import Arithmetic
+from math_core.Algebra import Algebra
 
 from typing import List, Tuple, Union
 
@@ -25,5 +26,13 @@ def compute(input: Equation) -> Tuple[List[str], List[Union[int, float, complex]
     ans = []
     eqn = Arithmetic(input.eqn_string)
     ans.append(eqn.calculate())
+
+    return eqn.solution, ans
+
+def solve(input: Equation) -> Tuple[List[str], List[Union[int, float, complex]]]:
+
+    ans = []
+    eqn = Algebra(input.eqn_string)
+    ans.append(eqn.isolate())
 
     return eqn.solution, ans

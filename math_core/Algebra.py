@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import cmath
 from math_core.Equation import Equation, is_number, oper_dict, stringify, bracketify
+from math_core.Arithmetic import Arithmetic, is_even
 import random
 import copy
 
@@ -38,6 +39,48 @@ var_dict = {
     "z": "a"
 
 }
+
+def is_complex_coeff(string: str, var: str) -> bool:
+    """Function checks if a monomial string has a complex coefficient. Returns True or False."""
+    if var in string:
+
+        coeff = ""
+        k=0
+        while string[k] != var:
+
+            coeff+=string[k]
+
+            k+=1
+
+        if coeff == "":
+
+            coeff = "1"
+
+        elif coeff == "-":
+
+            coeff = "-1"
+
+        coeff = complex(coeff)
+
+        if coeff.imag == 0:
+
+            return False
+
+        else:
+
+            return True
+
+    else:
+
+        coeff = complex(string)
+
+        if coeff.imag == 0:
+
+            return False
+
+        else:
+
+            return True
 
 def cube_root(x: Union[int, float, complex]) -> Union[int, float, complex]:
     """Function takes the cubic root of a number. Created to ensure proper sign of answer is given."""
@@ -353,6 +396,412 @@ def bracket_add(br_one_coeff: List[Union[int, float, complex]], op: str, br_two_
 
     return ans
 
+def foiling(b_one: List[str], b_two: List[str], var_type: str) -> List[str]:
+    """Polynomial multiplication. Both polynomials must be of atleast degree 1."""
+    print(b_one, b_two)
+    b_one_string = stringify(b_one)
+    b_one_obj = Algebra(b_one_string+"=0")
+
+    b_two_string = stringify(b_two)
+    b_two_obj = Algebra(b_two_string+"=0")
+
+    # Create array with only coefficients
+    b_one_obj.get_coeff()
+    b_two_obj.get_coeff()
+    b_one_coeff = copy.deepcopy(b_one_obj.coeff)
+    b_two_coeff = copy.deepcopy(b_two_obj.coeff)
+    b_one_obj, b_two_obj = None, None
+    # print("b_one_coeff = ", b_one_coeff.eqn, "b_two_coeff = ", b_two_coeff.eqn)
+
+    ans_coeff = []
+    ans_powers = []
+    b_one_pow = len(b_one_coeff) - 1
+    b_two_pow = len(b_two_coeff) - 1
+
+    # Foiling
+    for i in range(0, len(b_one_coeff)):
+
+        for j in range(0, len(b_two_coeff)):
+            ans_coeff.append(b_one_coeff[i] * b_two_coeff[j])
+            ans_powers.append((b_one_pow - i) + (b_two_pow - j))
+
+    # print("ans_coeff = ", ans_coeff)
+    # Simplifying the answer
+    simp_ans_coeff = []
+    temp_ind = []
+    temp = 0
+    for i in range(ans_powers[0], -1, -1):
+
+        for j in range(0, len(ans_powers)):
+
+            if ans_powers[j] == i:
+                temp += ans_coeff[j]
+
+        simp_ans_coeff.append(temp)
+        temp = 0
+
+    # print("simp_ans_coeff = ", simp_ans_coeff)
+    ans = []
+    j = 0
+    highest_deg_ans = len(simp_ans_coeff) - 1
+
+    if highest_deg_ans > 1:
+
+        for i in range(highest_deg_ans, 1, -1):
+
+            if not ans:
+
+                if simp_ans_coeff[j].imag == 0:
+
+                    if simp_ans_coeff[j] == 1:
+
+                        ans.append(var_type)
+                        ans.append("^")
+                        ans.append(str(float(i)))
+                        j += 1
+
+                    elif simp_ans_coeff[j] == 0:
+
+                        pass
+                        j += 1
+
+                    elif simp_ans_coeff[j] < 0:
+
+                        if simp_ans_coeff[j] == -1:
+
+                            ans.append("-" + var_type)
+                            ans.append("^")
+                            ans.append(str(float(i)))
+                            j += 1
+
+                        else:
+
+                            ans.append(str(simp_ans_coeff[j]))
+                            ans.append(var_type)
+                            ans.append("^")
+                            ans.append(str(float(i)))
+                            j += 1
+
+                    else:
+
+                        ans.append(str(simp_ans_coeff[j]))
+                        ans.append(var_type)
+                        ans.append("^")
+                        ans.append(str(float(i)))
+                        j += 1
+
+                # simp_coeff_ans[j] is a complex number
+                else:
+
+                    ans.append(str(simp_ans_coeff[j]))
+                    ans.append(var_type)
+                    ans.append("^")
+                    ans.append(str(float(i)))
+                    j += 1
+
+            else:
+
+                if simp_ans_coeff[j].imag == 0:
+
+                    if simp_ans_coeff[j] == 1:
+
+                        ans.append("+")
+                        ans.append(var_type)
+                        ans.append("^")
+                        ans.append(str(float(i)))
+                        j += 1
+
+                    elif simp_ans_coeff[j] == 0:
+
+                        pass
+                        j += 1
+
+                    elif simp_ans_coeff[j] < 0:
+
+                        if simp_ans_coeff[j] == -1:
+
+                            ans.append("-")
+                            ans.append(var_type)
+                            ans.append("^")
+                            ans.append(str(float(i)))
+                            j += 1
+
+                        else:
+
+                            ans.append("-")
+                            ans.append(str(abs(simp_ans_coeff[j])))
+                            ans.append(var_type)
+                            ans.append("^")
+                            ans.append(str(float(i)))
+                            j += 1
+
+                    else:
+
+                        ans.append("+")
+                        ans.append(str(simp_ans_coeff[j]))
+                        ans.append(var_type)
+                        ans.append("^")
+                        ans.append(str(float(i)))
+                        j += 1
+
+                # simp_coeff_ans[j] is a complex number
+                else:
+
+                    ans.append("+")
+                    ans.append(str(simp_ans_coeff[j]))
+                    ans.append(var_type)
+                    ans.append("^")
+                    ans.append(str(float(i)))
+                    j += 1
+
+        if simp_ans_coeff[j].imag == 0:
+
+            if simp_ans_coeff[j] == 1:
+
+                ans.append("+")
+                ans.append(var_type)
+                j += 1
+
+            elif simp_ans_coeff[j] == 0:
+
+                pass
+                j += 1
+
+            elif simp_ans_coeff[j] < 0:
+
+                if simp_ans_coeff[j] == -1:
+
+                    ans.append("-")
+                    ans.append(var_type)
+                    j += 1
+
+                else:
+
+                    ans.append("-")
+                    ans.append(str(abs(simp_ans_coeff[j])))
+                    ans.append(var_type)
+                    j += 1
+
+            else:
+
+                ans.append("+")
+                ans.append(str(simp_ans_coeff[j]))
+                ans.append(var_type)
+                j += 1
+
+        else:
+
+            ans.append("+")
+            ans.append(str(simp_ans_coeff[j]))
+            ans.append(var_type)
+            j += 1
+
+        if simp_ans_coeff[j].imag == 0:
+
+            if simp_ans_coeff[j] == 0:
+
+                pass
+
+            else:
+
+                if simp_ans_coeff[j] < 0:
+
+                    ans.append("-")
+                    ans.append(str(abs(simp_ans_coeff[j])))
+
+                else:
+
+                    ans.append("+")
+                    ans.append(str(simp_ans_coeff[j]))
+
+        else:
+
+            ans.append("+")
+            ans.append(str(simp_ans_coeff[j]))
+
+    else:
+
+        if not ans:
+
+            if simp_ans_coeff[j].imag == 0:
+
+                if simp_ans_coeff[j] == 1:
+
+                    ans.append(var_type)
+                    j += 1
+
+                elif simp_ans_coeff[j] == 0:
+
+                    pass
+                    j += 1
+
+                elif simp_ans_coeff[j] < 0:
+
+                    if simp_ans_coeff[j] == -1:
+
+                        ans.append("-")
+                        ans.append(var_type)
+                        j += 1
+
+                    else:
+
+                        ans.append("-")
+                        ans.append(str(abs(simp_ans_coeff[j])))
+                        ans.append(var_type)
+                        j += 1
+
+                else:
+
+                    ans.append(str(simp_ans_coeff[j]))
+                    ans.append(var_type)
+                    j += 1
+
+            else:
+
+                ans.append(str(simp_ans_coeff[j]))
+                ans.append(var_type)
+                j += 1
+
+        else:
+
+            if simp_ans_coeff[j].imag == 0:
+
+                if simp_ans_coeff[j] == 1:
+
+                    ans.append("+")
+                    ans.append(var_type)
+                    j += 1
+
+                elif simp_ans_coeff[j] == 0:
+
+                    pass
+                    j += 1
+
+                elif simp_ans_coeff[j] < 0:
+
+                    if simp_ans_coeff[j] == -1:
+
+                        ans.append("-")
+                        ans.append(var_type)
+                        j += 1
+
+                    else:
+
+                        ans.append("-")
+                        ans.append(str(abs(simp_ans_coeff[j])))
+                        ans.append(var_type)
+                        j += 1
+
+                else:
+
+                    ans.append("+")
+                    ans.append(str(simp_ans_coeff[j]))
+                    ans.append(var_type)
+                    j += 1
+
+            else:
+
+                ans.append("+")
+                ans.append(str(simp_ans_coeff[j]))
+                ans.append(var_type)
+                j += 1
+
+        if simp_ans_coeff[j].imag == 0:
+
+            if simp_ans_coeff[j] == 0:
+
+                pass
+
+            else:
+
+                if simp_ans_coeff[j] < 0:
+
+                    ans.append("-")
+                    ans.append(str(abs(simp_ans_coeff[j])))
+
+                else:
+
+                    ans.append("+")
+                    ans.append(str(simp_ans_coeff[j]))
+
+        else:
+
+            ans.append("+")
+            ans.append(str(simp_ans_coeff[j]))
+
+    return ans
+
+def exp_foiling(br: List[str], x: float, var: str) -> List[str]:
+    """Function will foil out polynomial expressions raised to a certain power ex: (x+3)^8."""
+
+    br_one = br[:]
+    br_two = br[:]
+
+    if is_even(x):
+
+        print("x is even and is "+str(x))
+        while x != 1.0:
+
+            if is_even(x):
+
+                br = foiling(br_one, br_two, var)
+                #print(br)
+                br.insert(0,"(2")
+                br.append(")2")
+                br_one = br[:]
+                br_two = br[:]
+                x/=2
+
+            else:
+
+                br = foiling(br_one, br_two, var)
+                #print(br)
+                br.insert(0,"(2")
+                br.append(")2")
+                br_one = br[:]
+                x-=2
+
+                while x != 0:
+
+                    #print(br_one, br_two)
+                    br = foiling(br_one, br_two, var)
+                    #print(br)
+                    br.insert(0,"(2")
+                    br.append(")2")
+                    br_one = br[:]
+                    x-=1
+
+                break
+
+        result = Equation(stringify(br))
+        #res_string = stringify(result)
+        #print(res_string)
+
+    else:
+
+        #print("x is odd and is "+str(x))
+
+        #print(br_one, br_two)
+        br = foiling(br_one, br_two, var)
+        br.insert(0,"(2")
+        br.append(")2")
+        br_one = br
+        x-=2
+
+        while x != 0.0:
+
+            #print(br_one, br_two)
+            br = foiling(br_one, br_two, var)
+            br.insert(0,"(2")
+            br.append(")2")
+            br_one = br
+            x-=1
+
+        result = Equation(stringify(br))
+        #res_string = stringify(result)
+        #print(res_string)
+
+    return result.eqn
 
 def bracketing(bracket: List[str], var_type: List[str], bracket_dict: Dict, lvl: int = 1):
     """Function recursively identifies brackets, creates a new variable for it and stores it in a variable: bracket dictionary."""
@@ -451,6 +900,109 @@ def bracketing(bracket: List[str], var_type: List[str], bracket_dict: Dict, lvl:
     return bracket, bracket_dict
 
 
+def solving(eqn: Algebra) -> List[Union[int, float, complex]]:
+
+    l_div, r_div = eqn.identify_div()
+
+    #print("What", l_div, r_div)
+
+    # l_div = []
+    if not l_div:
+
+        # l_div = [] = r_div
+        if not r_div:
+
+            eqn.redundant_br()
+            eqn.bracket_remover()
+            eqn.rearrange()
+            ans = eqn.solver()
+            asy = []
+
+        # l_div = [] != r_div
+        else:
+
+            eqn.redundant_br()
+            eqn.multiply_br(r_div)
+            eqn.redundant_div(r_div)
+            eqn.bracket_remover()
+            eqn.rearrange()
+            ans = eqn.solver()
+            asy = eqn.find_asymptotes(r_div)
+
+    # l_div != []
+    else:
+
+        # l_div != [] = r_div
+        if not r_div:
+
+            eqn.redundant_br()
+            eqn.multiply_br(l_div)
+            eqn.redundant_div(l_div)
+            print(stringify(eqn.lhs)+" = "+stringify(eqn.rhs))
+            eqn.bracket_remover()
+            eqn.rearrange()
+            ans = eqn.solver()
+            asy = eqn.find_asymptotes(l_div)
+
+        # l_div != [] != r_div
+        else:
+
+            print("we should be here", l_div, r_div)
+
+            eqn.redundant_br()
+            eqn.multiply_br(l_div)
+            eqn.redundant_div(l_div)
+            eqn.multiply_br(r_div)
+            eqn.redundant_div(r_div)
+            print("AYO", stringify(eqn.lhs) + " = " + stringify(eqn.rhs))
+            eqn.bracket_remover()
+            eqn.rearrange()
+            ans = eqn.solver()
+            l_asy = eqn.find_asymptotes(l_div)
+            r_asy = eqn.find_asymptotes(r_div)
+
+            asy = []
+            for i in l_asy:
+
+                if i not in asy:
+                    asy.append(i)
+
+            for i in r_asy:
+
+                if i not in asy:
+                    asy.append(i)
+
+    new_ans = []
+    for i in ans:
+
+        i = complex(i)
+        if round(i.imag, 4) == 0:
+
+            temp = round(i.real, 6)
+            new_ans.append(temp)
+
+        else:
+
+            temp = round(i.real, 6) + round(i.imag, 6) * 1j
+            new_ans.append(temp)
+
+    if asy:
+
+        for i in asy:
+
+            asy_temp = complex(i)
+            k = 0
+            while k != len(new_ans):
+
+                if round(new_ans[k].real, 1) + round(new_ans[k].imag, 1) * 1j == asy_temp:
+                    del new_ans[k]
+                    k = -1
+
+                k += 1
+
+    return new_ans
+
+
 class Algebra(Equation):
     """This class is used in polynomial root finding problems. Objects of this class have a single attribute being the equation in List[str] format."""
 
@@ -466,7 +1018,6 @@ class Algebra(Equation):
             self.solution = []
         else:
             Equation.__init__(self, eqn_string)
-            self.grouping()
             self.eqn_string_update()
             self.seperate_eqn()
 
@@ -511,29 +1062,61 @@ class Algebra(Equation):
         if (len(self.rhs) != 3) or (not self.lhs):
             raise ValueError("You must properly isolate the equation first.")
         coeff = []
+        if self.var_type[0] == "":
 
-        for s in range(self.deg[0], -1, -1):
+            for i in self.lhs:
 
-            did_append = False
+                if is_number(i):
+                    temp = complex(i)
+                    if temp.imag == 0.0:
+                        coeff.append(temp.real)
+                    else:
+                        coeff.append(temp)
+        else:
 
-            for i in range(0, len(self.lhs)):
+            for s in range(self.deg[0], -1, -1):
 
-                if "^" + str(float(s)) in self.lhs[i]:
+                did_append = False
 
-                    temp = self.lhs[i]
-                    a = ""
-                    v = 0
-                    while temp[v] != self.var_type[0]:
-                        a = a + str(temp[v])
-                        v += 1
+                for i in range(0, len(self.lhs)):
 
-                    v += 2
-                    b = ""
-                    while v != len(temp):
-                        b = b + str(temp[v])
-                        v += 1
+                    if "^" + str(float(s)) in self.lhs[i]:
 
-                    if int(float(b)) == s:
+                        temp = self.lhs[i]
+                        a = ""
+                        v = 0
+                        while temp[v] != self.var_type[0]:
+                            a = a + str(temp[v])
+                            v += 1
+
+                        v += 2
+                        b = ""
+                        while v != len(temp):
+                            b = b + str(temp[v])
+                            v += 1
+
+                        if int(float(b)) == s:
+
+                            if a == "":
+                                a = 1
+
+                            if a == "-":
+                                a = -1
+
+                            if self.lhs[i - 1] == "-":
+                                a = -1 * float(a)
+
+                            coeff.append(float(a))
+                            did_append = True
+
+                    elif ("^" not in self.lhs[i]) & (self.var_type[0] in self.lhs[i]) & (s == 1):
+
+                        temp = self.lhs[i]
+                        a = ""
+                        v = 0
+                        while temp[v] != self.var_type[0]:
+                            a = a + str(temp[v])
+                            v += 1
 
                         if a == "":
                             a = 1
@@ -547,42 +1130,21 @@ class Algebra(Equation):
                         coeff.append(float(a))
                         did_append = True
 
-                elif ("^" not in self.lhs[i]) & (self.var_type[0] in self.lhs[i]) & (s == 1):
+                    elif (is_number(self.lhs[i])) & (s == 0):
 
-                    temp = self.lhs[i]
-                    a = ""
-                    v = 0
-                    while temp[v] != self.var_type[0]:
-                        a = a + str(temp[v])
-                        v += 1
+                        a = complex(self.lhs[i])
 
-                    if a == "":
-                        a = 1
+                        if round(a.imag, 6) == 0:
+                            a = float(a.real)
 
-                    if a == "-":
-                        a = -1
+                        if self.lhs[i - 1] == "-":
+                            a = -1 * a
 
-                    if self.lhs[i - 1] == "-":
-                        a = -1 * float(a)
+                        coeff.append(a)
+                        did_append = True
 
-                    coeff.append(float(a))
-                    did_append = True
-
-                elif (is_number(self.lhs[i]) == True) & (s == 0):
-
-                    a = complex(self.lhs[i])
-
-                    if round(a.imag, 6) == 0:
-                        a = float(a.real)
-
-                    if self.lhs[i - 1] == "-":
-                        a = -1 * a
-
-                    coeff.append(a)
-                    did_append = True
-
-            if not did_append:
-                coeff.append(0)
+                if not did_append:
+                    coeff.append(0)
 
         self.coeff = coeff
 
@@ -751,8 +1313,22 @@ class Algebra(Equation):
         self.bracketify()
         self.grouping()
 
+    def update_attr(self):
+        """Method updates all object attributes."""
+        if not self.lhs or not self.rhs:
+            raise ValueError("LHS and RHS attributes need values for this method.")
+        self.eqn.clear()
+        self.eqn = copy.deepcopy(self.lhs)
+        self.eqn[-1] = "="
+        for i in self.rhs:
+            self.eqn.insert(-1,i)
+        self.grouping()
+        self.eqn_string_update()
+        self.get_coeff()
+        self.update_params_from_coeff()
+
     def reset_params(self):
-        """Function resets all object attributes"""
+        """Method resets all object attributes"""
         self.eqn_string = ""
         self.eqn = []
         self.lhs = []
@@ -817,6 +1393,1465 @@ class Algebra(Equation):
             # print("x",x)
 
         return x
+
+    def identify_div(self) -> Tuple[List[str]]:
+        """Method identifies divisors and returns them in array format."""
+
+        divisors = [[], []]
+        eqn_parts = ["lhs", "rhs"]
+        n = 0
+        for side in eqn_parts:
+            s = 0
+            i = getattr(self, side)
+            while s != len(i):
+                # What do we do if COS(()/())? or (()/())^7. Maybe it would be wise to make a marker that indicates a bracket is preceded by a special op like COS
+                if ("(" in i[s]) and (i[s - 1] == "/") and (s != 0):
+
+                    # print("s is currently "+str(s),self.eqn[s])
+                    br_string = "("
+                    k = s + 1
+                    while ")" not in i[k]:
+                        br_string += i[k]
+                        k += 1
+
+                    k += 1
+                    br_string += ")"
+
+                    exp_check = False
+                    if i[k] == "^":
+                        exp_check == True
+                        br_string += "^" + i[k + 1]
+
+                    k = 0
+                    b = 0
+                    while k != s:
+
+                        if "(" in i[k]:
+
+                            b += 1
+
+                        elif ")" in i[k]:
+
+                            b -= 1
+
+                        k += 1
+
+                    x = 1
+                    c = b
+                    while k != len(i):
+
+                        if "(" in i[k]:
+
+                            b += 1
+
+                        elif ")" in i[k]:
+
+                            b -= 1
+
+                        if (is_number(i[k]) == True) and (i[k - 1] == "^") and (
+                                i[k - 2] == ")" + str(c)):
+
+                            x *= float(i[k])
+                            c -= 1
+
+                        elif (i[k - 1] != "^") and (i[k - 2] == ")" + str(c)):
+
+                            c -= 1
+
+                        k += 1
+
+                    if (x > 1) and (exp_check == False):
+
+                        br_string = br_string + "^" + str(x)
+
+                    elif (x > 1) and (exp_check == True):
+
+                        x_temp = float(br_string[-1])
+                        x *= x_temp
+                        new_br_string = ""
+                        i = 0
+                        while br_string[i] != "^":
+                            new_br_string += br_string[i]
+
+                        new_br_string += "^" + str(x)
+                        br_string = new_br_string
+
+                    print("The divisor is: " + br_string)
+
+                    br = Equation(br_string)
+                    del br.eqn[0]
+                    del br.eqn[-1]
+
+                    #print(br.eqn)
+                    divisors[n].append(br.eqn)
+
+                elif ((is_number(i[s]) == True) or (self.var_type[0] in i[s])) and (i[s - 1] == "/") and (
+                        s != 0):
+
+                    br_string = i[s]
+
+                    k = 0
+                    b = 0
+                    b_open = 0
+                    b_close = 0
+                    while k != s:
+
+                        if "(" in i[k]:
+
+                            b_open += 1
+                            b += 1
+
+                        elif ")" in i[k]:
+
+                            b_close += 1
+                            b -= 1
+
+                        k += 1
+
+                    x = 1
+                    c = b
+                    while k != len(i):
+
+                        if "(" in i[k]:
+
+                            b_open += 1
+                            b += 1
+
+                        elif ")" in i[k]:
+
+                            b_close += 1
+                            b -= 1
+
+                        if (is_number(i[k]) == True) and (i[k - 1] == "^") and (
+                                i[k - 2] == ")" + str(c)):
+
+                            x *= float(i[k])
+                            c -= 1
+
+                        elif (i[k - 1] != "^") and (i[k - 2] == ")" + str(c)):
+
+                            c -= 1
+
+                        k += 1
+
+                    if x > 1:
+                        br_string = "(" + br_string + ")^" + str(x)
+
+                    print("The divisor is: " + br_string)
+
+                    br = Equation(br_string)
+                    del br.eqn[0]
+                    del br.eqn[-1]
+
+                    #print(br.eqn)
+                    divisors[n].append(br.eqn)
+
+                s += 1
+
+            n += 1
+
+        return divisors
+
+    def redundant_br(self):
+        """Method removes redundant brackets ex: (()+()) = ()+() or ex: (()/())^c = ()^c/()^c."""
+        eqn_parts = ["lhs", "rhs"]
+        for side in eqn_parts:
+            z = getattr(self, side)
+            #print("HELLO", stringify(z))
+            b=0
+            for s in z:
+
+                if "(" in s:
+
+                    temp = s
+                    temp = temp.replace("(","")
+                    temp = int(temp)
+
+                    if temp > b:
+
+                        b = temp
+
+            for c in range(b-1,1,-1):
+
+                s = 0
+                while s != len(z):
+
+                    #print(s, "length of z is "+str(len(z)))
+                    #first is there a constant, a divisor or an exponent on a pair of brackets? a*()^x/b or a*()/b
+                    if (z[s] == "("+str(c)) and (z[s-1] == "*"):
+
+                        k = s
+                        d = 0
+                        br_string = ""
+                        case_type = 0
+                        while z[k] != ")"+str(c):
+
+                            if z[k] == "("+str(c+1):
+
+                                br_string += "("
+                                d+=1
+
+                            elif z[k] == ")"+str(c+1):
+
+                                br_string += ")"
+                                d-=1
+
+                            elif "(" in z[k]:
+
+                                br_string += "("
+
+                            elif ")" in z[k]:
+
+                                br_string += ")"
+
+                            elif (z[k] in "+-*/") and (d == 0):
+
+                                br_string += z[k]
+                                if (z[k] in "+-") and (case_type == 0):
+
+                                    case_type = 1
+
+                                elif (z[k] in "+-") and (case_type == 1):
+
+                                    pass
+
+                                elif (z[k] in "*/") and (case_type == 0):
+
+                                    case_type = 2
+
+                                elif (z[k] in "*/") and (case_type == 2):
+
+                                    pass
+
+                                else:
+
+                                    case_type = 3
+
+                            else:
+
+                                br_string += z[k]
+
+                            k+=1
+
+                        br_string += ")"
+                        #print(br_string, "constant case_type = "+str(case_type))
+                        k+=1
+                        if (z[k] == "^"):
+
+                            br_string += "^"+z[k+1]
+                            if (case_type == 0) or (case_type == 1) or (case_type == 3):
+
+                                print("no redundant brackets found")
+
+                            else:
+
+                                new_br_string = ""
+                                i = 1
+                                m = br_string.find(")^")
+                                while i != m:
+
+                                    new_br_string += br_string[i]
+                                    i+=1
+
+                                new_br_string = new_br_string.replace(")",")^"+z[k+1])
+                                eqn_string = stringify(z)
+                                #print(eqn_string)
+                                eqn_string = eqn_string.replace(br_string, new_br_string)
+                                #print(eqn_string)
+                                eqn_temp = Equation(eqn_string)
+                                setattr(self, side, eqn_temp.eqn)
+                                z = getattr(self, side)
+                                eqn_temp = None
+                                s = 0
+
+                        elif (z[k] in "/*"):
+
+                            print("no redundant brackets found")
+
+                        else:
+
+                            if (case_type == 0):
+
+                                new_br_string = ""
+                                for i in range(1,len(br_string)-1):
+
+                                    new_br_string += br_string[i]
+
+                                eqn_string = stringify(z)
+                                #print(eqn_string)
+                                eqn_string = eqn_string.replace(br_string, new_br_string)
+                                #print(eqn_string)
+                                eqn_temp = Equation(eqn_string)
+                                setattr(self, side, eqn_temp.eqn)
+                                z = getattr(self, side)
+                                eqn_temp = None
+                                s=0
+
+                            elif (case_type == 1) or (case_type == 3):
+
+                                print("no redundant brackets found")
+
+                            else:
+
+                                new_br_string = ""
+                                for i in range(1,len(br_string)-1):
+
+                                    new_br_string += br_string[i]
+
+                                eqn_string = stringify(z)
+                                #print(eqn_string)
+                                eqn_string = eqn_string.replace(br_string, new_br_string)
+                                #print(eqn_string)
+                                eqn_temp = Equation(eqn_string)
+                                setattr(self, side, eqn_temp.eqn)
+                                z = getattr(self, side)
+                                eqn_temp = None
+                                s=0
+
+                    elif z[s] == "("+str(c):
+
+                        k = s
+                        d = 0
+                        br_string = ""
+                        case_type = 0
+                        while z[k] != ")"+str(c):
+
+                            if z[k] == "("+str(c+1):
+
+                                br_string += "("
+                                d+=1
+
+                            elif z[k] == ")"+str(c+1):
+
+                                br_string += ")"
+                                d-=1
+
+                            elif "(" in z[k]:
+
+                                br_string += "("
+
+                            elif ")" in z[k]:
+
+                                br_string += ")"
+
+                            elif (z[k] in "+-*/") and (d == 0):
+
+                                br_string += z[k]
+                                if (z[k] in "+-") and (case_type == 0):
+
+                                    case_type = 1
+
+                                elif (z[k] in "+-") and (case_type == 1):
+
+                                    pass
+
+                                elif (z[k] in "*/") and (case_type == 0):
+
+                                    case_type = 2
+
+                                elif (z[k] in "*/") and (case_type == 2):
+
+                                    pass
+
+                                else:
+
+                                    case_type = 3
+
+                            else:
+
+                                br_string += z[k]
+
+                            k+=1
+
+                        br_string += ")"
+                        #print(br_string, "no constant case_type = "+str(case_type))
+                        k+=1
+                        if (z[k] == "^"):
+
+                            if (case_type == 0) or (case_type == 1) or (case_type == 3):
+
+                                print("no redundant brackets found")
+
+                            else:
+
+                                br_string += "^"+z[k+1]
+                                new_br_string = ""
+                                i = 1
+                                m = br_string.find(")^")
+                                d=0
+                                max=0
+                                while i != m:
+
+                                    if br_string[i] == "(":
+
+                                        d+=1
+
+                                        if d > max:
+
+                                            max = d
+
+                                    elif br_string[i] == ")":
+
+                                        d-=1
+
+                                    new_br_string += br_string[i]
+                                    i+=1
+
+                                if max <= 1 :
+
+                                    #print("\n"+new_br_string)
+                                    new_br_string = new_br_string.replace(")",")^"+z[k+1])
+                                    eqn_string = stringify(z)
+                                    #print(eqn_string)
+                                    eqn_string = eqn_string.replace(br_string, new_br_string)
+                                    #print(eqn_string)
+                                    eqn_temp = Equation(eqn_string)
+                                    #print(stringify(self.lhs) + " = " + stringify(self.rhs), stringify(z))
+                                    setattr(self, side, eqn_temp.eqn)
+                                    z = getattr(self, side)
+                                    #print(stringify(self.lhs)+" = "+stringify(self.rhs), stringify(z))
+                                    eqn_temp = None
+                                    s=0
+
+                                else:
+
+                                    eqn_string = stringify(z)
+                                    new_br_string = ""
+                                    m = br_string.find(")^")
+                                    br_string = br_string.replace("^"+z[k+1], '')
+                                    i = m-1
+                                    d=0
+                                    while i != 1:
+
+                                        if br_string[i] == ")":
+
+                                            d+=1
+
+                                        elif br_string[i] == "(":
+
+                                            d-=1
+
+                                        if d <= 1:
+
+                                            new_br_string = br_string[i] + new_br_string
+
+                                        else:
+
+                                            new_new_br_string = new_br_string.replace(")",")^"+z[k+1])
+                                            br_string_prime = br_string.replace(new_br_string, new_new_br_string)
+                                            #print(eqn_string)
+                                            eqn_string = eqn_string.replace(br_string+"^"+z[k+1], br_string_prime)
+                                            #print(eqn_string)
+                                            new_br_string = br_string_prime
+                                            i-=1
+                                            while d != 0:
+                                                #print(i, d, br_string[i])
+                                                if br_string[i] == ")":
+
+                                                    d+=1
+
+                                                elif br_string[i] == "(":
+
+                                                    d-=1
+
+                                                i-=1
+
+                                            new_br_string = br_string[i]
+
+                                        i-=1
+
+                                    #print("\n"+new_br_string)
+                                    new_new_br_string = new_br_string.replace(")",")^"+z[k+1])
+                                    br_string_prime = br_string.replace(new_br_string, new_new_br_string)
+                                    #print(eqn_string)
+                                    #print("BOO", br_string, new_br_string, new_new_br_string, br_string_prime)
+                                    eqn_string = eqn_string.replace(br_string+"^"+z[k+1], br_string_prime)
+                                    #print(eqn_string)
+                                    eqn_temp = Equation(eqn_string)
+                                    setattr(self, side, eqn_temp.eqn)
+                                    z = getattr(self, side)
+                                    eqn_temp = None
+                                    s=0
+
+                        elif (z[k] in "/*"):
+
+                            print("no redundant brackets found")
+
+                        else:
+
+                            if case_type == 1:
+
+                                print("no redundant brackets found")
+
+                            else:
+
+                                new_br_string = ""
+                                for i in range(1,len(br_string)-1):
+
+                                    new_br_string += br_string[i]
+
+                                eqn_string = stringify(z)
+                                #print(eqn_string)
+                                eqn_string = eqn_string.replace(br_string, new_br_string)
+                                #print(eqn_string)
+                                eqn_temp = Equation(eqn_string)
+                                setattr(self, side, eqn_temp.eqn)
+                                z = getattr(self, side)
+                                eqn_temp = None
+                                s = 0
+                    s += 1
+
+            if (z[1] == "(2") and (z[-2] == ")2"):
+
+                s=1
+                d=0
+                chk_var = False
+                while s != len(side)-2:
+
+                    if z[s] == ")2":
+
+                        chk_var = True
+                        break
+
+                    s+=1
+
+                if chk_var == False:
+
+                    del z[-2]
+                    del z[1]
+
+            #setattr(self, side, eqn_temp.eqn)
+
+    def bracket_remover(self):
+        """Function removes all brackets by performing various operations to make expressions mathematically equivalent."""
+        eqn_parts = ["lhs", "rhs"]
+        for side in eqn_parts:
+            b=0
+            z = getattr(self, side)
+            for s in z:
+
+                if "(" in s:
+
+                    temp = s
+                    temp = temp.replace("(","")
+                    temp = int(temp)
+
+                    if temp > b:
+
+                        b = temp
+
+            for c in range(b,1,-1):
+
+                s = 0
+                while s != len(z):
+
+                    if (is_number(z[s]) == True) and (z[s-1] == "^") and (z[s-2] == ")"+str(c)):
+
+                        x = float(z[s])
+                        k = s-2
+                        d=0
+                        br_string=""
+                        while z[k] != "("+str(c):
+
+                            if ")" in z[k]:
+
+                                br_string = ")"+br_string
+                                d+=1
+
+                            elif "(" in z[k]:
+
+                                br_string = "("+br_string
+                                d-=1
+
+                            else:
+
+                                if (z[k-1] == ")"+str(c+1)) and (z[k] in "+-") and (z[k+1] == "("+str(c+1)):
+
+                                    break
+
+                                else:
+
+                                    br_string = z[k]+br_string
+
+                            k-=1
+
+                        br_string = "("+br_string
+                        #print("\n"+br+"^"+str(x))
+                        br = Equation(br_string)
+                        bra = br.eqn
+                        br = None
+                        del bra[0]
+                        del bra[-1]
+                        #print(bra)
+
+                        if x > 1.0:
+
+                            new_br = exp_foiling(bra, x, self.var_type[0])
+                            #print(new_br)
+                            new_br_string = stringify(new_br)
+                            print("= "+new_br_string)
+                            eqn_string = stringify(z)
+                            eqn_string = eqn_string.replace(br_string+"^"+str(x), "("+new_br_string+")")
+                            eqn_temp = Equation(eqn_string)
+                            # if eqn_temp.var_type[0]:
+                            #
+                            #         self.var = eqn_temp.var_type[0]
+                            setattr(self, side, eqn_temp.eqn)
+                            z = getattr(self, side)
+                            eqn_temp = None
+                            s=-1
+
+                    s+=1
+
+                #Now to check for ()*() or c*() or ()*c
+                s=0
+                while s != len(z):
+
+                    if (z[s] == "("+str(c)) and (z[s-1] == "*") and (z[s-2] == ")"+str(c)):
+
+                        br_string_one = ""
+                        br_string_two = ""
+                        k = s
+                        m = s-2
+
+                        check_two = False
+                        d=0
+                        while z[k] != ")"+str(c):
+
+                            if "(" in z[k]:
+
+                                br_string_two += "("
+                                d+=1
+
+                            elif ")" in z[k]:
+
+                                br_string_two += ")"
+                                d-=1
+
+                            else:
+
+                                if (z[k-1] == ")"+str(c+1)) and (z[k] in "+-") and (z[k+1] == "("+str(c+1)):
+
+                                    check_two = True
+                                    break
+
+                                else:
+
+                                    br_string_two += z[k]
+
+                            k+=1
+
+                        br_string_two += ")"
+                        check_one = False
+                        d=0
+                        while z[m] != "("+str(c):
+
+                            if ")" in z[m]:
+
+                                br_string_one = ")"+br_string_one
+                                d+=1
+
+                            elif "(" in z[m]:
+
+                                br_string_one = "("+br_string_one
+                                d-=1
+
+                            else:
+
+                                if (z[m-1] == ")"+str(c+1)) and (z[m] in "+-") and (z[m+1] == "("+str(c+1)):
+
+                                    check_one = True
+                                    break
+
+                                else:
+
+                                    br_string_one = z[m]+br_string_one
+
+                            m-=1
+
+                        if (check_one == False) and (check_two == False):
+
+                            br_string_one = "("+br_string_one
+                            print("\n"+br_string_one+"*"+br_string_two)
+
+                            br_one = Equation(br_string_one)
+                            del br_one.eqn[0]
+                            del br_one.eqn[-1]
+
+                            br_two = Equation(br_string_two)
+                            del br_two.eqn[0]
+                            del br_two.eqn[-1]
+
+                            br = foiling(br_one.eqn, br_two.eqn, self.var_type[0])
+                            br_one, br_two = None, None
+
+                            if not br:
+
+                                br = ["0"]
+
+                            br.insert(0,"(1")
+                            br.append(")1")
+                            br_string = stringify(br)
+                            print("= "+br_string)
+
+                            eqn_string = stringify(z)
+                            eqn_string = eqn_string.replace(br_string_one+"*"+br_string_two, "("+br_string+")")
+                            eqn_temp = Equation(eqn_string)
+                            # if var:
+                            #
+                            #     self.var = var[0]
+
+                            setattr(self, side, eqn_temp.eqn)
+                            z = getattr(self, side)
+                            eqn_temp = None
+                            s=-1
+
+                    elif ((is_number(z[s]) == True) or (self.var_type[0] in z[s])) and (z[s-1] == "*") and (z[s-2] == ")"+str(c)):
+
+                        #print("WOOAAHH NELLY")
+                        br_string_one = ""
+                        br_string_two = z[s]
+                        k = s
+                        m = s-2
+
+                        check_one = False
+                        d=0
+                        while z[m] != "("+str(c):
+
+                            if ")" in z[m]:
+
+                                br_string_one = ")"+br_string_one
+                                d+=1
+
+                            elif "(" in z[m]:
+
+                                br_string_one = "("+br_string_one
+                                d-=1
+
+                            else:
+
+                                if (z[m-1] == ")"+str(c+1)) and (z[m] in "+-") and (z[m+1] == "("+str(c+1)):
+
+                                    check_one = True
+                                    break
+
+                                else:
+
+                                    br_string_one = z[m]+br_string_one
+
+                            m-=1
+
+                        if check_one == False:
+
+                            #br_string_one = "("+br_string_one+")"
+                            print("\n"+br_string_one+"*"+br_string_two)
+
+                            br_one = Equation(br_string_one)
+                            del br_one.eqn[0]
+                            del br_one.eqn[-1]
+
+                            br_two = Equation(br_string_two)
+                            del br_two.eqn[0]
+                            del br_two.eqn[-1]
+
+                            br = foiling(br_one.eqn, br_two.eqn, self.var_type[0])
+                            br_one, br_two = None, None
+                            if not br:
+
+                                br = ["0"]
+
+                            br.insert(0,"(1")
+                            br.append(")1")
+                            br_string = stringify(br)
+                            print("= "+br_string)
+
+                            eqn_string = stringify(z)
+                            eqn_string = eqn_string.replace(br_string_one+"*"+br_string_two, "("+br_string+")")
+                            eqn_temp = Equation(eqn_string)
+                            # if var:
+                            #
+                            #     self.var = var[0]
+                            setattr(self, side, eqn_temp.eqn)
+                            z = getattr(self, side)
+                            eqn_temp = None
+                            s=-1
+
+                    elif (z[s] == "("+str(c)) and (z[s-1] == "*") and ((is_number(z[s-2]) == True) or (self.var_type[0] in z[s-2])):
+
+                        #print("WOOAAHH NELLY")
+                        br_string_one = z[s-2]
+                        br_string_two = ""
+                        k = s
+                        m = s-2
+
+                        check_two = False
+                        d=0
+                        while z[k] != ")"+str(c):
+
+                            if "(" in z[k]:
+
+                                br_string_two += "("
+                                d+=1
+
+                            elif ")" in z[k]:
+
+                                br_string_two += ")"
+                                d-=1
+
+                            else:
+
+                                if (z[k-1] == ")"+str(c+1)) and (z[k] in "+-") and (z[k+1] == "("+str(c+1)):
+
+                                    check_two = True
+                                    break
+
+                                else:
+
+                                    br_string_two += z[k]
+
+                            k+=1
+
+                        br_string_two += ")"
+
+                        if check_two == False:
+
+                            #br_string_one = "("+br_string_one+")"
+                            print("\n"+br_string_one+"*"+br_string_two)
+
+                            br_one = Equation(br_string_one)
+                            br_two = Equation(br_string_two)
+
+                            br = foiling(br_one.eqn, br_two.eqn, self.var_type[0])
+
+                            if not br:
+
+                                br = ["0"]
+
+                            br.insert(0,"(1")
+                            br.append(")1")
+                            br_string = stringify(br)
+                            print("= "+br_string)
+
+                            eqn_string = stringify(z)
+                            eqn_string = eqn_string.replace(br_string_one+"*"+br_string_two, "("+br_string+")")
+                            eqn_temp = Equation(eqn_string)
+                            # if var:
+                            #
+                            #     self.var = var[0]
+                            setattr(self, side, eqn_temp.eqn)
+                            z = getattr(self, side)
+                            s=-1
+
+                    s+=1
+
+                #Now to check for ()+-()
+                s=0
+                while s != len(z):
+
+                    if (z[s] == "("+str(c)) and (z[s-1] in "+-") and (z[s-2] == ")"+str(c)):
+
+                        br_string_one = ""
+                        br_string_two = ""
+                        op = z[s-1]
+                        k = s
+                        m = s-2
+
+                        check_two = False
+                        d=0
+                        while z[k] != ")"+str(c):
+
+                            if "(" in z[k]:
+
+                                br_string_two += "("
+                                d+=1
+
+                            elif ")" in z[k]:
+
+                                br_string_two += ")"
+                                d-=1
+
+                            else:
+
+                                if (z[k-1] == ")"+str(c+1)) and (z[k] in "+-") and (z[k+1] == "("+str(c+1)):
+
+                                    check_two = True
+                                    break
+
+                                else:
+
+                                    br_string_two += z[k]
+
+                            k+=1
+
+                        br_string_two += ")"
+                        check_one = False
+                        d=0
+                        while z[m] != "("+str(c):
+
+                            if ")" in z[m]:
+
+                                br_string_one = ")"+br_string_one
+                                d+=1
+
+                            elif "(" in z[m]:
+
+                                br_string_one = "("+br_string_one
+                                d-=1
+
+                            else:
+
+                                if (z[m-1] == ")"+str(c+1)) and (z[m] in "+-") and (z[m+1] == "("+str(c+1)):
+
+                                    check_one = True
+                                    break
+
+                                else:
+
+                                    br_string_one = z[m]+br_string_one
+
+                            m-=1
+
+                        if (check_one == False) and (check_two == False):
+
+                            br_string_one = "("+br_string_one
+                            print("\n"+br_string_one+op+br_string_two)
+
+                            br_one = Algebra(br_string_one+"=0")
+                            br_one.get_coeff()
+                            del br_one.eqn[0]
+                            del br_one.eqn[-1]
+
+                            br_two = Algebra(br_string_two+"=0")
+                            br_two.get_coeff()
+                            del br_two.eqn[0]
+                            del br_two.eqn[-1]
+
+                            br = bracket_add(br_one.coeff, op, br_two.coeff, self.var_type[0])
+
+                            if not br:
+
+                                br = ["0"]
+
+                            br.insert(0,"(1")
+                            br.append(")1")
+                            br_string = stringify(br)
+                            print("= "+br_string)
+
+                            eqn_string = stringify(z)
+                            eqn_string = eqn_string.replace(br_string_one+op+br_string_two, "("+br_string+")")
+                            eqn_temp = Equation(eqn_string)
+                            # if var:
+                            #
+                            #     self.var = var[0]
+                            setattr(self, side, eqn_temp.eqn)
+                            z = getattr(self, side)
+                            s=-1
+
+                    s+=1
+
+                #print("before redundant_br", self.eqn)
+                self.redundant_br()
+                #print("after redundant_br", self.eqn)
+                eqn_string = stringify(z)
+                print(eqn_string)
+
+    def multiply_br(self, divers: List[List[str]]):
+        """Method takes divisors and multiplies them into an equation."""
+        div_copy = copy.deepcopy(divers)
+        #print("At the beginning",self.eqn, div_copy)
+        #First determine the highest bracket level
+        eqn_parts = ["lhs", "rhs"]
+        for side in eqn_parts:
+            z = getattr(self, side)
+            b=0
+            for s in z:
+
+                if "(" in s:
+
+                    temp = s
+                    temp = temp.replace("(","")
+                    temp = int(temp)
+
+                    if temp > b:
+
+                        b = temp
+
+            #Next multiply in the divisors
+            div_string = []
+            for i in div_copy:
+
+                s=0
+                d=0
+                while s != len(z):
+
+                    if "(" in z[s]:
+
+                        d+=1
+
+                    elif ")" in z[s]:
+
+                        d-=1
+
+                    if ((is_number(z[s])) or (self.var_type[0] in z[s])) and (d == 1):
+
+                        s+=1
+                        z.insert(s,"*")
+                        s+=1
+                        for n in range(len(i)-1,-1,-1):
+
+                            z.insert(s,i[n])
+
+                        d=1
+                        s+=len(i)
+                        #print(self.eqn, s)
+
+                        while z[s] != ")1":
+
+                            if "(" in z[s]:
+
+                                d+=1
+
+                            elif ")" in z[s]:
+
+                                d-=1
+
+                            if (z[s] in "+-") and (d == 1):
+
+                                break
+
+                            s+=1
+
+                        if s == len(z)-1:
+
+                            s-=1
+
+                        #print("k = "+str(k), "len(l)-1 = "+str(len(l)-1))
+
+                    elif z[s] == "(2":
+
+                        z.insert(s,"*")
+                        for n in range(len(i)-1,-1,-1):
+
+                            z.insert(s,i[n])
+
+                        d=1
+                        s+=len(i)
+                        #print(self.eqn, s)
+
+                        while z[s] != ")1":
+
+                            if "(" in z[s]:
+
+                                d+=1
+
+                            elif ")" in z[s]:
+
+                                d-=1
+
+                            if (z[s] in "+-") and (d == 1):
+
+                                break
+
+                            s+=1
+
+                        if s == len(z)-1:
+
+                            s-=1
+
+                    s+=1
+
+                temp = i[:]
+                temp.insert(0,"(1")
+                temp.append(")1")
+                div_string.append(stringify(temp))
+
+            eqn_string = stringify(z)
+            print(eqn_string)
+
+            for c in range(2,b):
+
+                for i in div_copy:
+
+                    #need to find divisor outside of "("+str(c), then need to delete it and multiply it into all terms inside of "("+str(c)
+                    #print("inside multiply_br", i)
+                    s = 0
+                    while s != len(z):
+
+                        if z[s] == i[0]:
+
+                            k = s
+                            #print(k, self.eqn[s], i[0])
+                            k+=1
+                            eqn_chk = True
+                            for n in range(1,len(i)):
+
+                                if z[k] != i[n]:
+
+                                    #print(k, self.eqn[k], i[n])
+                                    eqn_chk = False
+                                    break
+
+                                else:
+
+                                    #print(k, self.eqn[k], i[n])
+                                    k+=1
+
+                            #print("k = "+str(k), self.eqn[k])
+                            if eqn_chk:
+
+                                #print(k, self.eqn[k])
+                                if z[k] == "*":
+
+                                    k+=1
+                                    if z[k] == "("+str(c):
+
+                                        m = k
+                                        while z[m] != ")"+str(c):
+
+                                            m+=1
+
+
+                                        if z[m+1] == "^":
+                                            #print("GREEN HELL", m+2, z[m+2], z)
+                                            x = 1/float(z[m+2])
+                                            n=0
+                                            exp_chk = False
+                                            while n != len(i):
+
+                                                if i[n] == "^":
+
+                                                    if float(i[n+1])*x > 1:
+
+                                                        i[n+1] = str(float(i[n+1])*x)
+                                                        exp_chk = True
+
+                                                    else:
+
+                                                        eqn_chk = False
+
+                                                    break
+
+                                                n+=1
+
+                                            if not exp_chk:
+
+                                                if x > 1:
+
+                                                    i.insert(len(i), "^")
+                                                    i.insert(len(i), str(x))
+
+                                                else:
+
+                                                    eqn_chk = False
+
+                                        if eqn_chk:
+
+                                            #print("Found one: ", k, self.eqn[k])
+                                            del z[s:k]
+                                            #print(self.eqn, s, self.eqn[s])
+                                            break
+
+                                        else:
+
+                                            s = k
+
+                        s+=1
+
+                    d = 0
+                    #print(s, self.eqn[s], self.eqn, i)
+                    while s != len(z):
+
+                        if "(" in z[s]:
+
+                            d+=1
+
+                        elif ")" in z[s]:
+
+                            d-=1
+
+                        if ((is_number(z[s])) or (self.var_type[0] in z[s])) and (d == 1):
+
+                            s+=1
+                            z.insert(s,"*")
+                            s+=1
+                            for n in range(len(i)-1,-1,-1):
+
+                                if "(" in i[n]:
+
+                                    z.insert(s,"("+str(c+1))
+
+                                elif ")" in i[n]:
+
+                                    z.insert(s,")"+str(c+1))
+
+                                else:
+
+                                    z.insert(s,i[n])
+
+                            s+=len(i)-2
+                            d=1
+                            #print(self.eqn, s)
+
+                            while z[s] != ")1":
+
+                                if "(" in z[s]:
+
+                                    d+=1
+
+                                elif ")" in z[s]:
+
+                                    d-=1
+
+                                if (z[s] in "+-") and (d == 1):
+
+                                    break
+
+                                s+=1
+
+                            if s == len(z)-1:
+
+                                s-=1
+
+                            #print("k = "+str(k), "len(l)-1 = "+str(len(l)-1))
+
+                        elif z[s] == "("+str(c+1):
+
+                            #print("d = "+str(d), self.eqn[s], s)
+                            z.insert(s,"*")
+                            for n in range(len(i)-1,-1,-1):
+
+                                if "(" in i[n]:
+
+                                    z.insert(s,"("+str(c+1))
+
+                                elif ")" in i[n]:
+
+                                    z.insert(s,")"+str(c+1))
+
+                                else:
+
+                                    z.insert(s,i[n])
+
+                            s+=len(i)
+                            d=1
+                            #print("here",s, self.eqn[s], self.eqn)
+
+                            while z[s] != ")1":
+
+                                if "(" in z[s]:
+
+                                    d+=1
+
+                                elif ")" in z[s]:
+
+                                    d-=1
+
+                                if (z[s] in "+-") and (d == 1):
+
+                                    break
+
+                                s+=1
+
+                            if s == len(z)-1:
+
+                                s-=1
+
+                        s+=1
+
+            eqn_string = stringify(z)
+            print(eqn_string)
+
+    def redundant_div(self, divisors: List[List[str]]):
+        """Removes any ()/() = 1 expressions"""
+        eqn_parts = ["lhs", "rhs"]
+        for side in eqn_parts:
+            z = getattr(self, side)
+            #First determine the highest bracket level
+            b=0
+            for s in z:
+
+                if "(" in s:
+
+                    temp = s
+                    temp = temp.replace("(","")
+                    temp = int(temp)
+
+                    if temp > b:
+
+                        b = temp
+
+            div_copy = copy.deepcopy(divisors)
+            #print(div_copy)
+            div_string=[]
+
+            for i in div_copy:
+
+                for c in range(b,1,-1):
+
+                    s = 0
+                    while s != len(z):
+
+                        if "("+str(c-1) == z[s]:
+
+                            br=[]
+                            k = s
+                            while z[k] != ")"+str(c-1):
+
+                                br.append(z[k])
+                                k+=1
+
+                            br.append(z[k])
+                            #print(br[0] != "(1", br[-1] != ")1", br)
+                            if (br[0] != "(1") and (br[-1] != ")1"):
+
+                                br.insert(0,"(1")
+                                br.append(")1")
+
+                            br_string = stringify(br)
+
+                            if k != len(z)-1:
+
+                                #print("REEEEEE", br_string, k+1, self.eqn[k+1], self.eqn)
+                                if z[k+1] == "^":
+
+                                    x = 1/float(z[k+2])
+                                    n=0
+                                    exp_chk = False
+                                    while n != len(i):
+
+                                        if i[n] == "^":
+
+                                            i[n+1] = str(float(i[n+1])*x)
+                                            exp_chk = True
+
+                                        n+=1
+
+                                    if exp_chk == False:
+
+                                        i.insert(len(i), "^")
+                                        i.insert(len(i), str(x))
+
+                        s+=1
+
+                i.insert(0,"(1")
+                i.append(")1")
+                div_string.append(stringify(i))
+
+
+            #print("voila",div_string)
+
+            for i in div_string:
+
+                for c in range(b,1,-1):
+
+                    #print("does it even get this far")
+                    s=0
+                    while s != len(z):
+
+                        if z[s] == "("+str(c-1):
+
+                            k = s+1
+                            d=0
+                            br = ""
+                            while z[k] != ")"+str(c-1):
+
+                                if "(" in z[k]:
+
+                                    br+="("
+                                    d+=1
+
+                                elif ")" in z[k]:
+
+                                    br+=")"
+                                    d-=1
+
+                                else:
+
+                                    if (z[k] in "+-") and (d==0):
+
+                                        #print(br)
+                                        if ("/"+i in br) and (i+"*" in br):
+
+                                            eqn_string = stringify(z)
+                                            new_br = br.replace(i+"*","")
+                                            new_br = new_br.replace("/"+i,'')
+                                            eqn_string = eqn_string.replace(br,new_br)
+                                            eqn_temp = Equation(eqn_string)
+                                            setattr(self, side, eqn_temp.eqn)
+                                            z = getattr(self, side)
+                                            eqn_temp = None
+                                            s=0
+
+                                        else:
+
+                                            br=""
+
+                                    else:
+
+                                        br+=z[k]
+
+                                k+=1
+
+                            #print(br)
+                            eqn_string = stringify(z)
+                            if ("/"+i in br) and (i+"*" in br):
+
+                                new_br = br.replace(i+"*","")
+                                new_br = new_br.replace("/"+i,'')
+                                eqn_string = eqn_string.replace(br,new_br)
+                                eqn_temp = Equation(eqn_string)
+                                setattr(self, side, eqn_temp.eqn)
+                                z = getattr(self, side)
+                                eqn_temp = None
+                                s=0
+
+                        s+=1
+
+    def find_asymptotes(self, divisors: [str]) -> List[Union[int, float, complex]]:
+        """Functions takes array of divisors and returns asymptotes."""
+        asymptotes = []
+        for i in divisors:
+
+            temp = i
+            s = 0
+            while s != len(temp):
+
+                if (is_number(temp[s]) == True) and (temp[s - 1] == "^") and (temp[s - 2] == ")2"):
+
+                    del temp[s - 1:s + 1]
+                    temp.insert(0, "(1")
+                    temp.append(")1")
+                    temp_string = stringify(temp)
+                    temp = Algebra(temp_string+"=0")
+                    temp.redundant_br()
+                    temp.rearrange()
+                    ans = temp.solver()
+
+                    if ans[0] not in asymptotes:
+                        asymptotes.append(ans[0])
+
+                    temp = None
+                    break
+
+                elif (temp[s] != "^") and (temp[s - 1] == ")2"):
+
+                    temp.insert(0, "(1")
+                    temp.append(")1")
+                    temp_string = stringify(temp)
+                    temp = Algebra(temp_string+"=0")
+                    temp.redundant_br()
+                    temp.rearrange()
+                    ans = temp.solver()
+
+                    if ans[0] not in asymptotes:
+                        asymptotes.append(ans[0])
+
+                    temp = None
+                    break
+
+                s += 1
+
+        return asymptotes
 
     def quadratic(self) -> List[Union[int, float, complex]]:
         """Solve quadratic polynomials using the quadratic formula."""
@@ -1072,258 +3107,6 @@ class Algebra(Equation):
 
         return ans
 
-    def grouping(self):
-        """This function groups terms around variables into a single index."""
-
-        # print("Inside grouping", eqn)
-        # Start with combining with constants and powers into one index
-        i = 0
-        p = 0
-        b = 0
-        p_b = 0
-        var = []
-        b_open = 0
-        b_close = 0
-        b_loc = 0
-        while i != len(self.eqn):
-
-            mod = False
-            # print(eqn)
-            # This index has a variable in it
-            if ("(" in self.eqn[i]) & (self.eqn[i] not in oper_dict.values()):
-
-                b += 1
-                b_open += 1
-                b_loc = i
-
-                for op in oper_dict.values():
-
-                    if op == self.eqn[i - 1]:
-                        p_b = b
-                        p = i
-
-            if (")" in self.eqn[i]) & (self.eqn[i] not in oper_dict.values()):
-
-                if self.eqn[i] == ")" + str(p_b):
-                    p_b = 0
-                    p = 0
-
-                b -= 1
-                b_close += 1
-
-            if (self.eqn[i].isalpha() == True) and (len(self.eqn[i]) == 1):
-
-                # print("eqn[i]", eqn[i])
-                if self.eqn[i] not in var:
-                    var.append(self.eqn[i])
-
-                if (self.eqn[i + 1] == "^") and (is_number(self.eqn[i + 2]) == True):
-                    self.eqn[i] = self.eqn[i] + "^" + self.eqn[i + 2]
-                    del self.eqn[i + 1:i + 3]
-                    mod = True
-                # print(eqn)
-
-                if (is_number(self.eqn[i - 1]) == True):
-                    self.eqn[i - 1] = self.eqn[i - 1] + self.eqn[i]
-                    del self.eqn[i]
-                    mod = True
-                # print(eqn)
-
-                if (self.eqn[i - 1] == "*") and (is_number(self.eqn[i - 2]) == True):
-                    self.eqn[i - 2] = self.eqn[i - 2] + self.eqn[i]
-                    del self.eqn[i - 1:i + 1]
-                    mod = True
-                # print(eqn)
-
-                if ((b_open != b_close) and (self.eqn[b_loc - 1] in oper_dict.values())) or (p != 0):
-
-                    if p != 0:
-                        b_loc = p
-
-                    temp = self.eqn[b_loc - 1]
-                    # print(temp)
-                    j = self.eqn[b_loc]
-                    j = j.replace('(', '')
-                    u = b_loc
-                    while self.eqn[u] != ")" + j:
-
-                        if "(" in self.eqn[u]:
-
-                            temp += "("
-
-                        elif ")" in self.eqn[u]:
-
-                            temp += ")"
-
-                        else:
-
-                            temp += self.eqn[u]
-
-                        u += 1
-
-                    temp += ")"
-                    self.eqn[b_loc - 1] = temp
-                    del self.eqn[b_loc:u + 1]
-                    # print("eqn[b_loc]",eqn[b_loc])
-
-                    if (self.eqn[b_loc] == "^") and (is_number(self.eqn[b_loc + 1]) == True):
-                        temp = self.eqn[b_loc - 1] + "^" + self.eqn[b_loc + 1]
-                        self.eqn[b_loc - 1] = temp
-                        del self.eqn[b_loc:b_loc + 2]
-
-                    mod = True
-                # print(eqn)
-
-                if mod == True:
-                    i = 0
-
-            i += 1
-
-        # This section of code was added because when grouping is fed an equation that is already grouped, it fails
-        # print("Made it here", eqn)
-        if len(var) == 0:
-
-            for i in range(0, len(self.eqn)):
-
-                if ("(" not in self.eqn[i]) and (")" not in self.eqn[i]) and (self.eqn[i] not in "*/+-") and (
-                        is_number(self.eqn[i]) == False):
-
-                    check = False
-                    oper = ""
-                    for op in oper_dict.values():
-
-                        if op in self.eqn[i]:
-                            check == True
-                            oper = op
-
-                    if check == False:
-
-                        if "^" in self.eqn[i]:
-
-                            temp = self.eqn[i]
-                            j = 0
-                            while temp[j] != "^":
-                                j += 1
-
-                            j -= 1
-                            if temp[j] not in var:
-                                var.append(temp[j])
-
-                        else:
-
-                            temp = self.eqn[i]
-                            x = temp[-1]
-
-                            if x not in var:
-                                var.append(x)
-
-                    else:
-
-                        temp = self.eqn[i]
-                        temp = temp.replace(oper, '')
-                        j = 0
-                        x = ""
-                        while j != len(temp):
-
-                            if temp[j].isalpha() == True:
-                                x = temp[j]
-
-                            j += 1
-
-                        if x != "":
-
-                            if x not in var:
-                                var.append(x)
-
-        # print("Now we here", eqn)
-        eqn_deg = []
-        for s in self.eqn:
-
-            for t in var:
-
-                if t in s:
-
-                    if "^" in s:
-
-                        check = False
-                        for op in oper_dict.values():
-
-                            if op in s:
-                                check = True
-
-                        if check == False:
-
-                            q = 0
-                            temp = s
-                            # print("temp",temp)
-
-                            while temp[q] != "^":
-                                q += 1
-
-                            q += 1
-                            pow = ""
-                            while (q != len(temp)):
-
-                                if (is_number(temp[q]) == True) or (temp[q] == "."):
-                                    pow += temp[q]
-                                    # print(pow, "q = "+str(q), "len(temp) = "+str(len(temp)))
-                                    q += 1
-
-                            pow = int(float(pow))
-
-                            if pow not in eqn_deg:
-                                eqn_deg.append(pow)
-                        # print(s, eqn_deg)
-
-                    else:
-
-                        check = False
-                        for op in oper_dict.values():
-
-                            if op in s:
-                                check = True
-
-                        if check == False:
-
-                            if 1 not in eqn_deg:
-                                eqn_deg.append(1)
-                        # print(s, eqn_deg)
-
-            if is_number(s) == True:
-
-                if 0 not in eqn_deg:
-                    eqn_deg.append(0)
-            # print(s, eqn_deg)
-
-        # print("eqn_deg", eqn_deg, eqn)
-        new_eqn_deg = []
-        s = 0
-        while s != len(eqn_deg):
-
-            k = 0
-
-            for t in eqn_deg:
-
-                if eqn_deg[s] < t:
-                    k = 1
-
-            if k != 1:
-                new_eqn_deg.append(eqn_deg[s])
-                del eqn_deg[s]
-                s = -1
-
-            s += 1
-
-        if len(self.eqn) > 1:
-
-            if self.eqn[1] == "-":
-                self.eqn[1] = self.eqn[1] + self.eqn[2]
-                del self.eqn[2]
-
-        # print("new_eqn_deg", new_eqn_deg)
-        self.deg = new_eqn_deg
-        self.eqn_string_update()
-
     def isolate(self):
         """method arranges the equation to have variables on LHS and constants on RHS."""
         bracket_dict = {}
@@ -1424,7 +3207,7 @@ class Algebra(Equation):
                                 l -= 1
 
         # make a copy of LHS and RHS. Store as global variables
-        l_og = self.lhs[:]
+        eqn_og = Algebra(self.eqn_string)
         l_new, bracket_dict = bracketing(self.lhs, self.var_type, bracket_dict)
 
         s = 0
@@ -1442,8 +3225,6 @@ class Algebra(Equation):
                 s = 1
 
         #print(l_og, l_new, bracket_dict)
-
-        r_og = self.rhs[:]
         r_new, bracket_dict = bracketing(self.rhs, self.var_type, bracket_dict)
 
         s = 0
@@ -1460,14 +3241,15 @@ class Algebra(Equation):
 
                 s = 1
 
-        #print(r_og, r_new, bracket_dict)
+        new_eqn_string = stringify(l_new)+"="+stringify(r_new)
+        new_eqn = Algebra(new_eqn_string)
 
         # Lets take note of the variables in l and r now
         work_var_l = []
         work_var_r = []
         for var in bracket_dict.values():
 
-            for i, j in zip(l_new, r_new):
+            for i, j in zip(new_eqn.lhs, new_eqn.rhs):
 
                 if var in i:
                     work_var_l.append(var)
@@ -1492,25 +3274,25 @@ class Algebra(Equation):
                 work_var = work_var_l
                 if work_var == self.var_type[0]:
 
-                    ans = solving(l_new, r_new, work_var[0])
+                    ans = solving(new_eqn)
 
                 else:
 
                     # solve and keep resubbing
                     while work_var != self.var_type[0]:
 
-                        if any(isinstance(sub, list) for sub in r_new) == True:
+                        if any(isinstance(sub, list) for sub in new_eqn.rhs) == True:
 
                             ans = []
-                            for i in r_new:
-                                temp_string = stringify(i)
-                                temp = Equation(temp_string)
-                                ans_temp = solving(l_new, temp.eqn, work_var[0])
+                            for i in new_eqn.rhs:
+                                temp_string = stringify(new_eqn.lhs)+"="+stringify(i)
+                                temp_eqn = Algebra(temp_string)
+                                ans_temp = solving(temp_eqn)
                                 ans.append(ans_temp)
-                                temp = None
+                                temp_eqn = None
                         else:
 
-                            ans = solving(l_new, r_new, work_var[0])
+                            ans = solving(new_eqn)
 
                         for i in ans:
                             print(work_var[0] + " = " + str(i))
@@ -1550,15 +3332,15 @@ class Algebra(Equation):
                                         if var in l_new_string[i]:
                                             work_var_l.append(var)
 
-                        r_new = []
+                        new_eqn.rhs = []
                         for i in ans:
                             print(l_new_string + " = " + str(i))
                             temp = Equation(str(i))
-                            r_new.append(temp.eqn)
+                            new_eqn.rhs.append(temp.eqn)
                             temp = None
 
                         l_new_obj = Equation(l_new_string)
-                        l_new, work_var = l_new_obj.eqn, l_new_obj.var_type[0]
+                        new_eqn.lhs, work_var = l_new_obj.eqn, l_new_obj.var_type[0]
                         l_new_obj = None
 
             else:
@@ -1573,45 +3355,45 @@ class Algebra(Equation):
                             sub = x
 
                     #print("we here one", sub)
-                    br = stringify(l_new)
+                    br = stringify(new_eqn.lhs)
                     br = br.replace(work_var_l[0], "(" + sub + ")")
                     #print(br)
                     l_new_obj = Equation(br)
-                    l_new, work_var = l_new_obj.eqn, l_new_obj.var_type[0]
+                    new_eqn.lhs, work_var = l_new_obj.eqn, l_new_obj.var_type[0]
                     l_new_obj = None
-                    print(l_new)
+                    #print(new_eqn.lhs)
 
                     # solve and keep resubbing
-                    while (l_new[1] != self.var_type[0]) and (len(l_new) != 3):
+                    while (new_eqn.lhs[1] != self.var_type[0]) and (len(new_eqn.lhs) != 3):
 
-                        if any(isinstance(sub, list) for sub in r_new) == True:
+                        if any(isinstance(sub, list) for sub in new_eqn.rhs) == True:
 
-                            l_new_string = stringify(l_new)
+                            l_new_string = stringify(new_eqn.lhs)
                             l_new_obj = Equation(l_new_string)
-                            l_new, work_var = l_new_obj.eqn, l_new_obj.var_type[0]
+                            new_eqn.lhs, work_var = l_new_obj.eqn, l_new_obj.var_type[0]
                             l_new_obj = None
 
                             ans = []
-                            for i in r_new:
-                                temp_string = stringify(i)
-                                temp = Equation(temp_string)
-                                ans_temp = solving(l_new, temp.eqn, work_var[0])
+                            for i in new_eqn.rhs:
+                                temp_string = l_new_string+"="+stringify(i)
+                                temp_eqn = Algebra(temp_string)
+                                ans_temp = solving(temp_eqn)
                                 ans.append(ans_temp)
-                                temp = None
+                                temp_eqn = None
                         else:
 
-                            ans = solving(l_new, r_new, work_var[0])
+                            ans = solving(new_eqn)
 
                         l_new_string = work_var
                         #print("bottle caps", l_new_string, ans)
-                        r_new = []
+                        new_eqn.rhs = []
 
                         if any(isinstance(sub, list) for sub in ans) == True:
 
                             for i in ans:
                                 print(work_var + " = " + str(i[0]))
                                 r_temp = Equation(str(i[0]))
-                                r_new.append(r_temp.eqn)
+                                new_eqn.rhs.append(r_temp.eqn)
                                 r_temp = None
 
                         else:
@@ -1619,7 +3401,7 @@ class Algebra(Equation):
                             for i in ans:
                                 print(work_var[0] + " = " + str(i))
                                 r_temp = Equation(str(i))
-                                r_new.append(r_temp.eqn)
+                                new_eqn.rhs.append(r_temp.eqn)
                                 r_temp = None
 
                         resub = False
@@ -1674,7 +3456,7 @@ class Algebra(Equation):
                                 print(l_new_string + " = " + str(i))
 
                         l_new_obj = Equation(l_new_string)
-                        l_new, work_var = l_new_obj.eqn, l_new_obj.var_type[0]
+                        new_eqn.lhs, work_var = l_new_obj.eqn, l_new_obj.var_type[0]
                         l_new_obj = None
 
                 elif (work_var_r[0] == var_dict[work_var_l[0]]):
@@ -1685,38 +3467,1028 @@ class Algebra(Equation):
                             sub = x
 
                     print("we here one", sub)
-                    br = stringify(r_new)
+                    br = stringify(new_eqn.rhs)
                     br = br.replace(work_var_r[0], "(" + sub + ")")
                     print(br)
 
                 else:
 
-                    ans = solving(l_og, r_og, self.var_type[0])
+                    ans = solving(eqn_og)
 
                     l_new_obj = Equation(self.var_type[0])
-                    l_new, l_var = l_new_obj.eqn, l_new_obj.var_type[0]
+                    new_eqn.lhs, l_var = l_new_obj.eqn, l_new_obj.var_type[0]
                     l_new_obj = None
 
-                    r_new = []
+                    new_eqn.rhs = []
                     for i in ans:
                         temp = Equation(str(i))
-                        r_new.append(temp.eqn)
+                        new_eqn.rhs.append(temp.eqn)
                         temp = None
         else:
 
             # print(l_og_string+" = "+r_og_string)
 
-            ans = solving(l_og, r_og, self.var_type[0])
+            ans = solving(eqn_og)
 
             l_new_obj = Equation(self.var_type[0])
-            l_new, l_var = l_new_obj.eqn, l_new_obj.var_type[0]
+            new_eqn.lhs, l_var = l_new_obj.eqn, l_new_obj.var_type[0]
             l_new_obj = None
-            r_new = []
+            new_eqn.rhs = []
             for i in ans:
                 temp = Equation(str(i))
-                r_new.append(temp.eqn)
+                new_eqn.rhs.append(temp.eqn)
                 temp = None
 
         print("Made it to the end", "l", "r")
 
-        return l_new, r_new
+        return new_eqn.lhs, new_eqn.rhs
+
+    def rearrange(self):
+        """
+        Function takes LHS and RHS, moves all variables to LHS, constants to RHS and combines all similar terms.
+        Equation must be rid of all brackets, and in proper polynomial format to use. Returns rearranged LHS and RHS.
+        """
+
+        """TO-DO: Add a check to ensure LHS and RHS inputs are of proper format."""
+        # First all variable terms must go from RHS to LHS
+        var = self.var_type[0]
+        s = 0
+        while s != len(self.rhs):
+
+            if var in self.rhs[s]:
+
+                if not is_complex_coeff(self.rhs[s], var):
+
+                    if "-" in self.rhs[s]:
+
+                        if self.rhs[s - 1] == "-":
+
+                            self.lhs.insert(-1, "-")
+                            temp = self.rhs[s]
+                            temp = temp.replace("-", '')
+                            self.lhs.insert(-1, temp)
+                            del self.rhs[s - 1:s + 1]
+
+                        else:
+
+                            self.lhs.insert(-1, "+")
+                            temp = self.rhs[s]
+                            temp = temp.replace("-", '')
+                            self.lhs.insert(-1, temp)
+
+                            if s == 1:
+
+                                del self.rhs[s]
+
+                            else:
+
+                                del self.rhs[s - 1:s + 1]
+
+                    else:
+
+                        if self.rhs[s - 1] == "-":
+
+                            self.lhs.insert(-1, "+")
+                            self.lhs.insert(-1, self.rhs[s])
+                            del self.rhs[s - 1:s + 1]
+
+                        else:
+
+                            self.lhs.insert(-1, "-")
+                            self.lhs.insert(-1, self.rhs[s])
+
+                            if s == 1:
+
+                                del self.rhs[s]
+
+                            else:
+
+                                del self.rhs[s - 1:s + 1]
+
+                else:
+
+                    if self.rhs[s - 1] == "-":
+
+                        self.lhs.insert(-1, "+")
+                        self.lhs.insert(-1, self.rhs[s])
+                        del self.rhs[s - 1:s + 1]
+
+                    else:
+
+                        self.lhs.insert(-1, "-")
+                        self.lhs.insert(-1, self.rhs[s])
+
+                        if s == 1:
+
+                            del self.rhs[s]
+
+                        else:
+
+                            del self.rhs[s - 1:s + 1]
+
+                s = -1
+
+            s += 1
+
+        # print(l, r)
+        # Now we will take out any unnecessary operation signs from RHS and Also if the second element of LHS is a term with a negative inside, then we will make two indexes
+        # First RHS
+        if self.rhs[1] == "+":
+
+            del self.rhs[1]
+
+        elif self.rhs[1] == "-":
+
+            del self.rhs[1]
+            if not is_complex_coeff(self.rhs[1], var):
+                self.rhs[1] = self.rhs[1].replace(self.rhs[1], "-" + self.rhs[1])
+
+        elif (self.rhs[0] == "(1") and (self.rhs[1] == ")1"):
+
+            self.rhs.insert(1, "0")
+
+        if "-" in self.rhs[1]:
+
+            if not is_complex_coeff(self.rhs[1], var):
+                self.rhs[1] = self.rhs[1].replace("-", '')
+                self.lhs.insert(1, "-")
+
+        print(stringify(self.lhs)+"="+stringify(self.rhs))
+        # Now we move constants from LHS to RHS
+        s = 0
+        while s != len(self.lhs):
+
+            if is_number(self.lhs[s]):
+
+                if not is_complex_coeff(self.lhs[s], var):
+
+                    if "-" in self.lhs[s]:
+
+                        if self.lhs[s - 1] == "-":
+
+                            self.rhs.insert(-1, "-")
+                            temp = self.lhs[s]
+                            temp = temp.replace("-", '')
+                            self.rhs.insert(-1, temp)
+                            del self.lhs[s - 1:s + 1]
+
+                        else:
+
+                            self.rhs.insert(-1, "+")
+                            temp = self.lhs[s]
+                            temp = temp.replace("-", '')
+                            self.rhs.insert(-1, temp)
+
+                            if s == 1:
+
+                                del self.lhs[s]
+
+                            else:
+
+                                del self.lhs[s - 1:s + 1]
+
+                    else:
+
+                        if self.lhs[s - 1] == "-":
+
+                            self.rhs.insert(-1, "+")
+                            self.rhs.insert(-1, self.lhs[s])
+                            del self.lhs[s - 1:s + 1]
+
+                        else:
+
+                            self.rhs.insert(-1, "-")
+                            self.rhs.insert(-1, self.lhs[s])
+
+                            if s == 1:
+
+                                del self.lhs[s]
+
+                            else:
+
+                                del self.lhs[s - 1:s + 1]
+
+                else:
+
+                    if self.lhs[s - 1] == "-":
+
+                        self.rhs.insert(-1, "+")
+                        self.rhs.insert(-1, self.lhs[s])
+                        del self.lhs[s - 1:s + 1]
+
+                    else:
+
+                        self.rhs.insert(-1, "-")
+                        self.rhs.insert(-1, self.lhs[s])
+
+                        if s == 1:
+
+                            del self.lhs[s]
+
+                        else:
+
+                            del self.lhs[s - 1:s + 1]
+
+                s = -1
+
+            s += 1
+
+        # print(l,r)
+        # Now we need to establish all the powers of x on LHS and store them in an array called l_deg
+        l_deg = []
+        for s in self.lhs:
+
+            if var + "^" in s:
+
+                temp = s
+                x = ""
+                k = 0
+                while temp[k] != "^":
+                    k += 1
+
+                k += 1
+                while k != len(temp):
+                    x += temp[k]
+                    k += 1
+
+                if x not in l_deg:
+                    l_deg.append(x)
+
+            elif (var in s) and ("^" not in s):
+
+                x = "1.0"
+
+                if x not in l_deg:
+                    l_deg.append(x)
+
+        # print(l_deg)
+        # Now to put all the terms in l_deg in numerical order
+        l_deg_ordered = []
+        for s in l_deg:
+
+            if not l_deg_ordered:
+
+                l_deg_ordered.append(s)
+
+            else:
+
+                if float(s) > float(l_deg_ordered[0]):
+
+                    if s not in l_deg_ordered:
+                        l_deg_ordered.insert(0, s)
+
+                else:
+
+                    if s not in l_deg_ordered:
+
+                        k = 0
+                        while k != len(l_deg_ordered):
+
+                            if (float(s) > float(l_deg_ordered[k])) and (s not in l_deg_ordered):
+                                l_deg_ordered.insert(k, s)
+
+                            k += 1
+
+                        if s not in l_deg_ordered:
+                            l_deg_ordered.append(s)
+
+            # print(l_deg_ordered)
+
+        rear_l = []
+        for i in l_deg_ordered:
+
+            for s in range(0, len(self.lhs)):
+
+                if var + "^" + i in self.lhs[s]:
+
+                    if not is_complex_coeff(self.lhs[s], var):
+
+                        if "-" in self.lhs[s]:
+
+                            if self.lhs[s - 1] == "-":
+
+                                if not rear_l:
+
+                                    temp = self.lhs[s]
+                                    temp = temp.replace("-", '')
+                                    rear_l.append(temp)
+
+                                else:
+
+                                    rear_l.append("+")
+                                    temp = self.lhs[s]
+                                    temp = temp.replace("-", '')
+                                    rear_l.append(temp)
+
+                            else:
+
+                                if not rear_l:
+
+                                    rear_l.append(self.lhs[s])
+
+                                else:
+
+                                    rear_l.append("-")
+                                    temp = self.lhs[s]
+                                    temp = temp.replace("-", '')
+                                    rear_l.append(temp)
+
+                        else:
+
+                            if self.lhs[s - 1] == "-":
+
+                                if not rear_l:
+
+                                    rear_l.append("-" + self.lhs[s])
+
+                                else:
+
+                                    rear_l.append("-")
+                                    rear_l.append(self.lhs[s])
+
+                            else:
+
+                                if not rear_l:
+
+                                    rear_l.append(self.lhs[s])
+
+                                else:
+
+                                    rear_l.append("+")
+                                    rear_l.append(self.lhs[s])
+
+                    else:
+
+                        if self.lhs[s - 1] == "-":
+
+                            if not rear_l:
+
+                                rear_l.append("-" + self.lhs[s])
+
+                            else:
+
+                                rear_l.append("-")
+                                rear_l.append(self.lhs[s])
+
+                        else:
+
+                            if not rear_l:
+
+                                rear_l.append(self.lhs[s])
+
+                            else:
+
+                                rear_l.append("+")
+                                rear_l.append(self.lhs[s])
+
+
+                elif (i == "1.0") and (var in self.lhs[s]) and ("^" not in self.lhs[s]):
+
+                    if not is_complex_coeff(self.lhs[s], var):
+
+                        if "-" in self.lhs[s]:
+
+                            if self.lhs[s - 1] == "-":
+
+                                if not rear_l:
+
+                                    temp = self.lhs[s]
+                                    temp = temp.replace("-", '')
+                                    rear_l.append(temp)
+
+                                else:
+
+                                    rear_l.append("+")
+                                    temp = self.lhs[s]
+                                    temp = temp.replace("-", '')
+                                    rear_l.append(temp)
+
+                            else:
+
+                                if not rear_l:
+
+                                    rear_l.append(self.lhs[s])
+
+                                else:
+
+                                    rear_l.append("-")
+                                    temp = self.lhs[s]
+                                    temp = temp.replace("-", '')
+                                    rear_l.append(temp)
+
+                        else:
+
+                            if self.lhs[s - 1] == "-":
+
+                                if not rear_l:
+
+                                    rear_l.append("-" + self.lhs[s])
+
+                                else:
+
+                                    rear_l.append("-")
+                                    rear_l.append(self.lhs[s])
+
+                            else:
+
+                                if not rear_l:
+
+                                    rear_l.append(self.lhs[s])
+
+                                else:
+
+                                    rear_l.append("+")
+                                    rear_l.append(self.lhs[s])
+
+                    else:
+
+                        if self.lhs[s - 1] == "-":
+
+                            if not rear_l:
+
+                                rear_l.append("-" + self.lhs[s])
+
+                            else:
+
+                                rear_l.append("-")
+                                rear_l.append(self.lhs[s])
+
+                        else:
+
+                            if not rear_l:
+
+                                rear_l.append(self.lhs[s])
+
+                            else:
+
+                                rear_l.append("+")
+                                rear_l.append(self.lhs[s])
+
+        rear_l.insert(0, "(1")
+        rear_l.append(")1")
+        # print(rear_l)
+        # l_string = stringify(rear_l)
+        # l_string = l_string.replace(".0",'')
+        # l_string = l_string.replace("-"," - ")
+        # l_string = l_string.replace("+"," + ")
+        # print(l_string)
+        # Now we combine all similar terms
+        for i in l_deg_ordered:
+
+            s = 0
+            while s != len(rear_l):
+
+                if var + "^" + i in rear_l[s]:
+
+                    if s != 1:
+
+                        if (rear_l[s - 1] in "+-") and (var + "^" + i in rear_l[s - 2]):
+
+                            term_one = rear_l[s - 2]
+
+                            if not is_complex_coeff(term_one, var):
+
+                                if rear_l[s - 3] == "-":
+
+                                    if "-" not in term_one:
+                                        rear_l[s - 3] = "+"
+                                        term_one = "-" + term_one
+
+                            op = rear_l[s - 1]
+                            term_two = rear_l[s]
+
+                            term_one = term_one.replace(var + "^" + i, '')
+                            term_two = term_two.replace(var + "^" + i, '')
+
+                            if term_one == "":
+
+                                term_one = "1.0"
+
+                            elif term_one == "-":
+
+                                term_one = "-1.0"
+
+                            if term_two == "":
+
+                                term_two = "1.0"
+
+                            elif term_two == "-":
+
+                                term_two = "-1.0"
+
+                            if op == "+":
+
+                                new_term = complex(term_one) + complex(term_two)
+
+                            elif op == "-":
+
+                                new_term = complex(term_one) - complex(term_two)
+
+                            else:
+
+                                print("shits broken")
+
+                            if new_term.imag == 0:
+
+                                new_term = str(new_term.real)
+                                if "-" in new_term:
+
+                                    if s - 2 == 1:
+
+                                        rear_l[s - 2] = new_term + var + "^" + i
+                                        del rear_l[s - 1:s + 1]
+
+                                    else:
+
+                                        if rear_l[s - 3] == "-":
+
+                                            rear_l[s - 3] = "+"
+                                            new_term = new_term.replace("-", '')
+                                            rear_l[s - 2] = new_term + var + "^" + i
+                                            del rear_l[s - 1:s + 1]
+
+                                        else:
+
+                                            rear_l[s - 3] = "-"
+                                            new_term = new_term.replace("-", '')
+                                            rear_l[s - 2] = new_term + var + "^" + i
+                                            del rear_l[s - 1:s + 1]
+
+                                elif new_term == "0.0":
+
+                                    if s - 2 == 1:
+
+                                        del rear_l[s - 2:s + 1]
+
+                                    else:
+
+                                        del rear_l[s - 3:s + 1]
+
+                                elif new_term == "1.0":
+
+                                    rear_l[s - 2] = var + "^" + i
+                                    del rear_l[s - 1:s + 1]
+
+                                elif new_term == "-1.0":
+
+                                    if s - 2 == 1:
+
+                                        rear_l[s - 2] = "-" + var + "^" + i
+                                        del rear_l[s - 1:s + 1]
+
+                                    else:
+
+                                        if rear_l[s - 3] == "-":
+
+                                            rear_l[s - 3] = "+"
+                                            rear_l[s - 2] = var + "^" + i
+                                            del rear_l[s - 1:s + 1]
+
+                                        else:
+
+                                            rear_l[s - 3] = "-"
+                                            rear_l[s - 2] = var + "^" + i
+                                            del rear_l[s - 1:s + 1]
+
+                                else:
+
+                                    rear_l[s - 2] = new_term + var + "^" + i
+                                    del rear_l[s - 1:s + 1]
+
+                            else:
+
+                                new_term = str(new_term)
+                                rear_l[s - 2] = new_term + var + "^" + i
+                                del rear_l[s - 1:s + 1]
+
+                            s = -1
+
+                elif (i == "1.0") and (var in rear_l[s]) and ("^" not in rear_l[s]):
+
+                    if s != 1:
+
+                        if (rear_l[s - 1] in "+-") and (var in rear_l[s - 2]) and ("^" not in rear_l[s - 2]):
+
+                            term_one = rear_l[s - 2]
+
+                            if not is_complex_coeff(term_one, var):
+
+                                if rear_l[s - 3] == "-":
+
+                                    if "-" not in term_one:
+                                        rear_l[s - 3] = "+"
+                                        term_one = "-" + term_one
+
+                            op = rear_l[s - 1]
+                            term_two = rear_l[s]
+
+                            term_one = term_one.replace(var, '')
+                            term_two = term_two.replace(var, '')
+
+                            if term_one == "":
+
+                                term_one = "1.0"
+
+                            elif term_one == "-":
+
+                                term_one = "-1.0"
+
+                            if term_two == "":
+
+                                term_two = "1.0"
+
+                            elif term_two == "-":
+
+                                term_two = "-1.0"
+
+                            if op == "+":
+
+                                new_term = complex(term_one) + complex(term_two)
+
+                            elif op == "-":
+
+                                new_term = complex(term_one) - complex(term_two)
+
+                            else:
+
+                                print("shits broken")
+
+                            if new_term.imag == 0:
+
+                                new_term = str(new_term.real)
+                                if "-" in new_term:
+
+                                    if s - 2 == 1:
+
+                                        rear_l[s - 2] = new_term + var
+                                        del rear_l[s - 1:s + 1]
+
+                                    else:
+
+                                        if rear_l[s - 3] == "-":
+
+                                            rear_l[s - 3] = "+"
+                                            rear_l[s - 2] = new_term + var
+                                            del rear_l[s - 1:s + 1]
+
+                                        else:
+
+                                            rear_l[s - 3] = "-"
+                                            new_term = new_term.replace("-", '')
+                                            rear_l[s - 2] = new_term + var
+                                            del rear_l[s - 1:s + 1]
+
+                                elif new_term == "0.0":
+
+                                    if s - 2 == 1:
+
+                                        del rear_l[s - 2:s + 1]
+
+                                    else:
+
+                                        del rear_l[s - 3:s + 1]
+
+                                elif new_term == "1.0":
+
+                                    rear_l[s - 2] = var
+                                    del rear_l[s - 1:s + 1]
+
+                                elif new_term == "-1.0":
+
+                                    if s - 2 == 1:
+
+                                        rear_l[s - 2] = "-" + var
+                                        del rear_l[s - 1:s + 1]
+
+                                    else:
+
+                                        if rear_l[s - 3] == "-":
+
+                                            rear_l[s - 3] = "+"
+                                            rear_l[s - 2] = var
+                                            del rear_l[s - 1:s + 1]
+
+                                        else:
+
+                                            rear_l[s - 3] = "-"
+                                            rear_l[s - 2] = var
+                                            del rear_l[s - 1:s + 1]
+
+                                else:
+
+                                    rear_l[s - 2] = new_term + var
+                                    del rear_l[s - 1:s + 1]
+
+                            else:
+
+                                new_term = str(new_term)
+                                rear_l[s - 2] = new_term + var
+                                del rear_l[s - 1:s + 1]
+
+                            s = -1
+
+                s += 1
+
+        # print(rear_l)
+        # l_string = stringify(rear_l)
+        # print(l_string)
+
+        rear_r = ["(1", "0", ")1"]
+        r_string = stringify(self.rhs)
+        r_temp = Arithmetic(r_string)
+        rear_r[1] = str(r_temp.calculate())
+        # print(rear_r)
+
+        # Find the highest deg
+        highest_deg = 0.0
+        for s in rear_l:
+
+            if var + "^" in s:
+
+                temp = s
+                x = ""
+                k = 0
+                while temp[k] != "^":
+                    k += 1
+
+                k += 1
+                while k != len(temp):
+                    x += temp[k]
+                    k += 1
+
+                if float(x) > highest_deg:
+                    highest_deg = float(x)
+
+            elif (var in s) and ("^" not in s):
+
+                x = 1.0
+
+                if float(x) > highest_deg:
+                    highest_deg = float(x)
+
+        self.lhs = copy.deepcopy(rear_l)
+        self.rhs = copy.deepcopy(rear_r)
+        self.deg = copy.deepcopy(l_deg_ordered)
+
+    def solver(self) -> List[Union[int, float, complex]]:
+        """Function takes LHS and RHS of an equation with all variables on LHS, and single constant on RHS and solves based on highest power term."""
+        self.update_attr()
+        print(self.deg)
+        if self.deg[0] == 1.0:
+
+            # print("yeet", l ,r)
+            s = 0
+            while s != len(self.lhs):
+
+                if self.var_type[0] in self.lhs[s]:
+
+                    value = self.lhs[s]
+                    value = value.replace(self.var_type[0], '')
+                    if value == '':
+
+                        value = 1 + 0j
+
+                    else:
+
+                        value = complex(value)
+
+                    if round(value.imag, 6) == 0:
+                        value = value.real
+
+                    other_value = complex(self.rhs[1])
+
+                    if round(other_value.imag, 6) == 0:
+                        other_value = other_value.real
+
+                    self.rhs[1] = str(other_value / value)
+                    self.lhs[s] = self.var_type[0]
+                    l_string = stringify(self.lhs)
+                    r_string = stringify(self.rhs)
+                    print(l_string + " = " + r_string)
+
+                s += 1
+
+            if (len(self.lhs) == 3) and (self.lhs[1] == self.var_type[0]):
+
+                ans = []
+                temp = complex(self.rhs[1])
+
+                if round(temp.imag, 6) == 0:
+                    temp = temp.real
+
+                ans.append(temp)
+
+        elif self.deg[0] == 2.0:
+
+            if "-" in self.rhs[1]:
+
+                self.rhs[1] = self.rhs[1].replace('-', '')
+                self.lhs.insert(-1, "+")
+                self.lhs.insert(-1, self.rhs[1])
+                self.rhs[1] = "0"
+
+            else:
+
+                self.lhs.insert(-1, "-")
+                self.lhs.insert(-1, self.rhs[1])
+                self.rhs[1] = "0"
+
+            # Quadratic Formula
+
+            ans = self.quadratic()
+
+            for s in range(0, len(ans)):
+
+                if round(ans[s].imag, 6) == 0:
+                    ans[s] = ans[s].real
+
+        # 3rd or polynomial
+
+        elif self.deg[0] == 3.0:
+
+            if "-" in self.rhs[1]:
+
+                self.rhs[1] = self.rhs[1].replace('-', '')
+                self.lhs.insert(-1, "+")
+                self.lhs.insert(-1, self.rhs[1])
+                self.rhs[1] = "0"
+
+            else:
+
+                self.lhs.insert(-1, "-")
+                self.lhs.insert(-1, self.rhs[1])
+                self.rhs[1] = "0"
+
+            # Cubic Function Formula
+            ans = self.cardano()
+
+            for s in range(0, len(ans)):
+
+                if round(ans[s].imag, 6) == 0:
+                    ans[s] = ans[s].real
+
+        # Ferrari's Method
+        elif self.deg[0] == 4.0:
+
+            if "-" in self.rhs[1]:
+
+                self.rhs[1] = self.rhs[1].replace('-', '')
+                self.lhs.insert(-1, "+")
+                self.lhs.insert(-1, self.rhs[1])
+                self.rhs[1] = "0"
+
+            else:
+
+                self.lhs.insert(-1, "-")
+                self.lhs.insert(-1, self.rhs[1])
+                self.rhs[1] = "0"
+
+            ans = self.ferrari()
+
+            for s in range(0, len(ans)):
+
+                if round(ans[s].imag, 6) == 0:
+                    ans[s] = ans[s].real
+
+        # For any polynomial of nth degree where n>=5
+        else:
+            from math_core.jenkins_traub import real_poly
+
+            if "-" in self.rhs[1]:
+
+                self.rhs[1] = self.rhs[1].replace('-', '')
+                self.lhs.insert(-1, "+")
+                self.lhs.insert(-1, self.rhs[1])
+                self.rhs[1] = "0"
+
+            else:
+
+                self.lhs.insert(-1, "-")
+                self.lhs.insert(-1, self.rhs[1])
+                self.rhs[1] = "0"
+
+            # print("coeff before JT",coeff)
+            print("Checking if 0 is a root via synthetic division...\n")
+            self.solution.append("Checking if 0 is a root via synthetic division...")
+            self.solution.append("")
+            self.solution.append("")
+
+            test = self.lin_divide([1, 0])
+            test_two = self.lin_divide([1, 0])
+            remainder = test[-1]
+
+            del test_two[-1]
+
+            test_temp = stringify(self.var_type[0])
+
+            if remainder < 0:
+
+                test_temp += str(remainder) + "/" + self.var_type[0]
+
+            else:
+
+                test_temp += "+" + str(remainder) + "/" + self.var_type[0]
+
+            string = stringify(self.lhs)+"="+stringify(self.rhs)
+            string = string.replace('=0', '')
+            print("(" + string + ")/" + self.var_type[0] + " = " + test_temp + "\n")
+            self.solution.append("(" + string + ")/" + self.var_type[0] + " = " + test_temp)
+            self.solution.append("")
+            self.solution.append("")
+
+            if test[-1] == 0:
+
+                success_attempt = False
+                ans = []
+                i = 1
+                while not success_attempt:
+
+                    if len(test) - 2 >= 5:
+
+                        try:
+                            del test[-1]
+                            from math_core.Calculus import Calculus
+                            coeff = Calculus()
+                            coeff.coeff = copy.deepcopy(test)
+                            coeff.var_type = copy.deepcopy(self.var_type)
+                            coeff.update_params_from_coeff()
+                            ans = real_poly(coeff)
+
+                        except ZeroDivisionError:
+
+                            string = self.var_type[0]
+
+                            test = self.lin_divide([1, 0])
+
+                            print("0 might be a repeated root, trying again...\n")
+                            self.solution.append("0 might be a repeated root, trying again...")
+                            self.solution.append("")
+                            self.solution.append("")
+
+                            test_two = self.lin_divide([1, 0])
+                            remainder = test[-1]
+
+                            del test_two[-1]
+
+                            test_temp = self.var_type[0]
+
+                            if remainder < 0:
+
+                                test_temp += str(remainder) + "/" + self.var_type[0]
+
+                            else:
+
+                                test_temp += "+" + str(remainder) + "/" + self.var_type[0]
+
+                            print("(" + string + ")/" + self.var_type[0] + " = " + test_temp + "\n")
+                            self.solution.append("(" + string + ")/" + self.var_type[0] + " = " + test_temp)
+                            self.solution.append("")
+                            self.solution.append("")
+                            i += 1
+
+                        else:
+
+                            success_attempt = True
+                            print("Success! 0 is a root\n")
+                            self.solution.append("Success! 0 is a root")
+                            self.solution.append("")
+                            self.solution.append("")
+
+                    elif len(test) - 2 == 4:
+
+                        del test[-1]
+                        from math_core.Calculus import Calculus
+                        test_eqn = Calculus()
+                        test_eqn.coeff = copy.deepcopy(test)
+                        test_eqn.var_type = copy.deepcopy(self.var_type)
+                        test_eqn.update_params_from_coeff()
+                        ans = test_eqn.ferrari()
+                        success_attempt = True
+
+                    else:
+
+                        break
+
+                for s in range(1, i + 1):
+                    ans.insert(0, 0)
+
+
+            else:
+
+                print("0 is not a root\n")
+                self.solution.append("0 is not a root")
+                from math_core.Calculus import Calculus
+                coeff = Calculus()
+                coeff.coeff = copy.deepcopy(self.coeff)
+                coeff.var_type = copy.deepcopy(self.var_type)
+                coeff.update_params_from_coeff()
+                ans = real_poly(coeff)
+
+            print(ans)
+
+            for i in range(0, len(ans)):
+
+                if round(ans[i].imag, 5) == 0:
+                    ans[i] = ans[i].real
+
+        return ans
