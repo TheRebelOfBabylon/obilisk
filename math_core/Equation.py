@@ -1,6 +1,37 @@
 from typing import List, Tuple, Union
 import math, cmath
 
+var_dict = {
+
+    "a": "b",
+    "b": "c",
+    "c": "d",
+    "d": "e",
+    "e": "f",
+    "f": "g",
+    "g": "h",
+    "h": "i",
+    "i": "j",
+    "j": "k",
+    "k": "l",
+    "l": "m",
+    "m": "n",
+    "n": "o",
+    "o": "p",
+    "p": "q",
+    "q": "r",
+    "r": "s",
+    "s": "t",
+    "t": "u",
+    "u": "v",
+    "v": "w",
+    "w": "x",
+    "x": "y",
+    "y": "z",
+    "z": "a"
+
+}
+
 oper_dict = {
 
     0: "SIN",
@@ -54,6 +85,20 @@ def is_number(s: str) -> bool:
 def bracketify(a: str) -> Tuple[List[str], List[str]]:
     "Takes equation in string format and transforms into list of strings."
     # Gotta add a check for imaginary numbers
+
+    if "derivative of " in a:
+
+        calculus_chk = True
+        a = a.replace("derivative of ", '')
+
+    elif "derivative " in a:
+
+        calculus_chk = True
+        a = a.replace("derivative ", '')
+
+    elif "d/d" in a:
+
+        calculus_chk = True
 
     master = []
     numtemp = []
@@ -686,6 +731,17 @@ class Equation():
         numtemp = []
         var_type = []
         a = self.eqn_string
+        if "derivative of " in a:
+
+            calculus_chk = True
+            a = a.replace("derivative of ", '')
+
+        elif "derivative " in a:
+
+            calculus_chk = True
+            a = a.replace("derivative ", '')
+        else:
+            calculus_chk = False
         a = "(" + a + ")00000"
 
         i = 0
@@ -710,7 +766,7 @@ class Equation():
                 master.insert(j, "^")
                 j = j + 1
 
-            elif a[s] == "/":
+            elif a[s] == "/" and a[s-1] != "d":
 
                 master.insert(j, "/")
                 j = j + 1
@@ -1089,7 +1145,7 @@ class Equation():
                 j = j + 1
 
             # The following code is for single character variables
-            elif (a[s].isalpha() == True) & (a[s - 1].isalpha() == False) & (a[s + 1].isalpha() == False) & (
+            elif (a[s].isalpha()) and (not a[s - 1].isalpha()) and (not a[s + 1].isalpha()) and (
                     a[s] != "d"):
 
                 master.insert(j, str(a[s]))
@@ -1099,6 +1155,16 @@ class Equation():
 
                 j = j + 1
 
+            elif a[s].isalpha() and a[s-1] == "d" and a[s-2] == "/" and a[s-3] == "d":
+                #print("bingo")
+                master.insert(j, "d/d"+str(a[s]))
+                if str(a[s]) not in var_type:
+                    var_type.insert(var_num, str(a[s]))
+                    var_num += 1
+                j += 1
+
+            elif a[s] == "d" or (a[s] == "/" and a[s-1] == "d"):
+                pass
             # the following code is for handling large numbers and decimals
             else:
 
@@ -1141,7 +1207,7 @@ class Equation():
                     numtemp.clear()
                     temp = ""  # clear up temp
 
-            s = s + 1
+            s += 1
 
         # print("now for inference")
         master = inference(master)
@@ -1152,6 +1218,17 @@ class Equation():
 
         if not var_type:
             var_type.append("")
+
+        if calculus_chk:
+
+            master.insert(1, "d/d"+str(var_type[0]))
+            master.insert(1, "=")
+            if var_type[0] != "y":
+                master.insert(1, "y")
+            else:
+                master.insert(1, var_dict[var_type[0]])
+            master.insert(4, "(2")
+            master.insert(-1, ")2")
 
         self.eqn = master
         self.var_type = var_type

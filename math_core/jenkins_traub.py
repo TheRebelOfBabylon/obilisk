@@ -37,7 +37,7 @@ def real_poly(eqn: Calculus) -> List[Union[int, float, complex]]:
 
 def rpoly(eqn: Calculus) -> Union[int, float, complex]:
 	"""RPOLY Jenkins-Traub algorithm for polynomial root finding."""
-	print(eqn.eqn)
+	#print(eqn.eqn)
 	coeff = Calculus()
 	coeff.coeff = eqn.normalize()
 	coeff.var_type = eqn.var_type
