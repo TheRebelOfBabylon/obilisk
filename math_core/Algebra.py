@@ -2,43 +2,14 @@
 from __future__ import annotations
 import math
 import cmath
-from math_core.Equation import Equation, is_number, oper_dict, stringify, bracketify
+from math_core.Equation import Equation, is_number, oper_dict, stringify, bracketify, var_dict
 from math_core.Arithmetic import Arithmetic, is_even
 import random
 import copy
 
 from typing import Tuple, List, Union, Dict
 
-var_dict = {
 
-    "a": "b",
-    "b": "c",
-    "c": "d",
-    "d": "e",
-    "e": "f",
-    "f": "g",
-    "g": "h",
-    "h": "i",
-    "i": "j",
-    "j": "k",
-    "k": "l",
-    "l": "m",
-    "m": "n",
-    "n": "o",
-    "o": "p",
-    "p": "q",
-    "q": "r",
-    "r": "s",
-    "s": "t",
-    "t": "u",
-    "u": "v",
-    "v": "w",
-    "w": "x",
-    "x": "y",
-    "y": "z",
-    "z": "a"
-
-}
 
 def is_complex_coeff(string: str, var: str) -> bool:
     """Function checks if a monomial string has a complex coefficient. Returns True or False."""
@@ -1029,8 +1000,8 @@ class Algebra(Equation):
         n = 0
         for i in self.coeff:
             ans.append(i + b)
-            b = ans[-1] * a
-
+            b = ans[n] * a
+            n+=1
         return ans
 
     def poly_multiply(self, x: Union[int, float, complex]) -> List[Union[int, float, complex]]:
@@ -1167,13 +1138,13 @@ class Algebra(Equation):
                         else:
                             if i < 0.0:
                                 temp_string += "-"
-                                if abs(i) == 1.0:
+                                if (abs(i) == 1.0) or (abs(i) == 1):
                                     temp_string += self.var_type[0] + "^" + str(j)
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
                             else:
                                 temp_string += "+"
-                                if i == 1.0:
+                                if (i == 1.0) or (i == 1):
                                     temp_string += self.var_type[0] + "^" + str(j)
                                 else:
                                     temp_string += str(i) + self.var_type[0] + "^" + str(j)
@@ -1181,9 +1152,9 @@ class Algebra(Equation):
                         if isinstance(i, complex):
                             temp_string += str(i) + self.var_type[0] + "^" + str(j)
                         else:
-                            if i == 1.0:
+                            if (i == 1.0) or (i == 1):
                                 temp_string += self.var_type[0] + "^" + str(j)
-                            elif i == -1.0:
+                            elif (i == -1.0) or (i == -1):
                                 temp_string += "-" + self.var_type[0] + "^" + str(j)
                             else:
                                 temp_string += str(i) + self.var_type[0] + "^" + str(j)
@@ -1196,13 +1167,13 @@ class Algebra(Equation):
                         else:
                             if i < 0.0:
                                 temp_string += "-"
-                                if abs(i) == 1.0:
+                                if (abs(i) == 1.0) or (abs(i) == 1):
                                     temp_string += self.var_type[0]
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0]
                             else:
                                 temp_string += "+"
-                                if i == 1.0:
+                                if (i == 1.0) or (i == 1):
                                     temp_string += self.var_type[0]
                                 else:
                                     temp_string += str(i) + self.var_type[0]
@@ -1210,9 +1181,9 @@ class Algebra(Equation):
                         if isinstance(i, complex):
                             temp_string += str(i) + self.var_type[0]
                         else:
-                            if i == 1.0:
+                            if (i == 1.0) or (i == 1):
                                 temp_string += self.var_type[0]
-                            elif i == -1.0:
+                            elif (i == -1.0) or (i == -1):
                                 temp_string += "-" + self.var_type[0]
                             else:
                                 temp_string += str(i) + self.var_type[0]
@@ -1244,13 +1215,13 @@ class Algebra(Equation):
                         else:
                             if i < 0.0:
                                 temp_string += "-"
-                                if abs(i) == 1.0:
+                                if (abs(i) == 1.0) or (abs(i) == 1):
                                     temp_string += self.var_type[0] + "^" + str(j)
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
                             else:
                                 temp_string += "+"
-                                if i == 1.0:
+                                if (i == 1.0) or (i == 1):
                                     temp_string += self.var_type[0] + "^" + str(j)
                                 else:
                                     temp_string += str(i) + self.var_type[0] + "^" + str(j)
@@ -1258,9 +1229,9 @@ class Algebra(Equation):
                         if isinstance(i, complex):
                             temp_string += str(i) + self.var_type[0] + "^" + str(j)
                         else:
-                            if i == 1.0:
+                            if (i == 1.0) or (i == 1):
                                 temp_string += self.var_type[0] + "^" + str(j)
-                            elif i == -1.0:
+                            elif (i == -1.0) or (i == -1):
                                 temp_string += "-" + self.var_type[0] + "^" + str(j)
                             else:
                                 temp_string += str(i) + self.var_type[0] + "^" + str(j)
@@ -1273,13 +1244,13 @@ class Algebra(Equation):
                         else:
                             if i < 0.0:
                                 temp_string += "-"
-                                if abs(i) == 1.0:
+                                if (abs(i) == 1.0) or (abs(i) == 1):
                                     temp_string += self.var_type[0]
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0]
                             else:
                                 temp_string += "+"
-                                if i == 1.0:
+                                if (i == 1.0) or (i == 1):
                                     temp_string += self.var_type[0]
                                 else:
                                     temp_string += str(i) + self.var_type[0]
@@ -1287,9 +1258,9 @@ class Algebra(Equation):
                         if isinstance(i, complex):
                             temp_string += str(i) + self.var_type[0]
                         else:
-                            if i == 1.0:
+                            if (i == 1.0) or (i == 1):
                                 temp_string += self.var_type[0]
-                            elif i == -1.0:
+                            elif (i == -1.0) or (i == -1):
                                 temp_string += "-" + self.var_type[0]
                             else:
                                 temp_string += str(i) + self.var_type[0]
@@ -2890,6 +2861,7 @@ class Algebra(Equation):
     def cardano(self) -> List[Union[int, float, complex]]:
         """Root finding formula for cubic polynomials."""
         if len(self.coeff) != 4:
+            print(self.coeff, stringify(self.eqn))
             raise ValueError("Cubics must have 4 terms.")
         self.solution.append("")
         print("\n-- Using Cardano's Formula: --")
@@ -3028,7 +3000,8 @@ class Algebra(Equation):
         print(resolvent + "=0")
         self.solution.append(resolvent + "=0")
 
-        cubic = Algebra(resolvent)
+        cubic = Algebra(resolvent+"=0")
+        cubic.get_coeff()
         cubic_ans = cubic.cardano()
 
         for i in cubic.solution:
@@ -3348,7 +3321,7 @@ class Algebra(Equation):
                 # Now we should check if the variables are one character apart. Ex: z and a or a and b
                 if (work_var_l[0] == var_dict[work_var_r[0]]):
 
-                    #print(work_var_l[0], var_dict[work_var_r[0]])
+                    print("HIYA")
                     for x in bracket_dict:
 
                         if bracket_dict[x] == work_var_l[0]:
@@ -3359,7 +3332,7 @@ class Algebra(Equation):
                     br = br.replace(work_var_l[0], "(" + sub + ")")
                     #print(br)
                     l_new_obj = Equation(br)
-                    new_eqn.lhs, work_var = l_new_obj.eqn, l_new_obj.var_type[0]
+                    new_eqn.lhs, new_eqn.var_type, work_var = l_new_obj.eqn, l_new_obj.var_type[0], l_new_obj.var_type[0]
                     l_new_obj = None
                     #print(new_eqn.lhs)
 
@@ -4367,19 +4340,24 @@ class Algebra(Equation):
                 self.lhs.insert(-1, self.rhs[1])
                 self.rhs[1] = "0"
 
-            # print("coeff before JT",coeff)
+            self.get_coeff()
+            #print(stringify(self.lhs)+" = "+stringify(self.rhs))
             print("Checking if 0 is a root via synthetic division...\n")
             self.solution.append("Checking if 0 is a root via synthetic division...")
             self.solution.append("")
             self.solution.append("")
 
             test = self.lin_divide([1, 0])
-            test_two = self.lin_divide([1, 0])
+            print(stringify(self.lhs), test)
+            test_two_coeff = self.lin_divide([1, 0])
             remainder = test[-1]
+            del test_two_coeff[-1]
+            test_two = Algebra()
+            test_two.coeff = test_two_coeff
+            test_two.var_type = self.var_type
+            test_two.update_params_from_coeff()
 
-            del test_two[-1]
-
-            test_temp = stringify(self.var_type[0])
+            test_temp = stringify(test_two.eqn)
 
             if remainder < 0:
 
