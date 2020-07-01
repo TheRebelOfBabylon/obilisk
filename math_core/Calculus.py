@@ -146,12 +146,16 @@ class Calculus(Algebra):
 
 						if s == 2:
 
+							self.solution.append("d/d"+self.var_type[0]+"("+self.var_type[0]+"^n) = n*"+self.var_type[0]+"^n-1")
 							self.solution.append("The derivative of "+self.eqn[i]+" is "+new_a+self.var_type[0])
 							der.insert(n,new_a+self.var_type[0])
 							n=n+1
 
 						else:
 
+							self.solution.append(
+								"d/d" + self.var_type[0] + "(" + self.var_type[0] + "^n) = n*" + self.var_type[
+									0] + "^n-1")
 							self.solution.append("The derivative of " + self.eqn[i] + " is "+new_a+self.var_type[0]+"^"+str(s-1))
 							der.insert(n,new_a+self.var_type[0]+"^"+str(s-1))
 							n=n+1
@@ -185,6 +189,8 @@ class Calculus(Algebra):
 
 							a = "-1"
 
+						self.solution.append(
+							"d/d" + self.var_type[0] + "(" + self.var_type[0] + "^n) = n*" + self.var_type[0] + "^n-1")
 						self.solution.append(
 							"The derivative of " + self.eqn[i] + " is " + a)
 						der.insert(n,a)
