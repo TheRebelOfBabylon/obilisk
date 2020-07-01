@@ -766,8 +766,12 @@ class Equation():
                 master.insert(j, "^")
                 j = j + 1
 
-            elif a[s] == "/" and a[s-1] != "d":
+            elif (a[s] == "/" and a[s-1] == "d") or (a[s] == "/" and a[s-2] == "d"):
+                s += 1
+                continue
 
+            elif (a[s] == "/" and a[s-1] != "d") or (a[s] == "/" and a[s-2] != "d"):
+                print(s, a, s-1, a[s-1], s-2, a[s-2])
                 master.insert(j, "/")
                 j = j + 1
 
@@ -1155,6 +1159,14 @@ class Equation():
 
                 j = j + 1
 
+            elif a[s].isalpha() and a[s-1] == "d" and a[s-2] == "/" and a[s-3].isalpha() and a[s-4] == "d":
+                #print("bingo")
+                master.insert(j, "d"+str(a[s-3])+"/d"+str(a[s]))
+                if str(a[s]) not in var_type:
+                    var_type.insert(var_num, str(a[s]))
+                    var_num += 1
+                j += 1
+
             elif a[s].isalpha() and a[s-1] == "d" and a[s-2] == "/" and a[s-3] == "d":
                 #print("bingo")
                 master.insert(j, "d/d"+str(a[s]))
@@ -1163,8 +1175,9 @@ class Equation():
                     var_num += 1
                 j += 1
 
-            elif a[s] == "d" or (a[s] == "/" and a[s-1] == "d"):
-                pass
+            elif a[s] == "d" or (a[s] == "/" and a[s-1] == "d") or (a[s].isalpha() and a[s-1] == "d" and a[s] not in var_type):
+                s += 1
+                continue
             # the following code is for handling large numbers and decimals
             else:
 
@@ -1224,9 +1237,9 @@ class Equation():
             master.insert(1, "d/d"+str(var_type[0]))
             master.insert(1, "=")
             if var_type[0] != "y":
-                master.insert(1, "y")
+                master.insert(1, "dy/d"+str(var_type[0]))
             else:
-                master.insert(1, var_dict[var_type[0]])
+                master.insert(1, "d"+var_dict[var_type[0]]+"/d"+str(var_type[0]))
             master.insert(4, "(2")
             master.insert(-1, ")2")
 
@@ -1448,6 +1461,8 @@ class Equation():
 
                             if 1 not in eqn_deg:
                                 eqn_deg.append(1)
+
+
                         # print(s, eqn_deg)
 
             if is_number(s) == True:
@@ -1474,6 +1489,14 @@ class Equation():
                 s = -1
 
             s += 1
+
+        var_chk = False
+        for s in self.eqn:
+            if self.var_type[0] in s:
+                var_chk = True
+
+        if not var_chk:
+            del new_eqn_deg[0]
 
         if len(self.eqn) > 1:
 
