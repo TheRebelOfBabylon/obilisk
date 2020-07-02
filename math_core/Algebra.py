@@ -398,7 +398,7 @@ def bracket_add(br_one_coeff: List[Union[int, float, complex]], op: str, br_two_
 
 def foiling(b_one: List[str], b_two: List[str], var_type: str) -> List[str]:
     """Polynomial multiplication. Both polynomials must be of atleast degree 1."""
-    print(b_one, b_two)
+    print(b_one, b_two, var_type)
     b_one_string = stringify(b_one)
     b_one_obj = Algebra(b_one_string+"=0")
 
@@ -1171,6 +1171,9 @@ class Algebra(Equation):
                                     temp_string += self.var_type[0] + "^" + str(j)
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
+                            elif i == 0.0:
+                                j -= 1
+                                continue
                             else:
                                 temp_string += "+"
                                 if i == 1.0:
@@ -1185,6 +1188,9 @@ class Algebra(Equation):
                                 temp_string += self.var_type[0] + "^" + str(j)
                             elif i == -1.0:
                                 temp_string += "-" + self.var_type[0] + "^" + str(j)
+                            elif i == 0.0:
+                                j -= 1
+                                continue
                             else:
                                 temp_string += str(i) + self.var_type[0] + "^" + str(j)
                 elif j == 1:
@@ -1200,6 +1206,9 @@ class Algebra(Equation):
                                     temp_string += self.var_type[0]
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0]
+                            elif i == 0.0:
+                                j -= 1
+                                continue
                             else:
                                 temp_string += "+"
                                 if i == 1.0:
@@ -1214,6 +1223,9 @@ class Algebra(Equation):
                                 temp_string += self.var_type[0]
                             elif i == -1.0:
                                 temp_string += "-" + self.var_type[0]
+                            elif i == 0.0:
+                                j -= 1
+                                continue
                             else:
                                 temp_string += str(i) + self.var_type[0]
                 else:
@@ -1248,6 +1260,8 @@ class Algebra(Equation):
                                     temp_string += self.var_type[0] + "^" + str(j)
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
+                            elif i == 0.0:
+                                continue
                             else:
                                 temp_string += "+"
                                 if i == 1.0:
@@ -1262,6 +1276,8 @@ class Algebra(Equation):
                                 temp_string += self.var_type[0] + "^" + str(j)
                             elif i == -1.0:
                                 temp_string += "-" + self.var_type[0] + "^" + str(j)
+                            elif i == 0.0:
+                                continue
                             else:
                                 temp_string += str(i) + self.var_type[0] + "^" + str(j)
                 elif j == 1:
@@ -1277,6 +1293,8 @@ class Algebra(Equation):
                                     temp_string += self.var_type[0]
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0]
+                            elif i == 0.0:
+                                continue
                             else:
                                 temp_string += "+"
                                 if i == 1.0:
@@ -1291,6 +1309,8 @@ class Algebra(Equation):
                                 temp_string += self.var_type[0]
                             elif i == -1.0:
                                 temp_string += "-" + self.var_type[0]
+                            elif i == 0.0:
+                                continue
                             else:
                                 temp_string += str(i) + self.var_type[0]
                 else:
@@ -1320,12 +1340,20 @@ class Algebra(Equation):
         self.eqn.clear()
         self.eqn = copy.deepcopy(self.lhs)
         self.eqn[-1] = "="
-        for i in self.rhs:
-            self.eqn.insert(-1,i)
+        for i in range(1, len(self.rhs)):
+            self.eqn.append(self.rhs[i])
+        new_var_type=[]
+        for i in self.var_type:
+            for j in self.eqn:
+                if i in j:
+                    if i not in new_var_type:
+                        new_var_type.append(i)
+        self.var_type.clear()
+        self.var_type = copy.deepcopy(new_var_type)
         self.grouping()
-        self.eqn_string_update()
+        self.eqn_string = stringify(self.lhs)+"="+stringify(self.rhs)
         self.get_coeff()
-        self.update_params_from_coeff()
+        #self.update_params_from_coeff()
 
     def reset_params(self):
         """Method resets all object attributes"""
@@ -3226,7 +3254,7 @@ class Algebra(Equation):
 
         #print(l_og, l_new, bracket_dict)
         r_new, bracket_dict = bracketing(self.rhs, self.var_type, bracket_dict)
-
+        #print(stringify(l_new)+" = "+stringify(r_new), self.var_type)
         s = 0
         while s == 0:
 
@@ -3243,7 +3271,7 @@ class Algebra(Equation):
 
         new_eqn_string = stringify(l_new)+"="+stringify(r_new)
         new_eqn = Algebra(new_eqn_string)
-
+        print(new_eqn.eqn_string)
         # Lets take note of the variables in l and r now
         work_var_l = []
         work_var_r = []
@@ -3347,7 +3375,7 @@ class Algebra(Equation):
 
                 # Now we should check if the variables are one character apart. Ex: z and a or a and b
                 if (work_var_l[0] == var_dict[work_var_r[0]]):
-
+                    print("This one")
                     #print(work_var_l[0], var_dict[work_var_r[0]])
                     for x in bracket_dict:
 
@@ -3360,6 +3388,7 @@ class Algebra(Equation):
                     #print(br)
                     l_new_obj = Equation(br)
                     new_eqn.lhs, work_var = l_new_obj.eqn, l_new_obj.var_type[0]
+                    new_eqn.update_attr()
                     l_new_obj = None
                     #print(new_eqn.lhs)
 
@@ -3371,6 +3400,7 @@ class Algebra(Equation):
                             l_new_string = stringify(new_eqn.lhs)
                             l_new_obj = Equation(l_new_string)
                             new_eqn.lhs, work_var = l_new_obj.eqn, l_new_obj.var_type[0]
+                            new_eqn.update_attr()
                             l_new_obj = None
 
                             ans = []
@@ -3460,7 +3490,7 @@ class Algebra(Equation):
                         l_new_obj = None
 
                 elif (work_var_r[0] == var_dict[work_var_l[0]]):
-
+                    print("That one")
                     for x in bracket_dict:
 
                         if bracket_dict[x] == work_var_r[0]:
@@ -4354,18 +4384,21 @@ class Algebra(Equation):
         else:
             from math_core.jenkins_traub import real_poly
 
-            if "-" in self.rhs[1]:
+            if (self.rhs[1] != "0") and (self.rhs[1] != "0.0"):
 
-                self.rhs[1] = self.rhs[1].replace('-', '')
-                self.lhs.insert(-1, "+")
-                self.lhs.insert(-1, self.rhs[1])
-                self.rhs[1] = "0"
+                print("we in here", self.rhs)
+                if "-" in self.rhs[1]:
 
-            else:
+                    self.rhs[1] = self.rhs[1].replace('-', '')
+                    self.lhs.insert(-1, "+")
+                    self.lhs.insert(-1, self.rhs[1])
+                    self.rhs[1] = "0"
 
-                self.lhs.insert(-1, "-")
-                self.lhs.insert(-1, self.rhs[1])
-                self.rhs[1] = "0"
+                else:
+
+                    self.lhs.insert(-1, "-")
+                    self.lhs.insert(-1, self.rhs[1])
+                    self.rhs[1] = "0"
 
             # print("coeff before JT",coeff)
             print("Checking if 0 is a root via synthetic division...\n")
@@ -4378,25 +4411,28 @@ class Algebra(Equation):
             remainder = test[-1]
 
             del test_two[-1]
+            test_obj = Algebra()
+            test_obj.coeff = copy.deepcopy(test_two)
+            test_obj.var_type = copy.deepcopy(self.var_type)
+            test_obj.update_params_from_coeff()
+            #print(test_obj.eqn_string)
 
-            test_temp = stringify(self.var_type[0])
+            test_temp = test_obj.eqn_string
 
             if remainder < 0:
 
                 test_temp += str(remainder) + "/" + self.var_type[0]
 
-            else:
+            elif remainder > 0:
 
                 test_temp += "+" + str(remainder) + "/" + self.var_type[0]
 
-            string = stringify(self.lhs)+"="+stringify(self.rhs)
-            string = string.replace('=0', '')
-            print("(" + string + ")/" + self.var_type[0] + " = " + test_temp + "\n")
-            self.solution.append("(" + string + ")/" + self.var_type[0] + " = " + test_temp)
+            print("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp + "\n")
+            self.solution.append("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp)
             self.solution.append("")
             self.solution.append("")
 
-            if test[-1] == 0:
+            if remainder == 0.0:
 
                 success_attempt = False
                 ans = []
@@ -4412,6 +4448,7 @@ class Algebra(Equation):
                             coeff.coeff = copy.deepcopy(test)
                             coeff.var_type = copy.deepcopy(self.var_type)
                             coeff.update_params_from_coeff()
+                            print("AYO!", coeff.coeff, coeff.deg)
                             ans = real_poly(coeff)
 
                         except ZeroDivisionError:
@@ -4428,20 +4465,24 @@ class Algebra(Equation):
                             test_two = self.lin_divide([1, 0])
                             remainder = test[-1]
 
-                            del test_two[-1]
+                            test_obj = Algebra()
+                            test_obj.coeff = copy.deepcopy(test_two)
+                            test_obj.var_type = copy.deepcopy(self.var_type)
+                            test_obj.update_params_from_coeff()
+                            # print(test_obj.eqn_string)
 
-                            test_temp = self.var_type[0]
+                            test_temp = test_obj.eqn_string
 
                             if remainder < 0:
 
                                 test_temp += str(remainder) + "/" + self.var_type[0]
 
-                            else:
+                            elif remainder > 0:
 
                                 test_temp += "+" + str(remainder) + "/" + self.var_type[0]
 
-                            print("(" + string + ")/" + self.var_type[0] + " = " + test_temp + "\n")
-                            self.solution.append("(" + string + ")/" + self.var_type[0] + " = " + test_temp)
+                            print("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp + "\n")
+                            self.solution.append("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp)
                             self.solution.append("")
                             self.solution.append("")
                             i += 1

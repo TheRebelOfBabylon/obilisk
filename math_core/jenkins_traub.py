@@ -1,9 +1,10 @@
+#TODO - Fix this module which now gives faulty roots
 import math
 import cmath
 import random
 from math_core.Calculus import Calculus
 from math_core.Algebra import poly_add
-
+import copy
 from typing import List, Union, Tuple
 
 def real_poly(eqn: Calculus) -> List[Union[int, float, complex]]:
@@ -29,7 +30,7 @@ def real_poly(eqn: Calculus) -> List[Union[int, float, complex]]:
 		del new_eqn[-1]
 		#print(new_eqn.eqn)
 		eqn.reset_params()
-		eqn.coeff = new_eqn
+		eqn.coeff = copy.deepcopy(new_eqn)
 		eqn.var_type = [var]
 		eqn.update_params_from_coeff()
 
@@ -37,7 +38,7 @@ def real_poly(eqn: Calculus) -> List[Union[int, float, complex]]:
 
 def rpoly(eqn: Calculus) -> Union[int, float, complex]:
 	"""RPOLY Jenkins-Traub algorithm for polynomial root finding."""
-	print(eqn.eqn)
+	print(eqn.eqn_string, eqn.deg, eqn.coeff, "\n")
 	coeff = Calculus()
 	coeff.coeff = eqn.normalize()
 	coeff.var_type = eqn.var_type
@@ -68,7 +69,7 @@ def rpoly(eqn: Calculus) -> Union[int, float, complex]:
 		del new_K.coeff[-1]
 		#print("new_K",new_K.eqn)
 		K.reset_params()
-		K.coeff = new_K.coeff
+		K.coeff = copy.deepcopy(new_K.coeff)
 		K.var_type = coeff.var_type
 		K.update_params_from_coeff()
 		#print(i)
