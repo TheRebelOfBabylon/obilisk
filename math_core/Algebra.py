@@ -1046,15 +1046,10 @@ class Algebra(Equation):
         """Evaluates the polynomial at a given value."""
 
         ans = 0
-        if not self.deg:
-            j = len(self.coeff) - 1
-            for i in self.coeff:
-                ans += i * (value ** j)
-                j -= 1
-        else:
-            for i, j in zip(self.coeff, self.deg):
-                ans += i * (value ** j)
-
+        k = len(self.coeff) - 1
+        for i in self.coeff:
+            ans += i * (value ** k)
+            k -= 1
         return ans
 
     def get_coeff(self):
@@ -1158,6 +1153,7 @@ class Algebra(Equation):
             j = len(self.coeff) - 1
             temp_string = ""
             for i in self.coeff:
+                #print("Inside update_params_from_coeff", temp_string, i)
                 if j > 1:
                     if temp_string:
                         # Checking if the coefficient is complex
@@ -1229,19 +1225,23 @@ class Algebra(Equation):
                             else:
                                 temp_string += str(i) + self.var_type[0]
                 else:
-                    if isinstance(i, complex):
-                        if not temp_string:
-                            temp_string += str(i)
-                        else:
-                            temp_string += "+" + str(i)
+                    if i == 0.0:
+                        j -= 1
+                        continue
                     else:
-                        if i > 0.0:
+                        if isinstance(i, complex):
                             if not temp_string:
                                 temp_string += str(i)
                             else:
                                 temp_string += "+" + str(i)
                         else:
-                            temp_string += str(i)
+                            if i > 0.0:
+                                if not temp_string:
+                                    temp_string += str(i)
+                                else:
+                                    temp_string += "+" + str(i)
+                            else:
+                                temp_string += str(i)
                 self.deg.append(j)
                 j -= 1
         else:
@@ -1314,19 +1314,23 @@ class Algebra(Equation):
                             else:
                                 temp_string += str(i) + self.var_type[0]
                 else:
-                    if isinstance(i, complex):
-                        if not temp_string:
-                            temp_string += str(i)
-                        else:
-                            temp_string += "+" + str(i)
+                    if i == 0.0:
+                        continue
                     else:
-                        if i > 0.0:
+                        if isinstance(i, complex):
                             if not temp_string:
                                 temp_string += str(i)
                             else:
                                 temp_string += "+" + str(i)
                         else:
-                            temp_string += str(i)
+                            if i > 0.0:
+                                if not temp_string:
+                                    temp_string += str(i)
+                                else:
+                                    temp_string += "+" + str(i)
+                            else:
+                                temp_string += str(i)
+        #print(temp_string)
         self.eqn_string = temp_string
         if not self.solution:
             self.solution.append("The inputted equation is " + self.eqn_string)
