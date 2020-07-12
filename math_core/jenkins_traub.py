@@ -1,4 +1,3 @@
-#TODO - Fix this module which now gives faulty roots
 import math
 import cmath
 import random
@@ -158,7 +157,7 @@ def get_random_root(eqn: Calculus) -> Union[int, float, complex]:
 	"""Function for finding random roots."""
 	cauchy_eqn = Calculus()
 	cauchy_eqn.coeff = eqn.cauchy_poly()
-	print("Cauchy", cauchy_eqn.coeff)
+	#print("Cauchy", cauchy_eqn.coeff)
 	beta = cauchy_eqn.newton_raphson()
 	#print("beta",beta)
 	rand = random.uniform(0,1)*2*math.pi
