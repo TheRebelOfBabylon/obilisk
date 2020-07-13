@@ -1,8 +1,3 @@
-#TODO - Go through all code and anytime i'm walking array and doing if "(" in index, add clause to exclude cases where
-#j is also in that index
-#TODO - The rearrange function is bugging up. See below.
-#-0.448477x-0.896954
-#-x-1.0+0.448477x=0.896954
 """Methods for polynomial root finding."""
 from __future__ import annotations
 import math
@@ -819,7 +814,7 @@ def bracketing(bracket: List[str], var_type: List[str], bracket_dict: Dict, lvl:
     b_close = 0
     while s != len(bracket):
 
-        if "(" in bracket[s]:
+        if "(" in bracket[s] and "j" not in bracket[s]:
 
             sub_br.append(bracket[s])
             b += 1
@@ -1470,11 +1465,11 @@ class Algebra(Equation):
                     b = 0
                     while k != s:
 
-                        if "(" in i[k]:
+                        if "(" in i[k] and "j" not in i[k]:
 
                             b += 1
 
-                        elif ")" in i[k]:
+                        elif ")" in i[k] and "j" not in i[k]:
 
                             b -= 1
 
@@ -1484,11 +1479,11 @@ class Algebra(Equation):
                     c = b
                     while k != len(i):
 
-                        if "(" in i[k]:
+                        if "(" in i[k] and "j" not in i[k]:
 
                             b += 1
 
-                        elif ")" in i[k]:
+                        elif ")" in i[k] and "j" not in i[k]:
 
                             b -= 1
 
@@ -1540,12 +1535,12 @@ class Algebra(Equation):
                     b_close = 0
                     while k != s:
 
-                        if "(" in i[k]:
+                        if "(" in i[k] and "j" not in i[k]:
 
                             b_open += 1
                             b += 1
 
-                        elif ")" in i[k]:
+                        elif ")" in i[k] and "j" not in i[k]:
 
                             b_close += 1
                             b -= 1
@@ -1556,12 +1551,12 @@ class Algebra(Equation):
                     c = b
                     while k != len(i):
 
-                        if "(" in i[k]:
+                        if "(" in i[k] and "j" not in i[k]:
 
                             b_open += 1
                             b += 1
 
-                        elif ")" in i[k]:
+                        elif ")" in i[k] and "j" not in i[k]:
 
                             b_close += 1
                             b -= 1
@@ -1970,7 +1965,7 @@ class Algebra(Equation):
             z = getattr(self, side)
             for s in z:
 
-                if "(" in s:
+                if "(" in s and "j" not in s:
 
                     temp = s
                     temp = temp.replace("(","")
@@ -1993,12 +1988,12 @@ class Algebra(Equation):
                         br_string=""
                         while z[k] != "("+str(c):
 
-                            if ")" in z[k]:
+                            if ")" in z[k] and "j" not in z[k]:
 
                                 br_string = ")"+br_string
                                 d+=1
 
-                            elif "(" in z[k]:
+                            elif "(" in z[k] and "j" not in z[k]:
 
                                 br_string = "("+br_string
                                 d-=1
@@ -2058,12 +2053,12 @@ class Algebra(Equation):
                         d=0
                         while z[k] != ")"+str(c):
 
-                            if "(" in z[k]:
+                            if "(" in z[k] and "j" not in z[k]:
 
                                 br_string_two += "("
                                 d+=1
 
-                            elif ")" in z[k]:
+                            elif ")" in z[k] and "j" not in z[k]:
 
                                 br_string_two += ")"
                                 d-=1
@@ -2086,12 +2081,12 @@ class Algebra(Equation):
                         d=0
                         while z[m] != "("+str(c):
 
-                            if ")" in z[m]:
+                            if ")" in z[m] and "j" not in z[m]:
 
                                 br_string_one = ")"+br_string_one
                                 d+=1
 
-                            elif "(" in z[m]:
+                            elif "(" in z[m] and "j" not in z[m]:
 
                                 br_string_one = "("+br_string_one
                                 d-=1
@@ -2158,12 +2153,12 @@ class Algebra(Equation):
                         d=0
                         while z[m] != "("+str(c):
 
-                            if ")" in z[m]:
+                            if ")" in z[m] and "j" not in z[m]:
 
                                 br_string_one = ")"+br_string_one
                                 d+=1
 
-                            elif "(" in z[m]:
+                            elif "(" in z[m] and "j" not in z[m]:
 
                                 br_string_one = "("+br_string_one
                                 d-=1
@@ -2228,12 +2223,12 @@ class Algebra(Equation):
                         d=0
                         while z[k] != ")"+str(c):
 
-                            if "(" in z[k]:
+                            if "(" in z[k] and "j" not in z[k]:
 
                                 br_string_two += "("
                                 d+=1
 
-                            elif ")" in z[k]:
+                            elif ")" in z[k] and "j" not in z[k]:
 
                                 br_string_two += ")"
                                 d-=1
@@ -2300,12 +2295,12 @@ class Algebra(Equation):
                         d=0
                         while z[k] != ")"+str(c):
 
-                            if "(" in z[k]:
+                            if "(" in z[k] and "j" not in z[k]:
 
                                 br_string_two += "("
                                 d+=1
 
-                            elif ")" in z[k]:
+                            elif ")" in z[k] and "j" not in z[k]:
 
                                 br_string_two += ")"
                                 d-=1
@@ -2328,12 +2323,12 @@ class Algebra(Equation):
                         d=0
                         while z[m] != "("+str(c):
 
-                            if ")" in z[m]:
+                            if ")" in z[m] and "j" not in z[m]:
 
                                 br_string_one = ")"+br_string_one
                                 d+=1
 
-                            elif "(" in z[m]:
+                            elif "(" in z[m] and "j" not in z[m]:
 
                                 br_string_one = "("+br_string_one
                                 d-=1
@@ -2406,7 +2401,7 @@ class Algebra(Equation):
             b=0
             for s in z:
 
-                if "(" in s:
+                if "(" in s and "j" not in s:
 
                     temp = s
                     temp = temp.replace("(","")
@@ -2424,11 +2419,11 @@ class Algebra(Equation):
                 d=0
                 while s != len(z):
 
-                    if "(" in z[s]:
+                    if "(" in z[s] and "j" not in z[s]:
 
                         d+=1
 
-                    elif ")" in z[s]:
+                    elif ")" in z[s] and "j" not in z[s]:
 
                         d-=1
 
@@ -2447,11 +2442,11 @@ class Algebra(Equation):
 
                         while z[s] != ")1":
 
-                            if "(" in z[s]:
+                            if "(" in z[s] and "j" not in z[s]:
 
                                 d+=1
 
-                            elif ")" in z[s]:
+                            elif ")" in z[s] and "j" not in z[s]:
 
                                 d-=1
 
@@ -2480,11 +2475,11 @@ class Algebra(Equation):
 
                         while z[s] != ")1":
 
-                            if "(" in z[s]:
+                            if "(" in z[s] and "j" not in z[s]:
 
                                 d+=1
 
-                            elif ")" in z[s]:
+                            elif ")" in z[s] and "j" not in z[s]:
 
                                 d-=1
 
@@ -2601,11 +2596,11 @@ class Algebra(Equation):
                     #print(s, self.eqn[s], self.eqn, i)
                     while s != len(z):
 
-                        if "(" in z[s]:
+                        if "(" in z[s] and "j" not in z[s]:
 
                             d+=1
 
-                        elif ")" in z[s]:
+                        elif ")" in z[s] and "j" not in z[s]:
 
                             d-=1
 
@@ -2616,11 +2611,11 @@ class Algebra(Equation):
                             s+=1
                             for n in range(len(i)-1,-1,-1):
 
-                                if "(" in i[n]:
+                                if "(" in i[n] and "j" not in i[n]:
 
                                     z.insert(s,"("+str(c+1))
 
-                                elif ")" in i[n]:
+                                elif ")" in i[n] and "j" not in i[n]:
 
                                     z.insert(s,")"+str(c+1))
 
@@ -2634,11 +2629,11 @@ class Algebra(Equation):
 
                             while z[s] != ")1":
 
-                                if "(" in z[s]:
+                                if "(" in z[s] and "j" not in z[s]:
 
                                     d+=1
 
-                                elif ")" in z[s]:
+                                elif ")" in z[s] and "j" not in z[s]:
 
                                     d-=1
 
@@ -2660,11 +2655,11 @@ class Algebra(Equation):
                             z.insert(s,"*")
                             for n in range(len(i)-1,-1,-1):
 
-                                if "(" in i[n]:
+                                if "(" in i[n] and "j" not in i[n]:
 
                                     z.insert(s,"("+str(c+1))
 
-                                elif ")" in i[n]:
+                                elif ")" in i[n] and "j" not in i[n]:
 
                                     z.insert(s,")"+str(c+1))
 
@@ -2678,11 +2673,11 @@ class Algebra(Equation):
 
                             while z[s] != ")1":
 
-                                if "(" in z[s]:
+                                if "(" in z[s] and "j" not in z[s]:
 
                                     d+=1
 
-                                elif ")" in z[s]:
+                                elif ")" in z[s] and "j" not in z[s]:
 
                                     d-=1
 
@@ -2710,7 +2705,7 @@ class Algebra(Equation):
             b=0
             for s in z:
 
-                if "(" in s:
+                if "(" in s  and "j" not in s:
 
                     temp = s
                     temp = temp.replace("(","")
@@ -2795,12 +2790,12 @@ class Algebra(Equation):
                             br = ""
                             while z[k] != ")"+str(c-1):
 
-                                if "(" in z[k]:
+                                if "(" in z[k] and "j" not in z[k]:
 
                                     br+="("
                                     d+=1
 
-                                elif ")" in z[k]:
+                                elif ")" in z[k] and "j" not in z[k]:
 
                                     br+=")"
                                     d-=1
@@ -3165,12 +3160,12 @@ class Algebra(Equation):
 
                 # print("self.lhs[k]", i[k])
 
-                if "(" in i[k]:
+                if "(" in i[k] and "j" not in i[k]:
                     b += 1
                     j = k
                     b_open += 1
 
-                if ")" in i[k]:
+                if ")" in i[k] and "j" not in i[k]:
                     b -= 1
                     b_close += 1
 
@@ -3194,10 +3189,10 @@ class Algebra(Equation):
                         b_temp = 0
                         while l != s:
 
-                            if "(" in i[l]:
+                            if "(" in i[l] and "j" not in i[l]:
                                 b_temp -= 1
 
-                            if ")" in i[l]:
+                            if ")" in i[l] and "j" not in i[l]:
                                 b_temp += 1
 
                             l -= 1
@@ -3225,10 +3220,10 @@ class Algebra(Equation):
                         b_temp = 0
                         while l != s:
 
-                            if "(" in i[l]:
+                            if "(" in i[l] and "j" not in i[l]:
                                 b_temp -= 1
 
-                            if ")" in i[l]:
+                            if ")" in i[l] and "j" not in i[l]:
                                 b_temp += 1
 
                             l -= 1
@@ -3551,8 +3546,8 @@ class Algebra(Equation):
         Function takes LHS and RHS, moves all variables to LHS, constants to RHS and combines all similar terms.
         Equation must be rid of all brackets, and in proper polynomial format to use. Returns rearranged LHS and RHS.
         """
+        #TODO Add a check to ensure LHS and RHS inputs are of proper format.
 
-        """TO-DO: Add a check to ensure LHS and RHS inputs are of proper format."""
         # First all variable terms must go from RHS to LHS
         var = self.var_type[0]
         s = 0
@@ -3582,6 +3577,9 @@ class Algebra(Equation):
                             if s == 1:
 
                                 del self.rhs[s]
+                                if self.rhs[s] == "-":
+                                    self.rhs[s] += self.rhs[s+1]
+                                    del self.rhs[s+1]
 
                             else:
 
@@ -3603,6 +3601,9 @@ class Algebra(Equation):
                             if s == 1:
 
                                 del self.rhs[s]
+                                if self.rhs[s] == "-":
+                                    self.rhs[s] += self.rhs[s + 1]
+                                    del self.rhs[s + 1]
 
                             else:
 
@@ -3624,6 +3625,9 @@ class Algebra(Equation):
                         if s == 1:
 
                             del self.rhs[s]
+                            if self.rhs[s] == "-":
+                                self.rhs[s] += self.rhs[s + 1]
+                                del self.rhs[s + 1]
 
                         else:
 
@@ -3633,7 +3637,6 @@ class Algebra(Equation):
 
             s += 1
 
-        # print(l, r)
         # Now we will take out any unnecessary operation signs from RHS and Also if the second element of LHS is a term with a negative inside, then we will make two indexes
         # First RHS
         if self.rhs[1] == "+":
@@ -3652,7 +3655,7 @@ class Algebra(Equation):
 
         if "-" in self.rhs[1]:
 
-            if not is_complex_coeff(self.rhs[1], var):
+            if is_complex_coeff(self.rhs[1], var):
                 self.rhs[1] = self.rhs[1].replace("-", '')
                 self.lhs.insert(1, "-")
 
@@ -3685,6 +3688,9 @@ class Algebra(Equation):
                             if s == 1:
 
                                 del self.lhs[s]
+                                if self.lhs[s] == "-":
+                                    self.lhs[s] += self.lhs[s+1]
+                                    del self.lhs[s+1]
 
                             else:
 
@@ -3706,6 +3712,9 @@ class Algebra(Equation):
                             if s == 1:
 
                                 del self.lhs[s]
+                                if self.lhs[s] == "-":
+                                    self.lhs[s] += self.lhs[s + 1]
+                                    del self.lhs[s + 1]
 
                             else:
 
@@ -3727,6 +3736,9 @@ class Algebra(Equation):
                         if s == 1:
 
                             del self.lhs[s]
+                            if self.lhs[s] == "-":
+                                self.lhs[s] += self.lhs[s + 1]
+                                del self.lhs[s + 1]
 
                         else:
 
