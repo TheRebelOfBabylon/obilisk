@@ -4,6 +4,7 @@ import pytest
 
 from math_core.solve_functions import Solve_Func, rearrange, solver, find_asymptotes
 from math_core.BEMDAS_algo_v3 import bracketify, grouping, stringify
+from math_core.Equation import Equation
 
 test_cases_l = [
     "69*(((x-1)/(x+2))^8-((x-1)/(x+2))^6)",
@@ -26,22 +27,23 @@ foiled_test_cases_l = [
 def test_all_cases():
 
     for i in range(0,len(test_cases_l)):
-        a, a_var = bracketify(test_cases_l[i])
-        a, a_deg = grouping(a)
+        a = Equation(test_cases_l[i])
+        a.eqn, a_deg = grouping(a.eqn)
 
-        a = Solve_Func(a, a_var[0])
-        a_div = a.identify_div()
-        print(a_div)
+        b = Solve_Func(a.eqn, a.var_type[0])
+        b_div = b.identify_div()
+        print(b_div)
 
-        a = a.redundant_br()
-        print(a.eqn)
+        b = b.redundant_br()
+        print(b.eqn)
 
-        a = a.multiply_br(a_div)
+        b = b.multiply_br(b_div)
 
-        a = a.redundant_div(a_div)
-        print(a.eqn)
+        b = b.redundant_div(b_div)
+        print(b.eqn)
 
-        a = a.bracket_remover()
-        a_string = stringify(a.eqn)
+        b = b.bracket_remover()
+        a.eqn = b.eqn
+        a.eqn_string_update()
 
-        assert a_string == foiled_test_cases_l[i]
+        assert a.eqn_string == foiled_test_cases_l[i]
