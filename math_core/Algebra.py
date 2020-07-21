@@ -2213,7 +2213,7 @@ class Algebra(Equation):
 
                     elif (z[s] == "("+str(c)) and (z[s-1] == "*") and ((is_number(z[s-2]) == True) or (self.var_type[0] in z[s-2])):
 
-                        print("WOOAAHH NELLY")
+                        #print("WOOAAHH NELLY")
                         br_string_one = z[s-2]
                         br_string_two = ""
                         k = s
@@ -3414,7 +3414,7 @@ class Algebra(Equation):
                             for i in copy_rhs:
                                 temp_string = l_new_string+"="+stringify(i)
                                 temp_eqn = Algebra(temp_string)
-                                print("YOOO", temp_eqn.var_type, temp_eqn.lhs, temp_eqn.rhs, "ans", ans)
+                                #print("YOOO", temp_eqn.var_type, temp_eqn.lhs, temp_eqn.rhs, "ans", ans)
                                 ans_temp = solving(temp_eqn)
                                 ans.append(ans_temp)
                                 temp_eqn = None
@@ -3536,8 +3536,6 @@ class Algebra(Equation):
                 temp = Equation(str(i))
                 new_eqn.rhs.append(temp.eqn)
                 temp = None
-
-        print("Made it to the end", "l", "r")
 
         return new_eqn.lhs, new_eqn.rhs
 
