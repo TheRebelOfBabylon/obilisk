@@ -1,6 +1,6 @@
 from math_core.BEMDAS_algo_v3 import is_number, stringify, grouping, combining, bracketify, is_even, foiling, oper_dict, bracket_add, calculate
 from math_core import jenkins_traub
-from math_core.algebra import Poly_Func
+from math_core.Algebra import Poly_Func
 from math_core.solve_functions import *
 
 #LHS_1 = ["(1","x","^","2","+","x","^","3","/","x",")1"]

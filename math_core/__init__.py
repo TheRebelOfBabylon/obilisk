@@ -4,7 +4,7 @@
 # from math_core.jenkins_traub import *
 # from math_core.solve_functions import *
 #
-__all__ = ["algebra", "BEMDAS_algo_v3", "calculus", "jenkins_traub", "solve_functions"]
+__all__ = ["Algebra.py", "BEMDAS_algo_v3", "Calculus.py", "jenkins_traub", "solve_functions"]
 # __all__.extend(algebra.__all__)
 # __all__.extend(BEMDAS_algo_v3.__all__)
 # __all__.extend(calculus.__all__)

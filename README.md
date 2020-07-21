@@ -1,3 +1,3 @@
 # Obilisk
 
-Repository for the Obilisk fullstack.
+Repository for the Obilisk math library.
