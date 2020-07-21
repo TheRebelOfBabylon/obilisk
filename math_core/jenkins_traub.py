@@ -3,7 +3,7 @@ import cmath
 import random
 from math_core.Calculus import Calculus
 from math_core.Algebra import poly_add
-
+import copy
 from typing import List, Union, Tuple
 
 def real_poly(eqn: Calculus) -> List[Union[int, float, complex]]:
@@ -29,7 +29,7 @@ def real_poly(eqn: Calculus) -> List[Union[int, float, complex]]:
 		del new_eqn[-1]
 		#print(new_eqn.eqn)
 		eqn.reset_params()
-		eqn.coeff = new_eqn
+		eqn.coeff = copy.deepcopy(new_eqn)
 		eqn.var_type = [var]
 		eqn.update_params_from_coeff()
 
@@ -37,12 +37,11 @@ def real_poly(eqn: Calculus) -> List[Union[int, float, complex]]:
 
 def rpoly(eqn: Calculus) -> Union[int, float, complex]:
 	"""RPOLY Jenkins-Traub algorithm for polynomial root finding."""
-	#print(eqn.eqn)
+	#print("\n", eqn.eqn_string, eqn.deg)
 	coeff = Calculus()
 	coeff.coeff = eqn.normalize()
 	coeff.var_type = eqn.var_type
 	coeff.update_params_from_coeff()
-	#print(coeff.eqn)
 
 	#Stage 1: No-shift process. Assuming M = 5
 
@@ -50,35 +49,28 @@ def rpoly(eqn: Calculus) -> Union[int, float, complex]:
 	K.coeff = coeff.coeff_derivative()
 	K.var_type = coeff.var_type
 	K.update_params_from_coeff()
-	#print(K.eqn)
 
 	for i in range(0,5):
 
 		constant = -1*K.evaluate(0)/coeff.evaluate(0)
-		#print("Constant is",constant)
 		P_z = Calculus()
 		P_z.coeff = coeff.poly_multiply(constant)
-		#print("P_z",P_z.eqn)
 		K_prime = Calculus()
 		K_prime.coeff = poly_add(K.coeff,P_z.coeff)
-		#print("K_prime",K_prime.eqn)
 		divisor = [1,0]
 		new_K = Calculus()
 		new_K.coeff = K_prime.lin_divide(divisor)
 		del new_K.coeff[-1]
-		#print("new_K",new_K.eqn)
 		K.reset_params()
-		K.coeff = new_K.coeff
+		K.coeff = copy.deepcopy(new_K.coeff)
 		K.var_type = coeff.var_type
 		K.update_params_from_coeff()
-		#print(i)
 
 	#Stage 2: Fixed-shift Process
 
 	t_curr = t_old = t_new = None
 	stage_two_success = False
 	root_found = False
-
 	while not root_found:
 	
 		while not stage_two_success:
@@ -111,7 +103,6 @@ def rpoly(eqn: Calculus) -> Union[int, float, complex]:
 
 				t_old = t_curr
 				K = new_K
-				#print("Stage 2: K",K.eqn)
 
 			if not stage_two_success:
 
@@ -166,7 +157,7 @@ def get_random_root(eqn: Calculus) -> Union[int, float, complex]:
 	"""Function for finding random roots."""
 	cauchy_eqn = Calculus()
 	cauchy_eqn.coeff = eqn.cauchy_poly()
-	#print("Cauchy",cauchy_eqn.eqn)
+	#print("Cauchy", cauchy_eqn.coeff)
 	beta = cauchy_eqn.newton_raphson()
 	#print("beta",beta)
 	rand = random.uniform(0,1)*2*math.pi

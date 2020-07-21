@@ -369,7 +369,7 @@ def bracket_add(br_one_coeff: List[Union[int, float, complex]], op: str, br_two_
 
 def foiling(b_one: List[str], b_two: List[str], var_type: str) -> List[str]:
     """Polynomial multiplication. Both polynomials must be of atleast degree 1."""
-    print(b_one, b_two)
+    #print(b_one, b_two, var_type)
     b_one_string = stringify(b_one)
     b_one_obj = Algebra(b_one_string+"=0")
 
@@ -785,7 +785,7 @@ def bracketing(bracket: List[str], var_type: List[str], bracket_dict: Dict, lvl:
     b_close = 0
     while s != len(bracket):
 
-        if "(" in bracket[s]:
+        if "(" in bracket[s] and "j" not in bracket[s]:
 
             sub_br.append(bracket[s])
             b += 1
@@ -918,14 +918,14 @@ def solving(eqn: Algebra) -> List[Union[int, float, complex]]:
         # l_div != [] != r_div
         else:
 
-            print("we should be here", l_div, r_div)
+            #print("we should be here", l_div, r_div)
 
             eqn.redundant_br()
             eqn.multiply_br(l_div)
             eqn.redundant_div(l_div)
             eqn.multiply_br(r_div)
             eqn.redundant_div(r_div)
-            print("AYO", stringify(eqn.lhs) + " = " + stringify(eqn.rhs))
+            #print("AYO", stringify(eqn.lhs) + " = " + stringify(eqn.rhs))
             eqn.bracket_remover()
             eqn.rearrange()
             ans = eqn.solver()
@@ -1017,15 +1017,10 @@ class Algebra(Equation):
         """Evaluates the polynomial at a given value."""
 
         ans = 0
-        if not self.deg:
-            j = len(self.coeff) - 1
-            for i in self.coeff:
-                ans += i * (value ** j)
-                j -= 1
-        else:
-            for i, j in zip(self.coeff, self.deg):
-                ans += i * (value ** j)
-
+        k = len(self.coeff) - 1
+        for i in self.coeff:
+            ans += i * (value ** k)
+            k -= 1
         return ans
 
     def get_coeff(self):
@@ -1080,7 +1075,7 @@ class Algebra(Equation):
                             coeff.append(float(a))
                             did_append = True
 
-                    elif ("^" not in self.lhs[i]) & (self.var_type[0] in self.lhs[i]) & (s == 1):
+                    elif ("^" not in self.lhs[i]) and (self.var_type[0] in self.lhs[i]) and (s == 1):
 
                         temp = self.lhs[i]
                         a = ""
@@ -1095,13 +1090,20 @@ class Algebra(Equation):
                         if a == "-":
                             a = -1
 
-                        if self.lhs[i - 1] == "-":
-                            a = -1 * float(a)
+                        if complex(a).imag == 0:
 
-                        coeff.append(float(a))
-                        did_append = True
+                            if self.lhs[i - 1] == "-":
+                                a = -1 * float(a)
 
-                    elif (is_number(self.lhs[i])) & (s == 0):
+                            coeff.append(float(a))
+                            did_append = True
+
+                        else:
+
+                            coeff.append(complex(a))
+                            did_append = True
+
+                    elif (is_number(self.lhs[i])) and (s == 0):
 
                         a = complex(self.lhs[i])
 
@@ -1129,6 +1131,7 @@ class Algebra(Equation):
             j = len(self.coeff) - 1
             temp_string = ""
             for i in self.coeff:
+                #print("Inside update_params_from_coeff", temp_string, i)
                 if j > 1:
                     if temp_string:
                         # Checking if the coefficient is complex
@@ -1142,6 +1145,9 @@ class Algebra(Equation):
                                     temp_string += self.var_type[0] + "^" + str(j)
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
+                            elif i == 0.0:
+                                j -= 1
+                                continue
                             else:
                                 temp_string += "+"
                                 if (i == 1.0) or (i == 1):
@@ -1156,6 +1162,9 @@ class Algebra(Equation):
                                 temp_string += self.var_type[0] + "^" + str(j)
                             elif (i == -1.0) or (i == -1):
                                 temp_string += "-" + self.var_type[0] + "^" + str(j)
+                            elif i == 0.0:
+                                j -= 1
+                                continue
                             else:
                                 temp_string += str(i) + self.var_type[0] + "^" + str(j)
                 elif j == 1:
@@ -1171,6 +1180,9 @@ class Algebra(Equation):
                                     temp_string += self.var_type[0]
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0]
+                            elif i == 0.0:
+                                j -= 1
+                                continue
                             else:
                                 temp_string += "+"
                                 if (i == 1.0) or (i == 1):
@@ -1185,22 +1197,29 @@ class Algebra(Equation):
                                 temp_string += self.var_type[0]
                             elif (i == -1.0) or (i == -1):
                                 temp_string += "-" + self.var_type[0]
+                            elif i == 0.0:
+                                j -= 1
+                                continue
                             else:
                                 temp_string += str(i) + self.var_type[0]
                 else:
-                    if isinstance(i, complex):
-                        if not temp_string:
-                            temp_string += str(i)
-                        else:
-                            temp_string += "+" + str(i)
+                    if i == 0.0:
+                        j -= 1
+                        continue
                     else:
-                        if i > 0.0:
+                        if isinstance(i, complex):
                             if not temp_string:
                                 temp_string += str(i)
                             else:
                                 temp_string += "+" + str(i)
                         else:
-                            temp_string += str(i)
+                            if i > 0.0:
+                                if not temp_string:
+                                    temp_string += str(i)
+                                else:
+                                    temp_string += "+" + str(i)
+                            else:
+                                temp_string += str(i)
                 self.deg.append(j)
                 j -= 1
         else:
@@ -1219,6 +1238,8 @@ class Algebra(Equation):
                                     temp_string += self.var_type[0] + "^" + str(j)
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
+                            elif i == 0.0:
+                                continue
                             else:
                                 temp_string += "+"
                                 if (i == 1.0) or (i == 1):
@@ -1233,6 +1254,8 @@ class Algebra(Equation):
                                 temp_string += self.var_type[0] + "^" + str(j)
                             elif (i == -1.0) or (i == -1):
                                 temp_string += "-" + self.var_type[0] + "^" + str(j)
+                            elif i == 0.0:
+                                continue
                             else:
                                 temp_string += str(i) + self.var_type[0] + "^" + str(j)
                 elif j == 1:
@@ -1248,6 +1271,8 @@ class Algebra(Equation):
                                     temp_string += self.var_type[0]
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0]
+                            elif i == 0.0:
+                                continue
                             else:
                                 temp_string += "+"
                                 if (i == 1.0) or (i == 1):
@@ -1262,22 +1287,28 @@ class Algebra(Equation):
                                 temp_string += self.var_type[0]
                             elif (i == -1.0) or (i == -1):
                                 temp_string += "-" + self.var_type[0]
+                            elif i == 0.0:
+                                continue
                             else:
                                 temp_string += str(i) + self.var_type[0]
                 else:
-                    if isinstance(i, complex):
-                        if not temp_string:
-                            temp_string += str(i)
-                        else:
-                            temp_string += "+" + str(i)
+                    if i == 0.0:
+                        continue
                     else:
-                        if i > 0.0:
+                        if isinstance(i, complex):
                             if not temp_string:
                                 temp_string += str(i)
                             else:
                                 temp_string += "+" + str(i)
                         else:
-                            temp_string += str(i)
+                            if i > 0.0:
+                                if not temp_string:
+                                    temp_string += str(i)
+                                else:
+                                    temp_string += "+" + str(i)
+                            else:
+                                temp_string += str(i)
+        #print(temp_string)
         self.eqn_string = temp_string
         if not self.solution:
             self.solution.append("The inputted equation is " + self.eqn_string)
@@ -1291,12 +1322,20 @@ class Algebra(Equation):
         self.eqn.clear()
         self.eqn = copy.deepcopy(self.lhs)
         self.eqn[-1] = "="
-        for i in self.rhs:
-            self.eqn.insert(-1,i)
+        for i in range(1, len(self.rhs)):
+            self.eqn.append(self.rhs[i])
+        new_var_type=[]
+        for i in self.var_type:
+            for j in self.eqn:
+                if i in j:
+                    if i not in new_var_type:
+                        new_var_type.append(i)
+        self.var_type.clear()
+        self.var_type = copy.deepcopy(new_var_type)
         self.grouping()
-        self.eqn_string_update()
+        self.eqn_string = stringify(self.lhs)+"="+stringify(self.rhs)
         self.get_coeff()
-        self.update_params_from_coeff()
+        #self.update_params_from_coeff()
 
     def reset_params(self):
         """Method resets all object attributes"""
@@ -1397,11 +1436,11 @@ class Algebra(Equation):
                     b = 0
                     while k != s:
 
-                        if "(" in i[k]:
+                        if "(" in i[k] and "j" not in i[k]:
 
                             b += 1
 
-                        elif ")" in i[k]:
+                        elif ")" in i[k] and "j" not in i[k]:
 
                             b -= 1
 
@@ -1411,11 +1450,11 @@ class Algebra(Equation):
                     c = b
                     while k != len(i):
 
-                        if "(" in i[k]:
+                        if "(" in i[k] and "j" not in i[k]:
 
                             b += 1
 
-                        elif ")" in i[k]:
+                        elif ")" in i[k] and "j" not in i[k]:
 
                             b -= 1
 
@@ -1467,12 +1506,12 @@ class Algebra(Equation):
                     b_close = 0
                     while k != s:
 
-                        if "(" in i[k]:
+                        if "(" in i[k] and "j" not in i[k]:
 
                             b_open += 1
                             b += 1
 
-                        elif ")" in i[k]:
+                        elif ")" in i[k] and "j" not in i[k]:
 
                             b_close += 1
                             b -= 1
@@ -1483,12 +1522,12 @@ class Algebra(Equation):
                     c = b
                     while k != len(i):
 
-                        if "(" in i[k]:
+                        if "(" in i[k] and "j" not in i[k]:
 
                             b_open += 1
                             b += 1
 
-                        elif ")" in i[k]:
+                        elif ")" in i[k] and "j" not in i[k]:
 
                             b_close += 1
                             b -= 1
@@ -1532,7 +1571,7 @@ class Algebra(Equation):
             b=0
             for s in z:
 
-                if "(" in s:
+                if ("(" in s) and ("j" not in s):
 
                     temp = s
                     temp = temp.replace("(","")
@@ -1543,7 +1582,6 @@ class Algebra(Equation):
                         b = temp
 
             for c in range(b-1,1,-1):
-
                 s = 0
                 while s != len(z):
 
@@ -1567,11 +1605,11 @@ class Algebra(Equation):
                                 br_string += ")"
                                 d-=1
 
-                            elif "(" in z[k]:
+                            elif ("(" in z[k]) and ("j" not in z[k]):
 
                                 br_string += "("
 
-                            elif ")" in z[k]:
+                            elif (")" in z[k]) and ("j" not in z[k]):
 
                                 br_string += ")"
 
@@ -1697,11 +1735,11 @@ class Algebra(Equation):
                                 br_string += ")"
                                 d-=1
 
-                            elif "(" in z[k]:
+                            elif ("(" in z[k]) and ("j" not in z[k]):
 
                                 br_string += "("
 
-                            elif ")" in z[k]:
+                            elif (")" in z[k]) and ("j" not in z[k]):
 
                                 br_string += ")"
 
@@ -1877,7 +1915,7 @@ class Algebra(Equation):
                 s=1
                 d=0
                 chk_var = False
-                while s != len(side)-2:
+                while s != len(z)-2:
 
                     if z[s] == ")2":
 
@@ -1886,12 +1924,9 @@ class Algebra(Equation):
 
                     s+=1
 
-                if chk_var == False:
-
+                if not chk_var:
                     del z[-2]
                     del z[1]
-
-            #setattr(self, side, eqn_temp.eqn)
 
     def bracket_remover(self):
         """Function removes all brackets by performing various operations to make expressions mathematically equivalent."""
@@ -1901,7 +1936,7 @@ class Algebra(Equation):
             z = getattr(self, side)
             for s in z:
 
-                if "(" in s:
+                if "(" in s and "j" not in s:
 
                     temp = s
                     temp = temp.replace("(","")
@@ -1924,12 +1959,12 @@ class Algebra(Equation):
                         br_string=""
                         while z[k] != "("+str(c):
 
-                            if ")" in z[k]:
+                            if ")" in z[k] and "j" not in z[k]:
 
                                 br_string = ")"+br_string
                                 d+=1
 
-                            elif "(" in z[k]:
+                            elif "(" in z[k] and "j" not in z[k]:
 
                                 br_string = "("+br_string
                                 d-=1
@@ -1989,12 +2024,12 @@ class Algebra(Equation):
                         d=0
                         while z[k] != ")"+str(c):
 
-                            if "(" in z[k]:
+                            if "(" in z[k] and "j" not in z[k]:
 
                                 br_string_two += "("
                                 d+=1
 
-                            elif ")" in z[k]:
+                            elif ")" in z[k] and "j" not in z[k]:
 
                                 br_string_two += ")"
                                 d-=1
@@ -2017,12 +2052,12 @@ class Algebra(Equation):
                         d=0
                         while z[m] != "("+str(c):
 
-                            if ")" in z[m]:
+                            if ")" in z[m] and "j" not in z[m]:
 
                                 br_string_one = ")"+br_string_one
                                 d+=1
 
-                            elif "(" in z[m]:
+                            elif "(" in z[m] and "j" not in z[m]:
 
                                 br_string_one = "("+br_string_one
                                 d-=1
@@ -2089,12 +2124,12 @@ class Algebra(Equation):
                         d=0
                         while z[m] != "("+str(c):
 
-                            if ")" in z[m]:
+                            if ")" in z[m] and "j" not in z[m]:
 
                                 br_string_one = ")"+br_string_one
                                 d+=1
 
-                            elif "(" in z[m]:
+                            elif "(" in z[m] and "j" not in z[m]:
 
                                 br_string_one = "("+br_string_one
                                 d-=1
@@ -2159,12 +2194,12 @@ class Algebra(Equation):
                         d=0
                         while z[k] != ")"+str(c):
 
-                            if "(" in z[k]:
+                            if "(" in z[k] and "j" not in z[k]:
 
                                 br_string_two += "("
                                 d+=1
 
-                            elif ")" in z[k]:
+                            elif ")" in z[k] and "j" not in z[k]:
 
                                 br_string_two += ")"
                                 d-=1
@@ -2231,12 +2266,12 @@ class Algebra(Equation):
                         d=0
                         while z[k] != ")"+str(c):
 
-                            if "(" in z[k]:
+                            if "(" in z[k] and "j" not in z[k]:
 
                                 br_string_two += "("
                                 d+=1
 
-                            elif ")" in z[k]:
+                            elif ")" in z[k] and "j" not in z[k]:
 
                                 br_string_two += ")"
                                 d-=1
@@ -2259,12 +2294,12 @@ class Algebra(Equation):
                         d=0
                         while z[m] != "("+str(c):
 
-                            if ")" in z[m]:
+                            if ")" in z[m] and "j" not in z[m]:
 
                                 br_string_one = ")"+br_string_one
                                 d+=1
 
-                            elif "(" in z[m]:
+                            elif "(" in z[m] and "j" not in z[m]:
 
                                 br_string_one = "("+br_string_one
                                 d-=1
@@ -2337,7 +2372,7 @@ class Algebra(Equation):
             b=0
             for s in z:
 
-                if "(" in s:
+                if "(" in s and "j" not in s:
 
                     temp = s
                     temp = temp.replace("(","")
@@ -2355,11 +2390,11 @@ class Algebra(Equation):
                 d=0
                 while s != len(z):
 
-                    if "(" in z[s]:
+                    if "(" in z[s] and "j" not in z[s]:
 
                         d+=1
 
-                    elif ")" in z[s]:
+                    elif ")" in z[s] and "j" not in z[s]:
 
                         d-=1
 
@@ -2378,11 +2413,11 @@ class Algebra(Equation):
 
                         while z[s] != ")1":
 
-                            if "(" in z[s]:
+                            if "(" in z[s] and "j" not in z[s]:
 
                                 d+=1
 
-                            elif ")" in z[s]:
+                            elif ")" in z[s] and "j" not in z[s]:
 
                                 d-=1
 
@@ -2411,11 +2446,11 @@ class Algebra(Equation):
 
                         while z[s] != ")1":
 
-                            if "(" in z[s]:
+                            if "(" in z[s] and "j" not in z[s]:
 
                                 d+=1
 
-                            elif ")" in z[s]:
+                            elif ")" in z[s] and "j" not in z[s]:
 
                                 d-=1
 
@@ -2532,11 +2567,11 @@ class Algebra(Equation):
                     #print(s, self.eqn[s], self.eqn, i)
                     while s != len(z):
 
-                        if "(" in z[s]:
+                        if "(" in z[s] and "j" not in z[s]:
 
                             d+=1
 
-                        elif ")" in z[s]:
+                        elif ")" in z[s] and "j" not in z[s]:
 
                             d-=1
 
@@ -2547,11 +2582,11 @@ class Algebra(Equation):
                             s+=1
                             for n in range(len(i)-1,-1,-1):
 
-                                if "(" in i[n]:
+                                if "(" in i[n] and "j" not in i[n]:
 
                                     z.insert(s,"("+str(c+1))
 
-                                elif ")" in i[n]:
+                                elif ")" in i[n] and "j" not in i[n]:
 
                                     z.insert(s,")"+str(c+1))
 
@@ -2565,11 +2600,11 @@ class Algebra(Equation):
 
                             while z[s] != ")1":
 
-                                if "(" in z[s]:
+                                if "(" in z[s] and "j" not in z[s]:
 
                                     d+=1
 
-                                elif ")" in z[s]:
+                                elif ")" in z[s] and "j" not in z[s]:
 
                                     d-=1
 
@@ -2591,11 +2626,11 @@ class Algebra(Equation):
                             z.insert(s,"*")
                             for n in range(len(i)-1,-1,-1):
 
-                                if "(" in i[n]:
+                                if "(" in i[n] and "j" not in i[n]:
 
                                     z.insert(s,"("+str(c+1))
 
-                                elif ")" in i[n]:
+                                elif ")" in i[n] and "j" not in i[n]:
 
                                     z.insert(s,")"+str(c+1))
 
@@ -2609,11 +2644,11 @@ class Algebra(Equation):
 
                             while z[s] != ")1":
 
-                                if "(" in z[s]:
+                                if "(" in z[s] and "j" not in z[s]:
 
                                     d+=1
 
-                                elif ")" in z[s]:
+                                elif ")" in z[s] and "j" not in z[s]:
 
                                     d-=1
 
@@ -2641,7 +2676,7 @@ class Algebra(Equation):
             b=0
             for s in z:
 
-                if "(" in s:
+                if "(" in s  and "j" not in s:
 
                     temp = s
                     temp = temp.replace("(","")
@@ -2726,12 +2761,12 @@ class Algebra(Equation):
                             br = ""
                             while z[k] != ")"+str(c-1):
 
-                                if "(" in z[k]:
+                                if "(" in z[k] and "j" not in z[k]:
 
                                     br+="("
                                     d+=1
 
-                                elif ")" in z[k]:
+                                elif ")" in z[k] and "j" not in z[k]:
 
                                     br+=")"
                                     d-=1
@@ -3098,12 +3133,12 @@ class Algebra(Equation):
 
                 # print("self.lhs[k]", i[k])
 
-                if "(" in i[k]:
+                if "(" in i[k] and "j" not in i[k]:
                     b += 1
                     j = k
                     b_open += 1
 
-                if ")" in i[k]:
+                if ")" in i[k] and "j" not in i[k]:
                     b -= 1
                     b_close += 1
 
@@ -3127,10 +3162,10 @@ class Algebra(Equation):
                         b_temp = 0
                         while l != s:
 
-                            if "(" in i[l]:
+                            if "(" in i[l] and "j" not in i[l]:
                                 b_temp -= 1
 
-                            if ")" in i[l]:
+                            if ")" in i[l] and "j" not in i[l]:
                                 b_temp += 1
 
                             l -= 1
@@ -3158,10 +3193,10 @@ class Algebra(Equation):
                         b_temp = 0
                         while l != s:
 
-                            if "(" in i[l]:
+                            if "(" in i[l] and "j" not in i[l]:
                                 b_temp -= 1
 
-                            if ")" in i[l]:
+                            if ")" in i[l] and "j" not in i[l]:
                                 b_temp += 1
 
                             l -= 1
@@ -3199,7 +3234,7 @@ class Algebra(Equation):
 
         #print(l_og, l_new, bracket_dict)
         r_new, bracket_dict = bracketing(self.rhs, self.var_type, bracket_dict)
-
+        #print(stringify(l_new)+" = "+stringify(r_new), self.var_type)
         s = 0
         while s == 0:
 
@@ -3216,7 +3251,7 @@ class Algebra(Equation):
 
         new_eqn_string = stringify(l_new)+"="+stringify(r_new)
         new_eqn = Algebra(new_eqn_string)
-
+        print(new_eqn.eqn_string)
         # Lets take note of the variables in l and r now
         work_var_l = []
         work_var_r = []
@@ -3320,8 +3355,8 @@ class Algebra(Equation):
 
                 # Now we should check if the variables are one character apart. Ex: z and a or a and b
                 if (work_var_l[0] == var_dict[work_var_r[0]]):
-
-                    print("HIYA")
+                    print("This one")
+                    #print(work_var_l[0], var_dict[work_var_r[0]])
                     for x in bracket_dict:
 
                         if bracket_dict[x] == work_var_l[0]:
@@ -3332,24 +3367,27 @@ class Algebra(Equation):
                     br = br.replace(work_var_l[0], "(" + sub + ")")
                     #print(br)
                     l_new_obj = Equation(br)
-                    new_eqn.lhs, new_eqn.var_type, work_var = l_new_obj.eqn, l_new_obj.var_type[0], l_new_obj.var_type[0]
+                    new_eqn.lhs, work_var = l_new_obj.eqn, l_new_obj.var_type[0]
+                    new_eqn.update_attr()
                     l_new_obj = None
                     #print(new_eqn.lhs)
 
                     # solve and keep resubbing
                     while (new_eqn.lhs[1] != self.var_type[0]) and (len(new_eqn.lhs) != 3):
-
-                        if any(isinstance(sub, list) for sub in new_eqn.rhs) == True:
-
+                        copy_rhs = copy.deepcopy(new_eqn.rhs)
+                        if any(isinstance(sub, list) for sub in copy_rhs) == True:
+                            #print("FASTER", new_eqn.lhs, new_eqn.rhs)
                             l_new_string = stringify(new_eqn.lhs)
                             l_new_obj = Equation(l_new_string)
                             new_eqn.lhs, work_var = l_new_obj.eqn, l_new_obj.var_type[0]
+                            #new_eqn.update_attr()
                             l_new_obj = None
 
                             ans = []
-                            for i in new_eqn.rhs:
+                            for i in copy_rhs:
                                 temp_string = l_new_string+"="+stringify(i)
                                 temp_eqn = Algebra(temp_string)
+                                #print("YOOO", temp_eqn.var_type, temp_eqn.lhs, temp_eqn.rhs, "ans", ans)
                                 ans_temp = solving(temp_eqn)
                                 ans.append(ans_temp)
                                 temp_eqn = None
@@ -3433,7 +3471,7 @@ class Algebra(Equation):
                         l_new_obj = None
 
                 elif (work_var_r[0] == var_dict[work_var_l[0]]):
-
+                    print("That one")
                     for x in bracket_dict:
 
                         if bracket_dict[x] == work_var_r[0]:
@@ -3472,8 +3510,6 @@ class Algebra(Equation):
                 new_eqn.rhs.append(temp.eqn)
                 temp = None
 
-        print("Made it to the end", "l", "r")
-
         return new_eqn.lhs, new_eqn.rhs
 
     def rearrange(self):
@@ -3481,8 +3517,8 @@ class Algebra(Equation):
         Function takes LHS and RHS, moves all variables to LHS, constants to RHS and combines all similar terms.
         Equation must be rid of all brackets, and in proper polynomial format to use. Returns rearranged LHS and RHS.
         """
+        #TODO Add a check to ensure LHS and RHS inputs are of proper format.
 
-        """TO-DO: Add a check to ensure LHS and RHS inputs are of proper format."""
         # First all variable terms must go from RHS to LHS
         var = self.var_type[0]
         s = 0
@@ -3512,6 +3548,9 @@ class Algebra(Equation):
                             if s == 1:
 
                                 del self.rhs[s]
+                                if self.rhs[s] == "-":
+                                    self.rhs[s] += self.rhs[s+1]
+                                    del self.rhs[s+1]
 
                             else:
 
@@ -3533,6 +3572,9 @@ class Algebra(Equation):
                             if s == 1:
 
                                 del self.rhs[s]
+                                if self.rhs[s] == "-":
+                                    self.rhs[s] += self.rhs[s + 1]
+                                    del self.rhs[s + 1]
 
                             else:
 
@@ -3554,6 +3596,9 @@ class Algebra(Equation):
                         if s == 1:
 
                             del self.rhs[s]
+                            if self.rhs[s] == "-":
+                                self.rhs[s] += self.rhs[s + 1]
+                                del self.rhs[s + 1]
 
                         else:
 
@@ -3563,7 +3608,6 @@ class Algebra(Equation):
 
             s += 1
 
-        # print(l, r)
         # Now we will take out any unnecessary operation signs from RHS and Also if the second element of LHS is a term with a negative inside, then we will make two indexes
         # First RHS
         if self.rhs[1] == "+":
@@ -3582,7 +3626,7 @@ class Algebra(Equation):
 
         if "-" in self.rhs[1]:
 
-            if not is_complex_coeff(self.rhs[1], var):
+            if is_complex_coeff(self.rhs[1], var):
                 self.rhs[1] = self.rhs[1].replace("-", '')
                 self.lhs.insert(1, "-")
 
@@ -3615,6 +3659,9 @@ class Algebra(Equation):
                             if s == 1:
 
                                 del self.lhs[s]
+                                if self.lhs[s] == "-":
+                                    self.lhs[s] += self.lhs[s+1]
+                                    del self.lhs[s+1]
 
                             else:
 
@@ -3636,6 +3683,9 @@ class Algebra(Equation):
                             if s == 1:
 
                                 del self.lhs[s]
+                                if self.lhs[s] == "-":
+                                    self.lhs[s] += self.lhs[s + 1]
+                                    del self.lhs[s + 1]
 
                             else:
 
@@ -3657,6 +3707,9 @@ class Algebra(Equation):
                         if s == 1:
 
                             del self.lhs[s]
+                            if self.lhs[s] == "-":
+                                self.lhs[s] += self.lhs[s + 1]
+                                del self.lhs[s + 1]
 
                         else:
 
@@ -4327,146 +4380,153 @@ class Algebra(Equation):
         else:
             from math_core.jenkins_traub import real_poly
 
-            if "-" in self.rhs[1]:
+            if (self.rhs[1] != "0") and (self.rhs[1] != "0.0"):
 
-                self.rhs[1] = self.rhs[1].replace('-', '')
-                self.lhs.insert(-1, "+")
-                self.lhs.insert(-1, self.rhs[1])
-                self.rhs[1] = "0"
+                print("we in here", self.rhs)
+                if "-" in self.rhs[1]:
 
-            else:
+                    self.rhs[1] = self.rhs[1].replace('-', '')
+                    self.lhs.insert(-1, "+")
+                    self.lhs.insert(-1, self.rhs[1])
+                    self.rhs[1] = "0"
 
-                self.lhs.insert(-1, "-")
-                self.lhs.insert(-1, self.rhs[1])
-                self.rhs[1] = "0"
+                else:
 
-            self.get_coeff()
-            #print(stringify(self.lhs)+" = "+stringify(self.rhs))
+                    self.lhs.insert(-1, "-")
+                    self.lhs.insert(-1, self.rhs[1])
+                    self.rhs[1] = "0"
+
+            #self.get_coeff()
+            # print("coeff before JT",coeff)
             print("Checking if 0 is a root via synthetic division...\n")
             self.solution.append("Checking if 0 is a root via synthetic division...")
             self.solution.append("")
             self.solution.append("")
 
             test = self.lin_divide([1, 0])
-            print(stringify(self.lhs), test)
-            test_two_coeff = self.lin_divide([1, 0])
+            test_two = self.lin_divide([1, 0])
             remainder = test[-1]
-            del test_two_coeff[-1]
-            test_two = Algebra()
-            test_two.coeff = test_two_coeff
-            test_two.var_type = self.var_type
-            test_two.update_params_from_coeff()
 
-            test_temp = stringify(test_two.eqn)
+            del test_two[-1]
+            test_obj = Algebra()
+            test_obj.coeff = copy.deepcopy(test_two)
+            test_obj.var_type = copy.deepcopy(self.var_type)
+            test_obj.update_params_from_coeff()
+            # print(test_obj.eqn_string)
+
+            test_temp = test_obj.eqn_string
 
             if remainder < 0:
 
-                test_temp += str(remainder) + "/" + self.var_type[0]
+                    test_temp += str(remainder) + "/" + self.var_type[0]
 
-            else:
+                elif remainder > 0:
 
-                test_temp += "+" + str(remainder) + "/" + self.var_type[0]
+                    test_temp += "+" + str(remainder) + "/" + self.var_type[0]
 
-            string = stringify(self.lhs)+"="+stringify(self.rhs)
-            string = string.replace('=0', '')
-            print("(" + string + ")/" + self.var_type[0] + " = " + test_temp + "\n")
-            self.solution.append("(" + string + ")/" + self.var_type[0] + " = " + test_temp)
-            self.solution.append("")
-            self.solution.append("")
+                print("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp + "\n")
+                self.solution.append("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp)
+                self.solution.append("")
+                self.solution.append("")
 
-            if test[-1] == 0:
+                if remainder == 0.0:
 
-                success_attempt = False
-                ans = []
-                i = 1
-                while not success_attempt:
+                    success_attempt = False
+                    ans = []
+                    i = 1
+                    while not success_attempt:
 
-                    if len(test) - 2 >= 5:
+                        if len(test) - 2 >= 5:
 
-                        try:
-                            del test[-1]
-                            from math_core.Calculus import Calculus
-                            coeff = Calculus()
-                            coeff.coeff = copy.deepcopy(test)
-                            coeff.var_type = copy.deepcopy(self.var_type)
-                            coeff.update_params_from_coeff()
-                            ans = real_poly(coeff)
+                            try:
+                                del test[-1]
+                                from math_core.Calculus import Calculus
+                                coeff = Calculus()
+                                coeff.coeff = copy.deepcopy(test)
+                                coeff.var_type = copy.deepcopy(self.var_type)
+                                coeff.update_params_from_coeff()
+                                #print("AYO!", coeff.coeff, coeff.deg)
+                                ans = real_poly(coeff)
 
-                        except ZeroDivisionError:
+                            except ZeroDivisionError:
 
-                            string = self.var_type[0]
+                                string = self.var_type[0]
 
-                            test = self.lin_divide([1, 0])
+                                test = self.lin_divide([1, 0])
 
-                            print("0 might be a repeated root, trying again...\n")
-                            self.solution.append("0 might be a repeated root, trying again...")
-                            self.solution.append("")
-                            self.solution.append("")
+                                print("0 might be a repeated root, trying again...\n")
+                                self.solution.append("0 might be a repeated root, trying again...")
+                                self.solution.append("")
+                                self.solution.append("")
 
-                            test_two = self.lin_divide([1, 0])
-                            remainder = test[-1]
+                                test_two = self.lin_divide([1, 0])
+                                remainder = test[-1]
 
-                            del test_two[-1]
+                                test_obj = Algebra()
+                                test_obj.coeff = copy.deepcopy(test_two)
+                                test_obj.var_type = copy.deepcopy(self.var_type)
+                                test_obj.update_params_from_coeff()
+                                # print(test_obj.eqn_string)
 
-                            test_temp = self.var_type[0]
+                                test_temp = test_obj.eqn_string
 
-                            if remainder < 0:
+                                if remainder < 0:
 
-                                test_temp += str(remainder) + "/" + self.var_type[0]
+                                    test_temp += str(remainder) + "/" + self.var_type[0]
+
+                                elif remainder > 0:
+
+                                    test_temp += "+" + str(remainder) + "/" + self.var_type[0]
+
+                                print("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp + "\n")
+                                self.solution.append("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp)
+                                self.solution.append("")
+                                self.solution.append("")
+                                i += 1
 
                             else:
 
-                                test_temp += "+" + str(remainder) + "/" + self.var_type[0]
+                                success_attempt = True
+                                print("Success! 0 is a root\n")
+                                self.solution.append("Success! 0 is a root")
+                                self.solution.append("")
+                                self.solution.append("")
 
-                            print("(" + string + ")/" + self.var_type[0] + " = " + test_temp + "\n")
-                            self.solution.append("(" + string + ")/" + self.var_type[0] + " = " + test_temp)
-                            self.solution.append("")
-                            self.solution.append("")
-                            i += 1
+                        elif len(test) - 2 == 4:
+
+                            del test[-1]
+                            from math_core.Calculus import Calculus
+                            test_eqn = Calculus()
+                            test_eqn.coeff = copy.deepcopy(test)
+                            test_eqn.var_type = copy.deepcopy(self.var_type)
+                            test_eqn.update_params_from_coeff()
+                            ans = test_eqn.ferrari()
+                            success_attempt = True
 
                         else:
 
-                            success_attempt = True
-                            print("Success! 0 is a root\n")
-                            self.solution.append("Success! 0 is a root")
-                            self.solution.append("")
-                            self.solution.append("")
+                            break
 
-                    elif len(test) - 2 == 4:
-
-                        del test[-1]
-                        from math_core.Calculus import Calculus
-                        test_eqn = Calculus()
-                        test_eqn.coeff = copy.deepcopy(test)
-                        test_eqn.var_type = copy.deepcopy(self.var_type)
-                        test_eqn.update_params_from_coeff()
-                        ans = test_eqn.ferrari()
-                        success_attempt = True
-
-                    else:
-
-                        break
-
-                for s in range(1, i + 1):
-                    ans.insert(0, 0)
+                    for s in range(1, i + 1):
+                        ans.insert(0, 0)
 
 
-            else:
+                else:
 
-                print("0 is not a root\n")
-                self.solution.append("0 is not a root")
-                from math_core.Calculus import Calculus
-                coeff = Calculus()
-                coeff.coeff = copy.deepcopy(self.coeff)
-                coeff.var_type = copy.deepcopy(self.var_type)
-                coeff.update_params_from_coeff()
-                ans = real_poly(coeff)
+                    print("0 is not a root\n")
+                    self.solution.append("0 is not a root")
+                    from math_core.Calculus import Calculus
+                    coeff = Calculus()
+                    coeff.coeff = copy.deepcopy(self.coeff)
+                    coeff.var_type = copy.deepcopy(self.var_type)
+                    coeff.update_params_from_coeff()
+                    ans = real_poly(coeff)
 
-            print(ans)
+                print(ans)
 
-            for i in range(0, len(ans)):
+                for i in range(0, len(ans)):
 
-                if round(ans[i].imag, 5) == 0:
-                    ans[i] = ans[i].real
+                    if round(ans[i].imag, 5) == 0:
+                        ans[i] = ans[i].real
 
         return ans

@@ -37,6 +37,8 @@ def solve(input: Equation) -> Tuple[List[str], List[Union[int, float, complex]]]
 
     ans = []
     eqn = Algebra(input.eqn_string)
-    ans.append(eqn.isolate())
+    eqn.isolate()
+    for i in eqn.rhs:
+        ans.append(i[1])
 
     return eqn.solution, ans
