@@ -558,7 +558,6 @@ def bracketify(a: str) -> Tuple[List[str], List[str]]:
                 temp = ""  # clear up temp
 
         s = s + 1
-
     # print("now for inference")
     master = inference(master)
     # print(master)
@@ -626,9 +625,21 @@ def inference(eqn: List[str]) -> List[str]:
 
 def imaginary_num(br: List[str]) -> List[str]:
     """Removes brackets around complex numbers."""
+    #First combine complex numbers into a single index
     i = 0
     mod_chk = False
     br_copy = br[:]
+    while i != len(br_copy):
+        if ("j" in br_copy[i]) and (br_copy[i-1] in "+-") and (is_number(br_copy[i-2])):
+            temp = br_copy[i-2]+br_copy[i-1]+br_copy[i]
+            br_copy[i-2] = temp
+            del br_copy[i-1:i+1]
+            print(br_copy)
+            i -= 1
+            mod_chk = True
+        i += 1
+
+    i = 0
     while i != len(br_copy):
 
         if (")" in br_copy[i]) and (br_copy[i] != ")1") and (br_copy[i - 1] == "j") and (
@@ -699,7 +710,7 @@ def imaginary_num(br: List[str]) -> List[str]:
 
         i += 1
 
-    if mod_chk == True:
+    if mod_chk:
         br = br_copy[:]
 
     return br
@@ -1149,8 +1160,8 @@ class Equation():
                 j = j + 1
 
             # The following code is for single character variables
-            elif (a[s].isalpha()) and (not a[s - 1].isalpha()) and (not a[s + 1].isalpha()) and (
-                    a[s] != "d"):
+            elif (a[s].isalpha() == True) and (a[s - 1].isalpha() == False) and (a[s + 1].isalpha() == False) and (
+                    a[s] != "d") and (a[s] != "j"):
 
                 master.insert(j, str(a[s]))
                 if str(a[s]) not in var_type:
@@ -1183,11 +1194,11 @@ class Equation():
 
                 numtemp.insert(i, a[s])
 
-                if (a[s + 1].isdigit() == True) or (a[s + 1] == "."):  # if the next index is a number or a period or j
+                if (a[s + 1].isdigit()) or (a[s + 1] == ".") or (a[s+1] == "j"):  # if the next index is a number or a period or j
 
                     i = i + 1
 
-                elif (a[s + 1] == "e") and (a[s + 2] in "+-") and (a[s + 3].isdigit() == True):
+                elif (a[s + 1] == "e") and (a[s + 2] in "+-") and (a[s + 3].isdigit()):
 
                     # print(a[s],str(s)+" out of "+str(len(a)-1))
 
@@ -1201,7 +1212,7 @@ class Equation():
                     # print(numtemp)
                     i += 1
 
-                elif (a[s] == "-") & (a[s - 1].isdigit() == False):
+                elif (a[s] == "-") and (not a[s - 1].isdigit()):
 
                     master.insert(j, "-1")
                     j = j + 1
@@ -1214,20 +1225,48 @@ class Equation():
                     for k in range(0, i + 1):
                         temp = str(temp) + str(numtemp[k])
 
-                    master.insert(j, str(float(temp)))
-                    j = j + 1
-                    i = 0
-                    numtemp.clear()
-                    temp = ""  # clear up temp
+                    if complex(temp).imag != 0:
+
+                        if complex(temp).real == 0:
+
+                            master.insert(j, str(complex(temp).imag*1j))
+                            j = j + 1
+                            i = 0
+                            numtemp.clear()
+                            temp = ""  # clear up temp
+
+                        else:
+
+                            master.insert(j, str(complex(temp)))
+                            j = j + 1
+                            i = 0
+                            numtemp.clear()
+                            temp = ""  # clear up temp
+
+                    elif temp == "0j":
+
+                        master.insert(j, str(complex(temp)))
+                        j = j + 1
+                        i = 0
+                        numtemp.clear()
+                        temp = ""  # clear up temp
+
+                    else:
+
+                        master.insert(j, str(float(temp)))
+                        j = j + 1
+                        i = 0
+                        numtemp.clear()
+                        temp = ""  # clear up temp
 
             s += 1
-
+        #print("YEEEHAW", master)
         # print("now for inference")
         master = inference(master)
         # print(master)
         # print("now for imaginary_num")
         master = imaginary_num(master)
-        # print(master)
+        #print("After imaginary_num", master)
 
         if not var_type:
             var_type.append("")
@@ -1264,7 +1303,7 @@ class Equation():
             mod = False
             # print(eqn)
             # This index has a variable in it
-            if ("(" in self.eqn[i]) & (self.eqn[i] not in oper_dict.values()):
+            if ("(" in self.eqn[i]) and (self.eqn[i] not in oper_dict.values()):
 
                 b += 1
                 b_open += 1
@@ -1276,7 +1315,7 @@ class Equation():
                         p_b = b
                         p = i
 
-            if (")" in self.eqn[i]) & (self.eqn[i] not in oper_dict.values()):
+            if (")" in self.eqn[i]) and (self.eqn[i] not in oper_dict.values()):
 
                 if self.eqn[i] == ")" + str(p_b):
                     p_b = 0
@@ -1285,25 +1324,30 @@ class Equation():
                 b -= 1
                 b_close += 1
 
-            if (self.eqn[i].isalpha() == True) and (len(self.eqn[i]) == 1):
+            if (self.eqn[i].isalpha()) and (len(self.eqn[i]) == 1):
 
                 # print("eqn[i]", eqn[i])
                 if self.eqn[i] not in var:
                     var.append(self.eqn[i])
 
-                if (self.eqn[i + 1] == "^") and (is_number(self.eqn[i + 2]) == True):
+                if (self.eqn[i + 1] == "^") and (is_number(self.eqn[i + 2])):
                     self.eqn[i] = self.eqn[i] + "^" + self.eqn[i + 2]
                     del self.eqn[i + 1:i + 3]
                     mod = True
                 # print(eqn)
 
-                if (is_number(self.eqn[i - 1]) == True):
+                if (is_number(self.eqn[i - 1])):
                     self.eqn[i - 1] = self.eqn[i - 1] + self.eqn[i]
                     del self.eqn[i]
                     mod = True
                 # print(eqn)
 
-                if (self.eqn[i - 1] == "*") and (is_number(self.eqn[i - 2]) == True):
+                if (")" in self.eqn[i-1]) and (is_number(self.eqn[i-2])) and ("(" in self.eqn[i-3]):
+                    self.eqn[i-3] = "("+self.eqn[i-2]+")"+self.eqn[i]
+                    del self.eqn[i-2:i+1]
+                    mod = True
+
+                if (self.eqn[i - 1] == "*") and (is_number(self.eqn[i - 2])):
                     self.eqn[i - 2] = self.eqn[i - 2] + self.eqn[i]
                     del self.eqn[i - 1:i + 1]
                     mod = True
