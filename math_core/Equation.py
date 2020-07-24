@@ -1,6 +1,37 @@
 from typing import List, Tuple, Union
 import math, cmath
 
+var_dict = {
+
+    "a": "b",
+    "b": "c",
+    "c": "d",
+    "d": "e",
+    "e": "f",
+    "f": "g",
+    "g": "h",
+    "h": "i",
+    "i": "j",
+    "j": "k",
+    "k": "l",
+    "l": "m",
+    "m": "n",
+    "n": "o",
+    "o": "p",
+    "p": "q",
+    "q": "r",
+    "r": "s",
+    "s": "t",
+    "t": "u",
+    "u": "v",
+    "v": "w",
+    "w": "x",
+    "x": "y",
+    "y": "z",
+    "z": "a"
+
+}
+
 oper_dict = {
 
     0: "SIN",
@@ -54,6 +85,20 @@ def is_number(s: str) -> bool:
 def bracketify(a: str) -> Tuple[List[str], List[str]]:
     "Takes equation in string format and transforms into list of strings."
     # Gotta add a check for imaginary numbers
+
+    if "derivative of " in a:
+
+        calculus_chk = True
+        a = a.replace("derivative of ", '')
+
+    elif "derivative " in a:
+
+        calculus_chk = True
+        a = a.replace("derivative ", '')
+
+    elif "d/d" in a:
+
+        calculus_chk = True
 
     master = []
     numtemp = []
@@ -697,6 +742,17 @@ class Equation():
         numtemp = []
         var_type = []
         a = self.eqn_string
+        if "derivative of " in a:
+
+            calculus_chk = True
+            a = a.replace("derivative of ", '')
+
+        elif "derivative " in a:
+
+            calculus_chk = True
+            a = a.replace("derivative ", '')
+        else:
+            calculus_chk = False
         a = "(" + a + ")00000"
 
         i = 0
@@ -721,8 +777,12 @@ class Equation():
                 master.insert(j, "^")
                 j = j + 1
 
-            elif a[s] == "/":
+            elif (a[s] == "/" and a[s-1] == "d") or (a[s] == "/" and a[s-2] == "d"):
+                s += 1
+                continue
 
+            elif (a[s] == "/" and a[s-1] != "d") or (a[s] == "/" and a[s-2] != "d"):
+                print(s, a, s-1, a[s-1], s-2, a[s-2])
                 master.insert(j, "/")
                 j = j + 1
 
@@ -1110,6 +1170,25 @@ class Equation():
 
                 j = j + 1
 
+            elif a[s].isalpha() and a[s-1] == "d" and a[s-2] == "/" and a[s-3].isalpha() and a[s-4] == "d":
+                #print("bingo")
+                master.insert(j, "d"+str(a[s-3])+"/d"+str(a[s]))
+                if str(a[s]) not in var_type:
+                    var_type.insert(var_num, str(a[s]))
+                    var_num += 1
+                j += 1
+
+            elif a[s].isalpha() and a[s-1] == "d" and a[s-2] == "/" and a[s-3] == "d":
+                #print("bingo")
+                master.insert(j, "d/d"+str(a[s]))
+                if str(a[s]) not in var_type:
+                    var_type.insert(var_num, str(a[s]))
+                    var_num += 1
+                j += 1
+
+            elif a[s] == "d" or (a[s] == "/" and a[s-1] == "d") or (a[s].isalpha() and a[s-1] == "d" and a[s] not in var_type):
+                s += 1
+                continue
             # the following code is for handling large numbers and decimals
             else:
 
@@ -1180,7 +1259,7 @@ class Equation():
                         numtemp.clear()
                         temp = ""  # clear up temp
 
-            s = s + 1
+            s += 1
         #print("YEEEHAW", master)
         # print("now for inference")
         master = inference(master)
@@ -1191,6 +1270,17 @@ class Equation():
 
         if not var_type:
             var_type.append("")
+
+        if calculus_chk:
+
+            master.insert(1, "d/d"+str(var_type[0]))
+            master.insert(1, "=")
+            if var_type[0] != "y":
+                master.insert(1, "dy/d"+str(var_type[0]))
+            else:
+                master.insert(1, "d"+var_dict[var_type[0]]+"/d"+str(var_type[0]))
+            master.insert(4, "(2")
+            master.insert(-1, ")2")
 
         self.eqn = master
         self.var_type = var_type
@@ -1415,6 +1505,8 @@ class Equation():
 
                             if 1 not in eqn_deg:
                                 eqn_deg.append(1)
+
+
                         # print(s, eqn_deg)
 
             if is_number(s) == True:
@@ -1441,6 +1533,14 @@ class Equation():
                 s = -1
 
             s += 1
+
+        var_chk = False
+        for s in self.eqn:
+            if self.var_type[0] in s:
+                var_chk = True
+
+        if not var_chk:
+            del new_eqn_deg[0]
 
         if len(self.eqn) > 1:
 
