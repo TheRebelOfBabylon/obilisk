@@ -2,43 +2,14 @@
 from __future__ import annotations
 import math
 import cmath
-from math_core.Equation import Equation, is_number, oper_dict, stringify, bracketify
+from math_core.Equation import Equation, is_number, oper_dict, stringify, bracketify, var_dict
 from math_core.Arithmetic import Arithmetic, is_even
 import random
 import copy
 
 from typing import Tuple, List, Union, Dict
 
-var_dict = {
 
-    "a": "b",
-    "b": "c",
-    "c": "d",
-    "d": "e",
-    "e": "f",
-    "f": "g",
-    "g": "h",
-    "h": "i",
-    "i": "j",
-    "j": "k",
-    "k": "l",
-    "l": "m",
-    "m": "n",
-    "n": "o",
-    "o": "p",
-    "p": "q",
-    "q": "r",
-    "r": "s",
-    "s": "t",
-    "t": "u",
-    "u": "v",
-    "v": "w",
-    "w": "x",
-    "x": "y",
-    "y": "z",
-    "z": "a"
-
-}
 
 def is_complex_coeff(string: str, var: str) -> bool:
     """Function checks if a monomial string has a complex coefficient. Returns True or False."""
@@ -1029,8 +1000,8 @@ class Algebra(Equation):
         n = 0
         for i in self.coeff:
             ans.append(i + b)
-            b = ans[-1] * a
-
+            b = ans[n] * a
+            n+=1
         return ans
 
     def poly_multiply(self, x: Union[int, float, complex]) -> List[Union[int, float, complex]]:
@@ -1170,7 +1141,7 @@ class Algebra(Equation):
                         else:
                             if i < 0.0:
                                 temp_string += "-"
-                                if abs(i) == 1.0:
+                                if (abs(i) == 1.0) or (abs(i) == 1):
                                     temp_string += self.var_type[0] + "^" + str(j)
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
@@ -1179,7 +1150,7 @@ class Algebra(Equation):
                                 continue
                             else:
                                 temp_string += "+"
-                                if i == 1.0:
+                                if (i == 1.0) or (i == 1):
                                     temp_string += self.var_type[0] + "^" + str(j)
                                 else:
                                     temp_string += str(i) + self.var_type[0] + "^" + str(j)
@@ -1187,9 +1158,9 @@ class Algebra(Equation):
                         if isinstance(i, complex):
                             temp_string += str(i) + self.var_type[0] + "^" + str(j)
                         else:
-                            if i == 1.0:
+                            if (i == 1.0) or (i == 1):
                                 temp_string += self.var_type[0] + "^" + str(j)
-                            elif i == -1.0:
+                            elif (i == -1.0) or (i == -1):
                                 temp_string += "-" + self.var_type[0] + "^" + str(j)
                             elif i == 0.0:
                                 j -= 1
@@ -1205,7 +1176,7 @@ class Algebra(Equation):
                         else:
                             if i < 0.0:
                                 temp_string += "-"
-                                if abs(i) == 1.0:
+                                if (abs(i) == 1.0) or (abs(i) == 1):
                                     temp_string += self.var_type[0]
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0]
@@ -1214,7 +1185,7 @@ class Algebra(Equation):
                                 continue
                             else:
                                 temp_string += "+"
-                                if i == 1.0:
+                                if (i == 1.0) or (i == 1):
                                     temp_string += self.var_type[0]
                                 else:
                                     temp_string += str(i) + self.var_type[0]
@@ -1222,9 +1193,9 @@ class Algebra(Equation):
                         if isinstance(i, complex):
                             temp_string += str(i) + self.var_type[0]
                         else:
-                            if i == 1.0:
+                            if (i == 1.0) or (i == 1):
                                 temp_string += self.var_type[0]
-                            elif i == -1.0:
+                            elif (i == -1.0) or (i == -1):
                                 temp_string += "-" + self.var_type[0]
                             elif i == 0.0:
                                 j -= 1
@@ -1263,7 +1234,7 @@ class Algebra(Equation):
                         else:
                             if i < 0.0:
                                 temp_string += "-"
-                                if abs(i) == 1.0:
+                                if (abs(i) == 1.0) or (abs(i) == 1):
                                     temp_string += self.var_type[0] + "^" + str(j)
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0] + "^" + str(j)
@@ -1271,7 +1242,7 @@ class Algebra(Equation):
                                 continue
                             else:
                                 temp_string += "+"
-                                if i == 1.0:
+                                if (i == 1.0) or (i == 1):
                                     temp_string += self.var_type[0] + "^" + str(j)
                                 else:
                                     temp_string += str(i) + self.var_type[0] + "^" + str(j)
@@ -1279,9 +1250,9 @@ class Algebra(Equation):
                         if isinstance(i, complex):
                             temp_string += str(i) + self.var_type[0] + "^" + str(j)
                         else:
-                            if i == 1.0:
+                            if (i == 1.0) or (i == 1):
                                 temp_string += self.var_type[0] + "^" + str(j)
-                            elif i == -1.0:
+                            elif (i == -1.0) or (i == -1):
                                 temp_string += "-" + self.var_type[0] + "^" + str(j)
                             elif i == 0.0:
                                 continue
@@ -1296,7 +1267,7 @@ class Algebra(Equation):
                         else:
                             if i < 0.0:
                                 temp_string += "-"
-                                if abs(i) == 1.0:
+                                if (abs(i) == 1.0) or (abs(i) == 1):
                                     temp_string += self.var_type[0]
                                 else:
                                     temp_string += str(abs(i)) + self.var_type[0]
@@ -1304,7 +1275,7 @@ class Algebra(Equation):
                                 continue
                             else:
                                 temp_string += "+"
-                                if i == 1.0:
+                                if (i == 1.0) or (i == 1):
                                     temp_string += self.var_type[0]
                                 else:
                                     temp_string += str(i) + self.var_type[0]
@@ -1312,9 +1283,9 @@ class Algebra(Equation):
                         if isinstance(i, complex):
                             temp_string += str(i) + self.var_type[0]
                         else:
-                            if i == 1.0:
+                            if (i == 1.0) or (i == 1):
                                 temp_string += self.var_type[0]
-                            elif i == -1.0:
+                            elif (i == -1.0) or (i == -1):
                                 temp_string += "-" + self.var_type[0]
                             elif i == 0.0:
                                 continue
@@ -2925,6 +2896,7 @@ class Algebra(Equation):
     def cardano(self) -> List[Union[int, float, complex]]:
         """Root finding formula for cubic polynomials."""
         if len(self.coeff) != 4:
+            print(self.coeff, stringify(self.eqn))
             raise ValueError("Cubics must have 4 terms.")
         self.solution.append("")
         print("\n-- Using Cardano's Formula: --")
@@ -3063,7 +3035,8 @@ class Algebra(Equation):
         print(resolvent + "=0")
         self.solution.append(resolvent + "=0")
 
-        cubic = Algebra(resolvent)
+        cubic = Algebra(resolvent+"=0")
+        cubic.get_coeff()
         cubic_ans = cubic.cardano()
 
         for i in cubic.solution:
@@ -4423,6 +4396,7 @@ class Algebra(Equation):
                     self.lhs.insert(-1, self.rhs[1])
                     self.rhs[1] = "0"
 
+            #self.get_coeff()
             # print("coeff before JT",coeff)
             print("Checking if 0 is a root via synthetic division...\n")
             self.solution.append("Checking if 0 is a root via synthetic division...")
@@ -4438,121 +4412,121 @@ class Algebra(Equation):
             test_obj.coeff = copy.deepcopy(test_two)
             test_obj.var_type = copy.deepcopy(self.var_type)
             test_obj.update_params_from_coeff()
-            #print(test_obj.eqn_string)
+            # print(test_obj.eqn_string)
 
             test_temp = test_obj.eqn_string
 
             if remainder < 0:
 
-                test_temp += str(remainder) + "/" + self.var_type[0]
+                    test_temp += str(remainder) + "/" + self.var_type[0]
 
-            elif remainder > 0:
+                elif remainder > 0:
 
-                test_temp += "+" + str(remainder) + "/" + self.var_type[0]
+                    test_temp += "+" + str(remainder) + "/" + self.var_type[0]
 
-            print("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp + "\n")
-            self.solution.append("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp)
-            self.solution.append("")
-            self.solution.append("")
+                print("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp + "\n")
+                self.solution.append("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp)
+                self.solution.append("")
+                self.solution.append("")
 
-            if remainder == 0.0:
+                if remainder == 0.0:
 
-                success_attempt = False
-                ans = []
-                i = 1
-                while not success_attempt:
+                    success_attempt = False
+                    ans = []
+                    i = 1
+                    while not success_attempt:
 
-                    if len(test) - 2 >= 5:
+                        if len(test) - 2 >= 5:
 
-                        try:
+                            try:
+                                del test[-1]
+                                from math_core.Calculus import Calculus
+                                coeff = Calculus()
+                                coeff.coeff = copy.deepcopy(test)
+                                coeff.var_type = copy.deepcopy(self.var_type)
+                                coeff.update_params_from_coeff()
+                                #print("AYO!", coeff.coeff, coeff.deg)
+                                ans = real_poly(coeff)
+
+                            except ZeroDivisionError:
+
+                                string = self.var_type[0]
+
+                                test = self.lin_divide([1, 0])
+
+                                print("0 might be a repeated root, trying again...\n")
+                                self.solution.append("0 might be a repeated root, trying again...")
+                                self.solution.append("")
+                                self.solution.append("")
+
+                                test_two = self.lin_divide([1, 0])
+                                remainder = test[-1]
+
+                                test_obj = Algebra()
+                                test_obj.coeff = copy.deepcopy(test_two)
+                                test_obj.var_type = copy.deepcopy(self.var_type)
+                                test_obj.update_params_from_coeff()
+                                # print(test_obj.eqn_string)
+
+                                test_temp = test_obj.eqn_string
+
+                                if remainder < 0:
+
+                                    test_temp += str(remainder) + "/" + self.var_type[0]
+
+                                elif remainder > 0:
+
+                                    test_temp += "+" + str(remainder) + "/" + self.var_type[0]
+
+                                print("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp + "\n")
+                                self.solution.append("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp)
+                                self.solution.append("")
+                                self.solution.append("")
+                                i += 1
+
+                            else:
+
+                                success_attempt = True
+                                print("Success! 0 is a root\n")
+                                self.solution.append("Success! 0 is a root")
+                                self.solution.append("")
+                                self.solution.append("")
+
+                        elif len(test) - 2 == 4:
+
                             del test[-1]
                             from math_core.Calculus import Calculus
-                            coeff = Calculus()
-                            coeff.coeff = copy.deepcopy(test)
-                            coeff.var_type = copy.deepcopy(self.var_type)
-                            coeff.update_params_from_coeff()
-                            #print("AYO!", coeff.coeff, coeff.deg)
-                            ans = real_poly(coeff)
-
-                        except ZeroDivisionError:
-
-                            string = self.var_type[0]
-
-                            test = self.lin_divide([1, 0])
-
-                            print("0 might be a repeated root, trying again...\n")
-                            self.solution.append("0 might be a repeated root, trying again...")
-                            self.solution.append("")
-                            self.solution.append("")
-
-                            test_two = self.lin_divide([1, 0])
-                            remainder = test[-1]
-
-                            test_obj = Algebra()
-                            test_obj.coeff = copy.deepcopy(test_two)
-                            test_obj.var_type = copy.deepcopy(self.var_type)
-                            test_obj.update_params_from_coeff()
-                            # print(test_obj.eqn_string)
-
-                            test_temp = test_obj.eqn_string
-
-                            if remainder < 0:
-
-                                test_temp += str(remainder) + "/" + self.var_type[0]
-
-                            elif remainder > 0:
-
-                                test_temp += "+" + str(remainder) + "/" + self.var_type[0]
-
-                            print("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp + "\n")
-                            self.solution.append("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp)
-                            self.solution.append("")
-                            self.solution.append("")
-                            i += 1
+                            test_eqn = Calculus()
+                            test_eqn.coeff = copy.deepcopy(test)
+                            test_eqn.var_type = copy.deepcopy(self.var_type)
+                            test_eqn.update_params_from_coeff()
+                            ans = test_eqn.ferrari()
+                            success_attempt = True
 
                         else:
 
-                            success_attempt = True
-                            print("Success! 0 is a root\n")
-                            self.solution.append("Success! 0 is a root")
-                            self.solution.append("")
-                            self.solution.append("")
+                            break
 
-                    elif len(test) - 2 == 4:
-
-                        del test[-1]
-                        from math_core.Calculus import Calculus
-                        test_eqn = Calculus()
-                        test_eqn.coeff = copy.deepcopy(test)
-                        test_eqn.var_type = copy.deepcopy(self.var_type)
-                        test_eqn.update_params_from_coeff()
-                        ans = test_eqn.ferrari()
-                        success_attempt = True
-
-                    else:
-
-                        break
-
-                for s in range(1, i + 1):
-                    ans.insert(0, 0)
+                    for s in range(1, i + 1):
+                        ans.insert(0, 0)
 
 
-            else:
+                else:
 
-                print("0 is not a root\n")
-                self.solution.append("0 is not a root")
-                from math_core.Calculus import Calculus
-                coeff = Calculus()
-                coeff.coeff = copy.deepcopy(self.coeff)
-                coeff.var_type = copy.deepcopy(self.var_type)
-                coeff.update_params_from_coeff()
-                ans = real_poly(coeff)
+                    print("0 is not a root\n")
+                    self.solution.append("0 is not a root")
+                    from math_core.Calculus import Calculus
+                    coeff = Calculus()
+                    coeff.coeff = copy.deepcopy(self.coeff)
+                    coeff.var_type = copy.deepcopy(self.var_type)
+                    coeff.update_params_from_coeff()
+                    ans = real_poly(coeff)
 
-            print(ans)
+                print(ans)
 
-            for i in range(0, len(ans)):
+                for i in range(0, len(ans)):
 
-                if round(ans[i].imag, 5) == 0:
-                    ans[i] = ans[i].real
+                    if round(ans[i].imag, 5) == 0:
+                        ans[i] = ans[i].real
 
         return ans
