@@ -4418,115 +4418,115 @@ class Algebra(Equation):
 
             if remainder < 0:
 
-                    test_temp += str(remainder) + "/" + self.var_type[0]
+                test_temp += str(remainder) + "/" + self.var_type[0]
 
-                elif remainder > 0:
+            elif remainder > 0:
 
-                    test_temp += "+" + str(remainder) + "/" + self.var_type[0]
+                test_temp += "+" + str(remainder) + "/" + self.var_type[0]
 
-                print("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp + "\n")
-                self.solution.append("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp)
-                self.solution.append("")
-                self.solution.append("")
+            print("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp + "\n")
+            self.solution.append("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp)
+            self.solution.append("")
+            self.solution.append("")
 
-                if remainder == 0.0:
+            if remainder == 0.0:
 
-                    success_attempt = False
-                    ans = []
-                    i = 1
-                    while not success_attempt:
+                success_attempt = False
+                ans = []
+                i = 1
+                while not success_attempt:
 
-                        if len(test) - 2 >= 5:
+                    if len(test) - 2 >= 5:
 
-                            try:
-                                del test[-1]
-                                from math_core.Calculus import Calculus
-                                coeff = Calculus()
-                                coeff.coeff = copy.deepcopy(test)
-                                coeff.var_type = copy.deepcopy(self.var_type)
-                                coeff.update_params_from_coeff()
-                                #print("AYO!", coeff.coeff, coeff.deg)
-                                ans = real_poly(coeff)
-
-                            except ZeroDivisionError:
-
-                                string = self.var_type[0]
-
-                                test = self.lin_divide([1, 0])
-
-                                print("0 might be a repeated root, trying again...\n")
-                                self.solution.append("0 might be a repeated root, trying again...")
-                                self.solution.append("")
-                                self.solution.append("")
-
-                                test_two = self.lin_divide([1, 0])
-                                remainder = test[-1]
-
-                                test_obj = Algebra()
-                                test_obj.coeff = copy.deepcopy(test_two)
-                                test_obj.var_type = copy.deepcopy(self.var_type)
-                                test_obj.update_params_from_coeff()
-                                # print(test_obj.eqn_string)
-
-                                test_temp = test_obj.eqn_string
-
-                                if remainder < 0:
-
-                                    test_temp += str(remainder) + "/" + self.var_type[0]
-
-                                elif remainder > 0:
-
-                                    test_temp += "+" + str(remainder) + "/" + self.var_type[0]
-
-                                print("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp + "\n")
-                                self.solution.append("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp)
-                                self.solution.append("")
-                                self.solution.append("")
-                                i += 1
-
-                            else:
-
-                                success_attempt = True
-                                print("Success! 0 is a root\n")
-                                self.solution.append("Success! 0 is a root")
-                                self.solution.append("")
-                                self.solution.append("")
-
-                        elif len(test) - 2 == 4:
-
+                        try:
                             del test[-1]
                             from math_core.Calculus import Calculus
-                            test_eqn = Calculus()
-                            test_eqn.coeff = copy.deepcopy(test)
-                            test_eqn.var_type = copy.deepcopy(self.var_type)
-                            test_eqn.update_params_from_coeff()
-                            ans = test_eqn.ferrari()
-                            success_attempt = True
+                            coeff = Calculus()
+                            coeff.coeff = copy.deepcopy(test)
+                            coeff.var_type = copy.deepcopy(self.var_type)
+                            coeff.update_params_from_coeff()
+                            #print("AYO!", coeff.coeff, coeff.deg)
+                            ans = real_poly(coeff)
+
+                        except ZeroDivisionError:
+
+                            string = self.var_type[0]
+
+                            test = self.lin_divide([1, 0])
+
+                            print("0 might be a repeated root, trying again...\n")
+                            self.solution.append("0 might be a repeated root, trying again...")
+                            self.solution.append("")
+                            self.solution.append("")
+
+                            test_two = self.lin_divide([1, 0])
+                            remainder = test[-1]
+
+                            test_obj = Algebra()
+                            test_obj.coeff = copy.deepcopy(test_two)
+                            test_obj.var_type = copy.deepcopy(self.var_type)
+                            test_obj.update_params_from_coeff()
+                            # print(test_obj.eqn_string)
+
+                            test_temp = test_obj.eqn_string
+
+                            if remainder < 0:
+
+                                test_temp += str(remainder) + "/" + self.var_type[0]
+
+                            elif remainder > 0:
+
+                                test_temp += "+" + str(remainder) + "/" + self.var_type[0]
+
+                            print("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp + "\n")
+                            self.solution.append("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp)
+                            self.solution.append("")
+                            self.solution.append("")
+                            i += 1
 
                         else:
 
-                            break
+                            success_attempt = True
+                            print("Success! 0 is a root\n")
+                            self.solution.append("Success! 0 is a root")
+                            self.solution.append("")
+                            self.solution.append("")
 
-                    for s in range(1, i + 1):
-                        ans.insert(0, 0)
+                    elif len(test) - 2 == 4:
+
+                        del test[-1]
+                        from math_core.Calculus import Calculus
+                        test_eqn = Calculus()
+                        test_eqn.coeff = copy.deepcopy(test)
+                        test_eqn.var_type = copy.deepcopy(self.var_type)
+                        test_eqn.update_params_from_coeff()
+                        ans = test_eqn.ferrari()
+                        success_attempt = True
+
+                    else:
+
+                        break
+
+                for s in range(1, i + 1):
+                    ans.insert(0, 0)
 
 
-                else:
+            else:
 
-                    print("0 is not a root\n")
-                    self.solution.append("0 is not a root")
-                    from math_core.Calculus import Calculus
-                    coeff = Calculus()
-                    coeff.coeff = copy.deepcopy(self.coeff)
-                    coeff.var_type = copy.deepcopy(self.var_type)
-                    coeff.update_params_from_coeff()
-                    ans = real_poly(coeff)
+                print("0 is not a root\n")
+                self.solution.append("0 is not a root")
+                from math_core.Calculus import Calculus
+                coeff = Calculus()
+                coeff.coeff = copy.deepcopy(self.coeff)
+                coeff.var_type = copy.deepcopy(self.var_type)
+                coeff.update_params_from_coeff()
+                ans = real_poly(coeff)
 
-                print(ans)
+            print(ans)
 
-                for i in range(0, len(ans)):
+            for i in range(0, len(ans)):
 
-                    if round(ans[i].imag, 5) == 0:
-                        ans[i] = ans[i].real
+                if round(ans[i].imag, 5) == 0:
+                    ans[i] = ans[i].real
 
         return ans
