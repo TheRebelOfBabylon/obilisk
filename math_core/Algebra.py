@@ -871,7 +871,7 @@ def bracketing(bracket: List[str], var_type: List[str], bracket_dict: Dict, lvl:
     return bracket, bracket_dict
 
 
-def solving(eqn: Algebra) -> List[Union[int, float, complex]]:
+def solving(eqn: Algebra) -> Tuple[List[Union[int, float, complex]], List[str]]:
 
     l_div, r_div = eqn.identify_div()
 
@@ -971,7 +971,7 @@ def solving(eqn: Algebra) -> List[Union[int, float, complex]]:
 
                 k += 1
 
-    return new_ans
+    return new_ans, eqn.solution
 
 
 class Algebra(Equation):
@@ -1317,13 +1317,18 @@ class Algebra(Equation):
 
     def update_attr(self):
         """Method updates all object attributes."""
-        if not self.lhs or not self.rhs:
-            raise ValueError("LHS and RHS attributes need values for this method.")
-        self.eqn.clear()
-        self.eqn = copy.deepcopy(self.lhs)
-        self.eqn[-1] = "="
-        for i in range(1, len(self.rhs)):
-            self.eqn.append(self.rhs[i])
+        self.lhs.clear()
+        self.rhs.clear()
+        i = 0
+        while self.eqn[i] != "=":
+            self.lhs.append(self.eqn[i])
+            i+=1
+        self.lhs.append(")1")
+        i+=1
+        self.rhs.append("(1")
+        while i != len(self.eqn):
+            self.rhs.append(self.eqn[i])
+            i+=1
         new_var_type=[]
         for i in self.var_type:
             for j in self.eqn:
@@ -1335,7 +1340,6 @@ class Algebra(Equation):
         self.grouping()
         self.eqn_string = stringify(self.lhs)+"="+stringify(self.rhs)
         self.get_coeff()
-        #self.update_params_from_coeff()
 
     def reset_params(self):
         """Method resets all object attributes"""
@@ -2887,10 +2891,6 @@ class Algebra(Equation):
         ans[0] = ((-1 * b) + ((b ** 2) - (4 * a * c)) ** 0.5) / (2 * a)
         ans[-1] = ((-1 * b) - ((b ** 2) - (4 * a * c)) ** 0.5) / (2 * a)
 
-        self.solution.append("\nThe final answers are:")
-        for i in ans:
-            self.solution.append(str(i))
-
         return ans
 
     def cardano(self) -> List[Union[int, float, complex]]:
@@ -2953,10 +2953,6 @@ class Algebra(Equation):
         ans[0] = s + t - (b / (3 * a))
         ans[1] = (-1 * ((s + t) / 2)) - (b / (3 * a)) + (((1j * (3 ** 0.5)) / 2) * (s - t))
         ans[-1] = (-1 * ((s + t) / 2)) - (b / (3 * a)) - (((1j * (3 ** 0.5)) / 2) * (s - t))
-
-        self.solution.append("\nThe final answers are:")
-        for i in ans:
-            self.solution.append(str(i))
 
         return ans
 
@@ -3108,10 +3104,6 @@ class Algebra(Equation):
         self.solution.append("x = " + str(y_three) + "-(" + str(b) + "/(4*" + str(a) + "))")
         ans[-1] = y_four - (b / (4 * a))
         self.solution.append("x = " + str(y_four) + "-(" + str(b) + "/(4*" + str(a) + "))")
-
-        self.solution.append("\nThe final answers are:")
-        for i in ans:
-            self.solution.append(str(i))
 
         return ans
 
@@ -3282,7 +3274,7 @@ class Algebra(Equation):
                 work_var = work_var_l
                 if work_var == self.var_type[0]:
 
-                    ans = solving(new_eqn)
+                    ans, self.solution = solving(new_eqn)
 
                 else:
 
@@ -3295,12 +3287,13 @@ class Algebra(Equation):
                             for i in new_eqn.rhs:
                                 temp_string = stringify(new_eqn.lhs)+"="+stringify(i)
                                 temp_eqn = Algebra(temp_string)
-                                ans_temp = solving(temp_eqn)
+                                ans_temp, temp_eqn.solution = solving(temp_eqn)
                                 ans.append(ans_temp)
+                                self.solution.append(temp_eqn.solution)
                                 temp_eqn = None
                         else:
 
-                            ans = solving(new_eqn)
+                            ans, self.solution = solving(new_eqn)
 
                         for i in ans:
                             print(work_var[0] + " = " + str(i))
@@ -3388,12 +3381,13 @@ class Algebra(Equation):
                                 temp_string = l_new_string+"="+stringify(i)
                                 temp_eqn = Algebra(temp_string)
                                 #print("YOOO", temp_eqn.var_type, temp_eqn.lhs, temp_eqn.rhs, "ans", ans)
-                                ans_temp = solving(temp_eqn)
+                                ans_temp, temp_eqn.solution = solving(temp_eqn)
                                 ans.append(ans_temp)
+                                self.solution.append(temp_eqn.solution)
                                 temp_eqn = None
                         else:
 
-                            ans = solving(new_eqn)
+                            ans, self.solution = solving(new_eqn)
 
                         l_new_string = work_var
                         #print("bottle caps", l_new_string, ans)
@@ -3484,7 +3478,7 @@ class Algebra(Equation):
 
                 else:
 
-                    ans = solving(eqn_og)
+                    ans, self.solution = solving(eqn_og)
 
                     l_new_obj = Equation(self.var_type[0])
                     new_eqn.lhs, l_var = l_new_obj.eqn, l_new_obj.var_type[0]
@@ -3497,10 +3491,7 @@ class Algebra(Equation):
                         temp = None
         else:
 
-            # print(l_og_string+" = "+r_og_string)
-
-            ans = solving(eqn_og)
-
+            ans, self.solution = solving(eqn_og)
             l_new_obj = Equation(self.var_type[0])
             new_eqn.lhs, l_var = l_new_obj.eqn, l_new_obj.var_type[0]
             l_new_obj = None
@@ -3509,8 +3500,9 @@ class Algebra(Equation):
                 temp = Equation(str(i))
                 new_eqn.rhs.append(temp.eqn)
                 temp = None
-
-        return new_eqn.lhs, new_eqn.rhs
+        self.lhs = new_eqn.lhs
+        self.rhs = new_eqn.rhs
+        return self.lhs, self.rhs
 
     def rearrange(self):
         """
@@ -4259,7 +4251,6 @@ class Algebra(Equation):
     def solver(self) -> List[Union[int, float, complex]]:
         """Function takes LHS and RHS of an equation with all variables on LHS, and single constant on RHS and solves based on highest power term."""
         self.update_attr()
-        print(self.deg)
         if self.deg[0] == 1.0:
 
             # print("yeet", l ,r)
@@ -4528,5 +4519,16 @@ class Algebra(Equation):
 
                 if round(ans[i].imag, 5) == 0:
                     ans[i] = ans[i].real
+        #checking for duplicates
+        new_ans=[]
+        for i in ans:
+            if i not in new_ans:
+                new_ans.append(i)
+        if len(new_ans) == 1:
+            self.solution.append("\nThe final answer is:")
+        else:
+            self.solution.append("\nThe final answers are:")
+        for i in new_ans:
+            self.solution.append(str(i))
 
-        return ans
+        return new_ans
