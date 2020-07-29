@@ -2457,9 +2457,11 @@ def isolate(l, r, lvl, var_type):
 
 		#Quadratic Formula
 
-		rear_l = Poly_Func(rear_l)
-		coeff = rear_l.get_coeff(int(new_n_order[0]),var_type[0])
-		ans, solution, sol_cnt = coeff.quadratic(solution, sol_cnt)
+        rear_l_string = stringify(rear_l)+"=0"
+		rear_l_obj = Algebra(rear_l_string)
+		rear_l_obj.get_coeff()
+		ans = rear_l_obj.quadratic()
+
 
 		for s in range(0,len(ans)):
 
