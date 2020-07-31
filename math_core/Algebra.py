@@ -3015,8 +3015,8 @@ class Algebra(Equation):
         self.solution.append("p = ((c/a) - 3b^2)/8a^2 = " + str(p))
         print("q = ((d/a) - bc/(2a^2) + b^3)/8a^3 = " + str(q))
         self.solution.append("q = ((d/a) - bc/(2a^2) + b^3)/8a^3 = " + str(q))
-        print("r = ((e/a) - bd/(4a^2) + b^2c/16a^3 - 3b^4)/256a^4 = " + str(q) + "\n")
-        self.solution.append("r = ((e/a) - bd/(4a^2) + b^2c/16a^3 - 3b^4)/256a^4 = " + str(q))
+        print("r = ((e/a) - bd/(4a^2) + b^2c/16a^3 - 3b^4)/256a^4 = " + str(r) + "\n")
+        self.solution.append("r = ((e/a) - bd/(4a^2) + b^2c/16a^3 - 3b^4)/256a^4 = " + str(r))
 
         self.solution.append("")
         depressed = "y^4+" + str(p) + "y^2+" + str(q) + "y+" + str(r) + "=0"
