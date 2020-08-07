@@ -342,8 +342,13 @@ class Arithmetic(Equation):
                 self.eqn[t] = str(bracket_inst.calculate(solution=solution, is_first=False))
                 if is_first:
                     self.eqn_string_update()
-                    if solution[-1] != "Equation is now " + self.eqn_string:
-                        solution.append("Equation is now " + self.eqn_string)
+                    if not self.mathjax_flag:
+                        if solution[-1] != "Equation is now " + self.eqn_string:
+                            solution.append("Equation is now " + self.eqn_string)
+                    else:
+                        mathjax_str = self.solution_mathjax_format(self.eqn_string)
+                        if solution[-1] != "Equation is now " + mathjax_str:
+                            solution.append("Equation is now " + mathjax_str)
                 b = b - 1
                 bracket.clear()
 
@@ -369,7 +374,11 @@ class Arithmetic(Equation):
                         calc = operation(0, op, self.eqn[t + 1])
                         solution.append("Step "+str(solution[0])+":")
                         solution[0]=solution[0]+1
-                        solution.append(op.lower() + "(" + self.eqn[t + 1] + ") = " + str(calc))
+                        if not self.mathjax_flag:
+                            solution.append(op.lower() + "(" + self.eqn[t + 1] + ") = " + str(calc))
+                        else:
+                            mathjax_str = self.solution_mathjax_format(op.lower() + "(" + self.eqn[t + 1] + ") = " + str(calc))
+                            solution.append(mathjax_str)
                         #print(solution)
                         self.eqn[t] = str(calc)
                         del self.eqn[t + 1]
@@ -381,7 +390,11 @@ class Arithmetic(Equation):
                         calc = operation(0, op, self.eqn[t + 1])
                         solution.append("Step " + str(solution[0]) + ":")
                         solution[0] = solution[0] + 1
-                        solution.append(op.lower() + "(" + self.eqn[t + 1] + ") = 1/"+trig_two[op]+"(" + self.eqn[t + 1] + ") = " + str(calc))
+                        if not self.mathjax_flag:
+                            solution.append(op.lower() + "(" + self.eqn[t + 1] + ") = 1/"+trig_two[op]+"(" + self.eqn[t + 1] + ") = " + str(calc))
+                        else:
+                            mathjax_str = self.solution_mathjax_format(op.lower() + "(" + self.eqn[t + 1] + ") = 1/"+trig_two[op]+"(" + self.eqn[t + 1] + ") = " + str(calc))
+                            solution.append(mathjax_str)
                         #print(solution)
                         self.eqn[t] = str(calc)
                         del self.eqn[t + 1]
@@ -393,7 +406,11 @@ class Arithmetic(Equation):
                         calc = operation(self.eqn[t + 1], op, self.eqn[t + 2])
                         solution.append("Step " + str(solution[0]) + ":")
                         solution[0] = solution[0] + 1
-                        solution.append("Log(" + self.eqn[t + 1] + ", " + self.eqn[t + 2] + ") = " + str(calc))
+                        if not self.mathjax_flag:
+                            solution.append("Log(" + self.eqn[t + 1] + ", " + self.eqn[t + 2] + ") = " + str(calc))
+                        else:
+                            mathjax_str = self.solution_mathjax_format("Log(" + self.eqn[t + 1] + ", " + self.eqn[t + 2] + ") = " + str(calc))
+                            solution.append(mathjax_str)
                         #print(solution)
                         self.eqn[t] = str(calc)
                         del self.eqn[t + 1:t + 3]
@@ -402,8 +419,13 @@ class Arithmetic(Equation):
 
                     if is_first:
                         self.eqn_string_update()
-                        if solution[-1] != "Equation is now " + self.eqn_string:
-                            solution.append("Equation is now " + self.eqn_string)
+                        if not self.mathjax_flag:
+                            if solution[-1] != "Equation is now " + self.eqn_string:
+                                solution.append("Equation is now " + self.eqn_string)
+                        else:
+                            mathjax_str = self.solution_mathjax_format(self.eqn_string)
+                            if solution[-1] != "Equation is now " + mathjax_str:
+                                solution.append("Equation is now " + mathjax_str)
 
                 t = t + 1
 
@@ -433,7 +455,11 @@ class Arithmetic(Equation):
                     calc = operation(self.eqn[t - 1], op, self.eqn[t + 1])
                     solution.append("Step " + str(solution[0]) + ":")
                     solution[0] = solution[0] + 1
-                    solution.append(self.eqn[t - 1] + op + self.eqn[t + 1] + " = " + str(calc))
+                    if not self.mathjax_flag:
+                        solution.append(self.eqn[t - 1] + op + self.eqn[t + 1] + " = " + str(calc))
+                    else:
+                        mathjax_str = self.solution_mathjax_format(self.eqn[t - 1] + op + self.eqn[t + 1] + " = " + str(calc))
+                        solution.append(mathjax_str)
                     #print(solution)
                     self.eqn[t - 1] = str(calc)
                     del self.eqn[t:t + 2]
@@ -441,8 +467,13 @@ class Arithmetic(Equation):
                     length = len(self.eqn)
                     if is_first:
                         self.eqn_string_update()
-                        if solution[-1] != "Equation is now " + self.eqn_string:
-                            solution.append("Equation is now " + self.eqn_string)
+                        if not self.mathjax_flag:
+                            if solution[-1] != "Equation is now " + self.eqn_string:
+                                solution.append("Equation is now " + self.eqn_string)
+                        else:
+                            mathjax_str = self.solution_mathjax_format(self.eqn_string)
+                            if solution[-1] != "Equation is now " + mathjax_str:
+                                solution.append("Equation is now " + mathjax_str)
                 # print(n, calc)
 
                 elif self.eqn[t] == op1:
@@ -450,7 +481,11 @@ class Arithmetic(Equation):
                     calc = operation(self.eqn[t - 1], op1, self.eqn[t + 1])
                     solution.append("Step " + str(solution[0]) + ":")
                     solution[0] = solution[0] + 1
-                    solution.append(self.eqn[t - 1] + op1 + self.eqn[t + 1] + " = " + str(calc))
+                    if not self.mathjax_flag:
+                        solution.append(self.eqn[t - 1] + op1 + self.eqn[t + 1] + " = " + str(calc))
+                    else:
+                        mathjax_str = self.solution_mathjax_format(self.eqn[t - 1] + op1 + self.eqn[t + 1] + " = " + str(calc))
+                        solution.append(mathjax_str)
                     #print(solution)
                     self.eqn[t - 1] = str(calc)
                     del self.eqn[t:t + 2]
@@ -458,8 +493,13 @@ class Arithmetic(Equation):
                     length = len(self.eqn)
                     if is_first:
                         self.eqn_string_update()
-                        if solution[-1] != "Equation is now " + self.eqn_string:
-                            solution.append("Equation is now " + self.eqn_string)
+                        if not self.mathjax_flag:
+                            if solution[-1] != "Equation is now " + self.eqn_string:
+                                solution.append("Equation is now " + self.eqn_string)
+                        else:
+                            mathjax_str = self.solution_mathjax_format(self.eqn_string)
+                            if solution[-1] != "Equation is now " + mathjax_str:
+                                solution.append("Equation is now " + mathjax_str)
                 # print(n, calc)
 
                 t = t + 1

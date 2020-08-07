@@ -717,8 +717,9 @@ def imaginary_num(br: List[str]) -> List[str]:
 
 class Equation():
 
-    def __init__(self, eqn_string: str = None):
+    def __init__(self, eqn_string: str = None, mathjax_flag: bool = True):
 
+        self.mathjax_flag = mathjax_flag
         if not eqn_string:
             self.eqn_string = ""
             self.eqn = []
@@ -731,7 +732,11 @@ class Equation():
             self.deg = []
             self.var_type = []
             self.solution = []
-            self.solution.append("The inputted equation is "+eqn_string)
+            if self.mathjax_flag:
+                new_eqn_string = self.solution_mathjax_format(eqn_string)
+                self.solution.append("The inputted equation is " + new_eqn_string)
+            else:
+                self.solution.append("The inputted equation is "+eqn_string)
             self.bracketify()
             if self.var_type[0] != "":
                 self.grouping()
@@ -1629,3 +1634,118 @@ class Equation():
             if i in temp:
                 temp = temp.replace(i, i.lower())
         self.eqn_string = temp
+
+    def solution_mathjax_format(self, math_string: str) -> str:
+        """This method takes mathematics and tranforms it into readable format for MathJax. Appends to solution"""
+        new_string = math_string
+        new_string = new_string.replace("sqrt", "√")
+        new_string = new_string.replace(" ", '')
+        i = 0
+        b = 0
+        while i != len(new_string):
+            if new_string[i] == "(":
+                b+=1
+            elif new_string[i] == ")":
+                b-=1
+            if new_string[i] == "^":
+                temp = ""
+                k = i+1
+                while k != len(new_string):
+                    if new_string[k] in "+-" and b == 0:
+                        break
+                    if new_string[k] == "(":
+                        b += 1
+                    elif new_string[k] == ")":
+                        b -= 1
+                    temp+=new_string[k]
+                    k+=1
+                if "." in temp:
+                    new_temp = "{"+temp+"}"
+                    temp = "^" + temp
+                    new_string = new_string.replace(temp, new_temp)
+                    i = k+1
+                else:
+                    i = k
+            elif new_string[i] == "√":
+                temp = ""
+                k = i+1
+                if new_string[k] == "(":
+                    b += 1
+                    temp += new_string[k]
+                    k += 1
+                while k != len(new_string):
+                    if new_string[k] in "+-*/" and b == 0:
+                        break
+                    if new_string[k] == "(":
+                        b += 1
+                    elif new_string[k] == ")":
+                        b -= 1
+                    temp += new_string[k]
+                    k+=1
+                if temp[-1] == ")" and temp[0] == "(":
+                    new_temp = temp[1:-1]
+                    new_temp = "\sqrt{"+new_temp+"}"
+                else:
+                    new_temp = "\sqrt{"+temp+"}"
+                temp = "√" + temp
+                new_string = new_string.replace(temp, new_temp)
+                i = k
+            elif is_number(new_string[i]) and new_string[i-1].isalpha():
+                temp = new_string[i-1]+new_string[i]
+                new_string = new_string.replace(temp, new_string[i-1]+"_"+new_string[i])
+            if i >= len(new_string):
+                break
+            i+=1
+
+        i = 0
+        b = 0
+        while i != len(new_string):
+            if new_string[i] == "(":
+                b += 1
+            elif new_string[i] == ")":
+                b -= 1
+            if new_string[i] == "/":
+                numerator = ""
+                denom = ""
+                k = i+1
+                c = b
+                while k != len(new_string):
+                    if new_string[k] in "+-*/}" and c < b:
+                        break
+                    if new_string[k] == "(":
+                        c += 1
+                    elif new_string[k] == ")":
+                        c -= 1
+                    denom += new_string[k]
+                    k+=1
+                n = i-1
+                c = b
+                while n != -1:
+                    #print("b = ",b ,", c = ",c, ", n = ", n, ", new_string[n] = ", new_string[n], new_string)
+                    if new_string[n] in "+-*/={" and c < b:
+                        break
+                    if new_string[n] == "(":
+                        c -= 1
+                    elif new_string[n] == ")":
+                        c += 1
+                    numerator = new_string[n] + numerator
+                    n -= 1
+                temp = numerator+"/"+denom
+                if denom[-1] == ")" and denom[0] == "(":
+                    denom = denom[1:-1]
+                elif ")" in denom and "(" not in denom:
+                    denom = denom.replace(")",'')
+                elif "(" in denom and ")" not in denom:
+                    denom = denom.replace("(", '')
+                if numerator[-1] == ")" and numerator[0] == "(":
+                    numerator = numerator[1:-1]
+                elif ")" in numerator and "(" not in numerator:
+                    numerator = numerator.replace(")",'')
+                elif "(" in numerator and ")" not in numerator:
+                    numerator = numerator.replace("(", '')
+                new_string = new_string.replace(temp, "\\frac{"+numerator+"}{"+denom+"}")
+            if i >= len(new_string):
+                break
+            i += 1
+        new_string = new_string.replace("*", "\cdot")
+        return "\("+new_string+"\)"
