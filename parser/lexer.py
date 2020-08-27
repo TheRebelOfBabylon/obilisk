@@ -1,25 +1,11 @@
 import sys
 import re
 
-RESERVED = 'RESERVED'
-ADDOP = 'ADDOP'
-SUBOP = 'SUBOP'
-MULOP = 'MULOP'
-POWEROP = 'POWEROP'
-CALCOP = 'CALCOP'
-TRIGOP = 'TRIGOP'
-RECIPTRIGOP = 'RECIPTRIGOP'
-ATRIGOP = 'ATRIGOP'
-ARECIPTRIGOP = 'ARECIPTRIGOP'
-HYPTRIGOP = 'HYPTRIGOP'
-RECIPHYPTRIGOP = 'RECIPHYPTRIGOP'
-AHYPTRIGOP = 'AHYPTRIGOP'
-ARECIPHYPTRIGOP = 'ARECIPHYPTRIGOP'
-LOGOP = 'LOGOP'
-LNOP = 'LNOP'
+OPERATOR = 'OPERATOR'
+EQUAL = 'EQUAL'
 BRACKET = 'BRACKET'
 MATRIX_BR = 'MATRIX_BR'
-MATRIX_ENDR = 'MATRIX_ENDR'
+ENDL = 'ENDL'
 COMMA = 'COMMA'
 CONSTANT = 'CONSTANT'
 NUMBER = 'NUMBER'
@@ -27,31 +13,30 @@ VARIABLE = 'VARIABLE'
 
 token_exprs = [
     (r'of',                                         None),
-    (r'[ ]+',                                       None),
-    (r'=',                                          RESERVED),
-    (r'\+',                                         ADDOP),
-    (r'\*|/',                                       MULOP),
-    (r'-',                                          SUBOP),
+    (r'[\s]+',                                      None),
+    (r'=',                                          EQUAL),
+    (r'\+|-|\*|/',                                  OPERATOR),
     (r'\(|\)',                                      BRACKET),
     (r'\[|\]',                                      MATRIX_BR),
-    (r'\;',                                         MATRIX_ENDR),
-    (r'\^|(sqrt|SQRT)',                             POWEROP),
+    (r'\;',                                         ENDL),
+    (r'\^|(sqrt|SQRT)',                             OPERATOR),
     (r'\,',                                         COMMA),
-    (r'#(PI|pi|[Ee])',                              CONSTANT),
-    (r'derivative|integral',                        CALCOP),
-    (r'abs|ABS',                                    RESERVED),
-    (r'(sin|cos|tan)|(SIN|COS|TAN)',                TRIGOP),
-    (r'(sec|csc|cot)|(SEC|CSC|COT)',                RECIPTRIGOP),
-    (r'(asin|acos|atan)|(ASIN|ACOS|ATAN)',          ATRIGOP),
-    (r'(asec|acsc|acot)|(ASEC|ACSC|ACOT)',          ARECIPTRIGOP),
-    (r'(sinh|cosh|tanh)|(SINH|COSH|TANH)',          HYPTRIGOP),
-    (r'(sech|csch|coth)|(SECH|CSCH|COTH)',          RECIPHYPTRIGOP),
-    (r'(asinh|acosh|atanh)|(ASINH|ACOSH|ATANH)',    AHYPTRIGOP),
-    (r'(asech|acsch|acoth)|(ASECH|ACSCH|ACOTH)',    ARECIPHYPTRIGOP),
-    (r'log|LOG',                                    LOGOP),
-    (r'ln|LN',                                      LNOP),
-    (r'[0-9]+(\.[0-9]*)?([eE][\+\-]?[0-9]+)?',      NUMBER),
-    (r'[a-zA-Z_]',                                  VARIABLE),
+    (r'#[a-zA-Z_]',                                 CONSTANT),
+    (r'derivative|integral',                        OPERATOR),
+    (r'd/d[a-zA-Z_]',                               OPERATOR),
+    (r'abs|ABS',                                    OPERATOR),
+    (r'(sin|cos|tan)|(SIN|COS|TAN)',                OPERATOR),
+    (r'(sec|csc|cot)|(SEC|CSC|COT)',                OPERATOR),
+    (r'(asin|acos|atan)|(ASIN|ACOS|ATAN)',          OPERATOR),
+    (r'(asec|acsc|acot)|(ASEC|ACSC|ACOT)',          OPERATOR),
+    (r'(sinh|cosh|tanh)|(SINH|COSH|TANH)',          OPERATOR),
+    (r'(sech|csch|coth)|(SECH|CSCH|COTH)',          OPERATOR),
+    (r'(asinh|acosh|atanh)|(ASINH|ACOSH|ATANH)',    OPERATOR),
+    (r'(asech|acsch|acoth)|(ASECH|ACSCH|ACOTH)',    OPERATOR),
+    (r'log|LOG',                                    OPERATOR),
+    (r'ln|LN',                                      OPERATOR),
+    (r'[0-9]+(\.[0-9]*)?([eE][\+\-]?[0-9]+)?([\+\-][0-9]+(\.[0-9]*)?[ij])?',      NUMBER),
+    (r'(d?[a-zA-Z_](\')*){1,}?',                    VARIABLE),
 ]
 
 def lex(characters, token_exprs):
