@@ -1,10 +1,18 @@
-import sys
-import re
+"""
+Obilisk Token Class and Lexer code
+"""
 
-OPERATOR = 'OPERATOR'
+import re
+from typing import Tuple
+
+BINOP = 'BINOP'
+UNIFUNC = 'UNIFUNC'
+BINFUNC = 'BINFUNC'
 EQUAL = 'EQUAL'
-BRACKET = 'BRACKET'
-MATRIX_BR = 'MATRIX_BR'
+L_BRACKET = 'L_BRACKET'
+R_BRACKET = 'R_BRACKET'
+L_MATRIX_BR = 'L_MATRIX_BR'
+R_MATRIX_BR = 'R_MATRIX_BR'
 ENDL = 'ENDL'
 COMMA = 'COMMA'
 CONSTANT = 'CONSTANT'
@@ -12,32 +20,44 @@ NUMBER = 'NUMBER'
 VARIABLE = 'VARIABLE'
 
 token_exprs = [
-    (r'of',                                         None),
-    (r'[\s]+',                                      None),
-    (r'=',                                          EQUAL),
-    (r'\+|-|\*|/',                                  OPERATOR),
-    (r'\(|\)',                                      BRACKET),
-    (r'\[|\]',                                      MATRIX_BR),
-    (r'\;',                                         ENDL),
-    (r'\^|(sqrt|SQRT)',                             OPERATOR),
-    (r'\,',                                         COMMA),
-    (r'#[a-zA-Z_]',                                 CONSTANT),
-    (r'derivative|integral',                        OPERATOR),
-    (r'd/d[a-zA-Z_]',                               OPERATOR),
-    (r'abs|ABS',                                    OPERATOR),
-    (r'(sin|cos|tan)|(SIN|COS|TAN)',                OPERATOR),
-    (r'(sec|csc|cot)|(SEC|CSC|COT)',                OPERATOR),
-    (r'(asin|acos|atan)|(ASIN|ACOS|ATAN)',          OPERATOR),
-    (r'(asec|acsc|acot)|(ASEC|ACSC|ACOT)',          OPERATOR),
-    (r'(sinh|cosh|tanh)|(SINH|COSH|TANH)',          OPERATOR),
-    (r'(sech|csch|coth)|(SECH|CSCH|COTH)',          OPERATOR),
-    (r'(asinh|acosh|atanh)|(ASINH|ACOSH|ATANH)',    OPERATOR),
-    (r'(asech|acsch|acoth)|(ASECH|ACSCH|ACOTH)',    OPERATOR),
-    (r'log|LOG',                                    OPERATOR),
-    (r'ln|LN',                                      OPERATOR),
-    (r'[0-9]+(\.[0-9]*)?([eE][\+\-]?[0-9]+)?([\+\-][0-9]+(\.[0-9]*)?[ij])?',      NUMBER),
-    (r'(d?[a-zA-Z_](\')*){1,}?',                    VARIABLE),
+    (r'of', None),
+    (r'[\s]+', None),
+    (r'=', EQUAL),
+    (r'\+|-|\*|/|\^', BINOP),
+    (r'\(', L_BRACKET),
+    (r'\)', R_BRACKET),
+    (r'\[', L_MATRIX_BR),
+    (r'\]', R_MATRIX_BR),
+    (r'\;', ENDL),
+    (r'(sqrt|SQRT)', UNIFUNC),
+    (r'\,', COMMA),
+    (r'#[a-zA-Z_]', CONSTANT),
+    (r'derivative|integral', UNIFUNC),
+    (r'd/d[a-zA-Z_]', UNIFUNC),
+    (r'abs|ABS', UNIFUNC),
+    (r'(sin|cos|tan)|(SIN|COS|TAN)', UNIFUNC),
+    (r'(sec|csc|cot)|(SEC|CSC|COT)', UNIFUNC),
+    (r'(asin|acos|atan)|(ASIN|ACOS|ATAN)', UNIFUNC),
+    (r'(asec|acsc|acot)|(ASEC|ACSC|ACOT)', UNIFUNC),
+    (r'(sinh|cosh|tanh)|(SINH|COSH|TANH)', UNIFUNC),
+    (r'(sech|csch|coth)|(SECH|CSCH|COTH)', UNIFUNC),
+    (r'(asinh|acosh|atanh)|(ASINH|ACOSH|ATANH)', UNIFUNC),
+    (r'(asech|acsch|acoth)|(ASECH|ACSCH|ACOTH)', UNIFUNC),
+    (r'log|LOG', BINFUNC),
+    (r'ln|LN', UNIFUNC),
+    (r'[0-9]+(\.[0-9]*)?([eE][\+\-]?[0-9]+)?([\+\-][0-9]+(\.[0-9]*)?[ij])?', NUMBER),
+    (r'(d?[a-zA-Z_](\')*){1,}?', VARIABLE),
 ]
+
+
+class Token:
+    def __init__(self, token: Tuple[str, str]):
+        self.value = token[0]
+        self.tag = token[1]
+
+    def __repr__(self):
+        return 'Token(%s, %s)' % (self.value, self.tag)
+
 
 def lex(characters, token_exprs):
     pos = 0
@@ -51,22 +71,22 @@ def lex(characters, token_exprs):
             if match:
                 text = match.group(0)
                 if tag:
-                    token = (text, tag)
+                    token = Token((text, tag))
                     tokens.append(token)
                 break
         if not match:
-            sys.stderr.write('Illegal character: %s\\n' % characters[pos])
-            sys.exit(1)
+            raise SyntaxError('Illegal character: {}\n'.format(characters[pos]))
         else:
             pos = match.end(0)
     return tokens
 
 
-def imp_lex(characters):
+def obilisk_lex(characters):
     return lex(characters, token_exprs)
 
+
 def parse(eqn):
-    tokens = imp_lex(eqn)
+    tokens = obilisk_lex(eqn)
     print("\n", eqn)
     for tok in tokens:
         print(tok)
