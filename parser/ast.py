@@ -6,17 +6,7 @@ from typing import List
 class ASTExpr:
     pass
 
-
-class UniFunc(ASTExpr):
-    def __init__(self, op: Token, expr: Token):
-        self.op = op.value
-        self.expr = expr.value
-
-    def __repr__(self):
-        return 'UniFuncNode(%s, %s)' % (self.op, self.expr)
-
-
-class MultiFunc(ASTExpr):
+class Func(ASTExpr):
     def __init__(self, op: Token, args: List[Token]):
         self.op = op.value
         self.args = [tok.value for tok in args]
@@ -49,3 +39,10 @@ class Variable(ASTExpr):
 
     def __repr__(self):
         return 'VariableNode(%s)' % self.value
+
+class Constant(ASTExpr):
+    def __init__(self, token: Token):
+        self.value = token.value
+
+    def __repr__(self):
+        return 'ConstantNode(%s)' % self.value

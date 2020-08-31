@@ -5,9 +5,12 @@ Obilisk Token Class and Lexer code
 import re
 from typing import Tuple
 
-BINOP = 'BINOP'
-UNIFUNC = 'UNIFUNC'
-BINFUNC = 'BINFUNC'
+PLUS = 'PLUS'
+MINUS = 'MINUS'
+MUL = 'MUL'
+DIV = 'DIV'
+EXP = 'EXP'
+FUNC = 'FUNC'
 EQUAL = 'EQUAL'
 L_BRACKET = 'L_BRACKET'
 R_BRACKET = 'R_BRACKET'
@@ -23,28 +26,32 @@ token_exprs = [
     (r'of', None),
     (r'[\s]+', None),
     (r'=', EQUAL),
-    (r'\+|-|\*|/|\^', BINOP),
+    (r'\+', PLUS),
+    (r'-',  MINUS),
+    (r'\*', MUL),
+    (r'/', DIV),
+    (r'\^', EXP),
     (r'\(', L_BRACKET),
     (r'\)', R_BRACKET),
     (r'\[', L_MATRIX_BR),
     (r'\]', R_MATRIX_BR),
     (r'\;', ENDL),
-    (r'(sqrt|SQRT)', UNIFUNC),
+    (r'(sqrt|SQRT)', FUNC),
     (r'\,', COMMA),
     (r'#[a-zA-Z_]', CONSTANT),
-    (r'derivative|integral', UNIFUNC),
-    (r'd/d[a-zA-Z_]', UNIFUNC),
-    (r'abs|ABS', UNIFUNC),
-    (r'(sin|cos|tan)|(SIN|COS|TAN)', UNIFUNC),
-    (r'(sec|csc|cot)|(SEC|CSC|COT)', UNIFUNC),
-    (r'(asin|acos|atan)|(ASIN|ACOS|ATAN)', UNIFUNC),
-    (r'(asec|acsc|acot)|(ASEC|ACSC|ACOT)', UNIFUNC),
-    (r'(sinh|cosh|tanh)|(SINH|COSH|TANH)', UNIFUNC),
-    (r'(sech|csch|coth)|(SECH|CSCH|COTH)', UNIFUNC),
-    (r'(asinh|acosh|atanh)|(ASINH|ACOSH|ATANH)', UNIFUNC),
-    (r'(asech|acsch|acoth)|(ASECH|ACSCH|ACOTH)', UNIFUNC),
-    (r'log|LOG', BINFUNC),
-    (r'ln|LN', UNIFUNC),
+    (r'derivative|integral', FUNC),
+    (r'd/d[a-zA-Z_]', FUNC),
+    (r'abs|ABS', FUNC),
+    (r'(sin|cos|tan)|(SIN|COS|TAN)', FUNC),
+    (r'(sec|csc|cot)|(SEC|CSC|COT)', FUNC),
+    (r'(asin|acos|atan)|(ASIN|ACOS|ATAN)', FUNC),
+    (r'(asec|acsc|acot)|(ASEC|ACSC|ACOT)', FUNC),
+    (r'(sinh|cosh|tanh)|(SINH|COSH|TANH)', FUNC),
+    (r'(sech|csch|coth)|(SECH|CSCH|COTH)', FUNC),
+    (r'(asinh|acosh|atanh)|(ASINH|ACOSH|ATANH)', FUNC),
+    (r'(asech|acsch|acoth)|(ASECH|ACSCH|ACOTH)', FUNC),
+    (r'log|LOG', FUNC),
+    (r'ln|LN', FUNC),
     (r'[0-9]+(\.[0-9]*)?([eE][\+\-]?[0-9]+)?([\+\-][0-9]+(\.[0-9]*)?[ij])?', NUMBER),
     (r'(d?[a-zA-Z_](\')*){1,}?', VARIABLE),
 ]
