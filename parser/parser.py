@@ -1,6 +1,8 @@
-from parser.ast import UniFunc, MultiFunc, BinOp, Variable, Number
+from parser.ast import UniFuncNode, MultiFuncNode, BinOpNode, VariableNode, NumberNode, EquationNode, ExpressionNode, TermNode, FactorNode, ConstantNode
 from parser.combinator import Parser
 from parser.lexer import Token, PLUS, MINUS, ENDL, EQUAL, EXP, MUL, DIV, L_MATRIX_BR, L_BRACKET, NUMBER, FUNC, VARIABLE, R_MATRIX_BR, R_BRACKET, COMMA, CONSTANT
+
+from typing import List
 
 #Equation ::= Expression|(Expression EQUAL Expression)
 #An equation is either an expression or an Expression equal to another Expression
@@ -19,110 +21,119 @@ from parser.lexer import Token, PLUS, MINUS, ENDL, EQUAL, EXP, MUL, DIV, L_MATRI
 
 #Func ::= Trig, Calculus, Log, LN, SQRT, ABS
 
-class Interpreter():
-    def __init__(self, token: Token, pos: int):
-        self.token = token
+class Parser():
+    def __init__(self, list_of_tokens: List[Token], pos: int = 0):
+        self.tokens = list_of_tokens
         self.pos = pos
+
+    def consume_token(self, tag):
+        """Compares current token tag to given tag"""
+        if self.tokens[self.pos].tag == tag:
+            self.pos += 1
+        else:
+            raise Exception('Invalid syntax')
 
     def Equation(self):
         """Equation ::= Expression|Expression EQUAL Expression"""
         LHS = self.Expression()
 
-        current_token = self.token
-        if current_token.tag == "EQUAL":
-            #EAT EQUAL
-            #RHS = self.Expression()
-            #return (LHS, RHS)
-        #return result = LHS
+        current_token = self.tokens[self.pos]
+        if current_token.tag == EQUAL:
+            self.consume_token(EQUAL)
+            RHS = self.Expression()
+            return EquationNode(current_token, [LHS, RHS])
+        return EquationNode(current_token, [LHS])
 
     def Expression(self):
-        """Expression ::= FUNC L_BRACKET (Term|(Term COMMA Term)+) R_BRACKET|Term|(Term(PLUS|MINUS)Term)+"""
-        current_token = self.token
-        if current_token.tag == FUNC:
-            # EAT FUNC
-            # current_token = self.token
-            # If current_token.tag == L_BRACKET:
-                # result = []
-                # result.append(self.Term())
-
-                # current_token = self.token
-                # if current_token.tag == COMMA:
-                    # while current_token.tag == COMMA:
-                        # EAT COMMA
-                        # result.append(self.Term())
-                # if current_token.tag == R_BRACKET:
-                    # EAT R_BRACKET:
-                    # return result
-        else:
-            result = self.Term()
-
-            current_token = self.token
-            while current_token.tag in (PLUS, MINUS):
-                current_token = self.token
-                if current_token.type == PLUS:
-                    # EAT PLUS
-                    # result = result + self.Term()
-                elif current_token.tag == MINUS:
-                    # Eat MINUS
-                    # result = result + self.Term()
-
-            return result
+        """Expression ::= Term|(Term(PLUS|MINUS)Term)+"""
+        result = []
+        left = self.Term()
+        current_token = self.tokens[self.pos]
+        while current_token.tag in (PLUS, MINUS):
+            if current_token.type == PLUS:
+                bin_op = current_token
+                self.consume_token(PLUS)
+                right = self.Term() #BinaryOpASTNode needs to be added here somehow
+            elif current_token.tag == MINUS:
+                bin_op = current_token
+                self.consume_token(MINUS)
+                right = self.Term()
+            result.append(BinOpNode(left, bin_op, right))
+            left = right
+            current_token = self.tokens[self.pos]
+        return ExpressionNode(current_token, result)
 
     def Term(self):
-        """Term ::= Factor|(Factor(MUL|DIV)Factor)+"""
-        result = self.Factor()
+        """Term ::= (Factor|(Factor(MUL|DIV)Factor)+)|FUNC L_BRACKET Factor R_BRACKET"""
+        current_token = self.tokens[self.pos]
+        if current_token.tag == FUNC:
+            self.consume_token(FUNC)
+            current_token = self.tokens[self.pos]
+            if current_token.tag == L_BRACKET:
+                result = []
+                result.append(self.Factor()) #This might need to be self.Expression(). I think it goes to atom then loops. Not sure
 
-        current_token = self.token
-        while current_token.tag in (MUL, DIV):
-            current_token = self.token
-            if current_token.type == MUL:
-                #EAT MUL
-                #result = result * self.Factor()
-            elif current_token.tag == DIV:
-                #Eat DIV
-                #result = result / self.Factor()
+                current_token = self.tokens[self.pos]
+                if current_token.tag == COMMA:
+                    while current_token.tag == COMMA:
+                        self.consume_token(COMMA)
+                        result.append(self.Factor()) #This to
+                if current_token.tag == R_BRACKET:
+                    self.consume_token(R_BRACKET)
+                    return TermNode(current_token, result)
+        else:
+            result = []
+            left = self.Factor()
+            current_token = self.tokens[self.pos]
+            while current_token.tag in (MUL, DIV):
+                if current_token.type == MUL:
+                    bin_op = current_token
+                    self.consume_token(MUL)
+                    right = self.Factor()
+                elif current_token.tag == DIV:
+                    bin_op = current_token
+                    self.consume_token(DIV)
+                    right = self.Factor()
+                result.append(BinOpNode(left, bin_op, right))
+                left = right
+                current_token = self.tokens[self.pos]
 
-        return result
+            return TermNode(current_token, result)
 
     def Factor(self):
         """Factor ::= Atom|(Atom EXP Atom)+"""
-        result = self.Atom()
+        result = []
+        base = self.Atom()
 
-        current_token = self.token
+        current_token = self.tokens[self.pos]
         while current_token.tag == EXP:
-            current_token = self.token
-            #EAT EXP
-            #result = result ** self.Atom()
+            self.consume_token(EXP)
+            exponent = self.Atom()
+            result.append(BinOpNode(base, current_token, exponent))
+            current_token = self.tokens[self.pos]
 
-        return result
+
+        return FactorNode(current_token, result)
 
     def Atom(self):
-        """
-        Atom ::= Matrix|NUMBER|VARIABLE|CONSTANT|L_BRACKET Expression R_BRACKET
-        Matrix ::= L_MATRIX_BR (Expression|Expression(COMMA|ENDL)Expression+ R_MATRIX_BR
-        """
-
-        current_token = self.token
+        """Atom ::= Matrix|NUMBER|VARIABLE|CONSTANT|L_BRACKET Expression R_BRACKET"""
+        current_token = self.tokens[self.pos]
         if current_token.tag == NUMBER:
-            #Eat token
-            #return current_token.value
-            pass
+            self.consume_token(NUMBER)
+            return NumberNode(current_token)
         elif current_token.tag == VARIABLE:
-            #Eat token
-            #return current_token.value
-            pass
+            self.consume_token(VARIABLE)
+            return VariableNode(current_token)
         elif current_token.tag == CONSTANT:
-            #Eat token
-            #return current_token.value
-            pass
+            self.consume_token(CONSTANT)
+            return ConstantNode(current_token)
         elif current_token.tag == L_BRACKET:
-            #Eat L_BRACKET
-            #result = self.expression() #There's the recursion
-            #Eat R_BRACKET
-            #return result
-            pass
+            self.consume_token(L_BRACKET)
+            result = self.Expression() #There's the recursion
+            self.consume_token(R_BRACKET)
+            return result
         elif current_token.tag == L_MATRIX_BR:
-            #EAT L_MATRIX_BR
+            self.consume_token(L_MATRIX_BR)
             #result = []
             #result.append(self.Expression())
 
@@ -141,4 +152,8 @@ class Interpreter():
                 #if current_token.tag == R_MATRIX_BR:
                     #EAT R_MATRIX_BR
                     #return result
+
+    def Matrix(self):
+        """Matrix ::= L_MATRIX_BR (Expression|Expression(COMMA|ENDL)Expression+ R_MATRIX_BR"""
+
 

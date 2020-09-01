@@ -2,17 +2,10 @@
 Obilisk Combinator class files
 """
 from parser.lexer import Token
+from parser.ast import AST
 
 from typing import List
 
-
-class Result:
-    def __init__(self, value, pos):
-        self.value = value
-        self.pos = pos
-
-    def __repr__(self):
-        return 'Result(%s, %d)' % (self.value, self.pos)
 
 
 class Parser:
@@ -31,6 +24,8 @@ class Parser:
     def __xor__(self, function):
         return Process(self, function)
 
+    def __
+
 
 class Reserved(Parser):
     def __init__(self, value, tag):
@@ -41,7 +36,7 @@ class Reserved(Parser):
         if pos < len(tokens) and \
                 tokens[pos].value == self.value and \
                 tokens[pos].tag is self.tag:
-            return Result(tokens[pos].value, pos + 1)
+            return AST(tokens[pos].value, pos + 1)
         else:
             return None
 
