@@ -21,6 +21,7 @@ COMMA = 'COMMA'
 CONSTANT = 'CONSTANT'
 NUMBER = 'NUMBER'
 VARIABLE = 'VARIABLE'
+EOF = 'EOF'
 
 token_exprs = [
     (r'of', None),
@@ -85,6 +86,7 @@ def lex(characters, token_exprs):
             raise SyntaxError('Illegal character: {}\n'.format(characters[pos]))
         else:
             pos = match.end(0)
+    tokens.append(Token((None, EOF)))
     return tokens
 
 
@@ -97,3 +99,4 @@ def parse(eqn):
     print("\n", eqn)
     for tok in tokens:
         print(tok)
+    return tokens

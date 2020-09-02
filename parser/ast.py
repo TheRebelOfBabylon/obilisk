@@ -7,19 +7,19 @@ class AST:
     pass
 
 class FuncNode(AST):
-    def __init__(self, op: Token, args: List[Token]):
+    def __init__(self, op: Token, args: List[Union[AST, Token]]):
         self.op = op.value
-        self.args = [tok.value for tok in args]
+        self.args = args
 
     def __repr__(self):
-        return 'MultiFuncNode(%s, %s)' % (self.op, self.args)
+        return 'FuncNode(%s, %s)' % (self.op, self.args)
 
 
 class BinOpNode(AST):
-    def __init__(self, left: Token, op: Token, right: Token):
-        self.left = left.value
+    def __init__(self, left: List[Union[AST, Token]], op: Token, right: List[Union[AST, Token]]):
+        self.left = left
         self.op = op.value
-        self.right = right.value
+        self.right = right
 
     def __repr__(self):
         return 'BinOpNode(%s, %s, %s)' % (self.left, self.op, self.right)
@@ -42,6 +42,13 @@ class VariableNode(AST):
     def __repr__(self):
         return 'VariableNode(%s, %s)' % (self.value, self.tag)
 
+class MatrixNode(AST):
+    def __init__(self, indices: List[Union[Token, AST]]):
+        self.rows = len(indices)
+        self.columns = len(indices[0])
+
+    def __repr__(self):
+        return 'MatrixNode(%s, %s)' % (self.rows, self.columns)
 
 class ConstantNode(AST):
     def __init__(self, token: Token):
@@ -54,43 +61,35 @@ class ConstantNode(AST):
 
 class EquationNode(AST):
     """Central node is EQUAL, children are Expressions"""
-    def __init__(self, token: Token, children: List[Union[Token, AST]]):
-        self.value = token.value
-        self.tag = token.tag
+    def __init__(self, children: List[Union[Token, AST]]):
         self.children = children
 
     def __repr__(self):
-        return 'EquationNode(%s, %s, %s)' % (self.value, self.tag, self.children)
+        return 'EquationNode(%s)' % self.children
 
 
 class ExpressionNode(AST):
     """Parents are Equation, children are terms"""
-    def __init__(self, token: Token, children: List[Union[Token, AST]]):
-        self.value = token.value
-        self.tag = token.tag
+    def __init__(self, children: List[Union[Token, AST]]):
         self.children = children
 
     def __repr__(self):
-        return 'ExpressionNode(%s, %s, %s)' % (self.value, self.tag, self.children)
+        return 'ExpressionNode(%s)' % self.children
 
 
 class TermNode(AST):
     """Parents are Expressions, children are Factors"""
-    def __init__(self, token: Token, children: List[Union[Token, AST]]):
-        self.value = token.value
-        self.tag = token.tag
+    def __init__(self, children: List[Union[Token, AST]]):
         self.children = children
 
     def __repr__(self):
-        return 'TermNode(%s, %s, %s)' % (self.value, self.tag, self.children)
+        return 'TermNode(%s)' % self.children
 
 
 class FactorNode(AST):
     """Parents are Terms, children are Atoms"""
-    def __init__(self, token: Token, children: List[Union[Token, AST]]):
-        self.value = token.value
-        self.tag = token.tag
+    def __init__(self, children: List[Union[Token, AST]]):
         self.children = children
 
     def __repr__(self):
-        return 'FactorNode(%s, %s, %s)' % (self.value, self.tag, self.children)
+        return 'FactorNode(%s)' % self.children
