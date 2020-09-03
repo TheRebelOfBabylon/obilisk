@@ -2,33 +2,41 @@ from parser.lexer import Token
 
 from typing import List, Union
 
+FUNCNode = 'FUNCNode'
+BINOPNode = 'BINOPNode'
+NUMNode = 'NUMNode'
+VARNode = 'VARNode'
+CONSTNode = 'CONSTNode'
 
 class AST:
     pass
 
 class FuncNode(AST):
     def __init__(self, op: Token, args: List[Union[AST, Token]]):
-        self.op = op.value
+        self.op = op
         self.args = args
+        self.type = FUNCNode
 
     def __repr__(self):
-        return 'FuncNode(%s, %s)' % (self.op, self.args)
+        return 'FuncNode(%s, %s)' % (self.op.value, self.args)
 
 
 class BinOpNode(AST):
     def __init__(self, left: List[Union[AST, Token]], op: Token, right: List[Union[AST, Token]]):
         self.left = left
-        self.op = op.value
+        self.op = op
         self.right = right
+        self.type = BINOPNode
 
     def __repr__(self):
-        return 'BinOpNode(%s, %s, %s)' % (self.left, self.op, self.right)
+        return 'BinOpNode(%s, %s, %s)' % (self.left, self.op.value, self.right)
 
 
 class NumberNode(AST):
     def __init__(self, token: Token):
         self.value = token.value
         self.tag = token.tag
+        self.type = NUMNode
 
     def __repr__(self):
         return 'NumberNode(%s, %s)' % (self.value, self.tag)
@@ -38,6 +46,7 @@ class VariableNode(AST):
     def __init__(self, token: Token):
         self.value = token.value
         self.tag = token.tag
+        self.type = VARNode
 
     def __repr__(self):
         return 'VariableNode(%s, %s)' % (self.value, self.tag)
@@ -54,6 +63,7 @@ class ConstantNode(AST):
     def __init__(self, token: Token):
         self.value = token.value
         self.tag = token.tag
+        self.type = CONSTNode
 
     def __repr__(self):
         return 'ConstantNode(%s, %s)' % (self.value, self.tag)

@@ -3,7 +3,7 @@ Obilisk Token Class and Lexer code
 """
 
 import re
-from typing import Tuple
+from typing import Tuple, List
 
 PLUS = 'PLUS'
 MINUS = 'MINUS'
@@ -39,7 +39,7 @@ token_exprs = [
     (r'\;', ENDL),
     (r'(sqrt|SQRT)', FUNC),
     (r'\,', COMMA),
-    (r'#[a-zA-Z_]', CONSTANT),
+    (r'#[a-zA-Z_]+', CONSTANT),
     (r'derivative|integral', FUNC),
     (r'd/d[a-zA-Z_]', FUNC),
     (r'abs|ABS', FUNC),
@@ -53,6 +53,7 @@ token_exprs = [
     (r'(asech|acsch|acoth)|(ASECH|ACSCH|ACOTH)', FUNC),
     (r'log|LOG', FUNC),
     (r'ln|LN', FUNC),
+    (r'[0-9]+(\.[0-9]*)?[ij]', NUMBER),
     (r'[0-9]+(\.[0-9]*)?([eE][\+\-]?[0-9]+)?([\+\-][0-9]+(\.[0-9]*)?[ij])?', NUMBER),
     (r'(d?[a-zA-Z_](\')*){1,}?', VARIABLE),
 ]
@@ -87,8 +88,18 @@ def lex(characters, token_exprs):
         else:
             pos = match.end(0)
     tokens.append(Token((None, EOF)))
+    tokens = inference(tokens)
     return tokens
 
+def inference(tokens: List[Token]) -> List[Token]:
+    """Function adds MUL tokens between variables and numbers, constants, brackets or functions"""
+    mul_token = Token(("*", MUL))
+    i = 0
+    while i != len(tokens):
+        if tokens[i-1].tag in (NUMBER, R_BRACKET) and tokens[i].tag in (VARIABLE, CONSTANT, L_BRACKET, FUNC):
+            tokens.insert(i, mul_token)
+        i += 1
+    return tokens
 
 def obilisk_lex(characters):
     return lex(characters, token_exprs)
