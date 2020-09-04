@@ -7,6 +7,7 @@ BINOPNode = 'BINOPNode'
 NUMNode = 'NUMNode'
 VARNode = 'VARNode'
 CONSTNode = 'CONSTNode'
+UNIOPNode = 'UNIOPNode'
 
 class AST:
     pass
@@ -19,6 +20,16 @@ class FuncNode(AST):
 
     def __repr__(self):
         return 'FuncNode(%s, %s)' % (self.op.value, self.args)
+
+
+class UniOpNode(AST):
+    def __init__(self, op: Token, right: [Union[AST, Token]]):
+        self.right = right
+        self.op = op
+        self.type = UNIOPNode
+
+    def __repr__(self):
+        return 'UniOpNode(%s, %s)' % (self.op.value, self.right)
 
 
 class BinOpNode(AST):

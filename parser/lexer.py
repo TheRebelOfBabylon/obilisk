@@ -68,46 +68,63 @@ class Token:
         return 'Token(%s, %s)' % (self.value, self.tag)
 
 
-def lex(characters, token_exprs):
-    pos = 0
-    tokens = []
-    while pos < len(characters):
-        match = None
-        for token_expr in token_exprs:
-            pattern, tag = token_expr
-            regex = re.compile(pattern)
-            match = regex.match(characters, pos)
-            if match:
-                text = match.group(0)
-                if tag:
-                    token = Token((text, tag))
-                    tokens.append(token)
-                break
-        if not match:
-            raise SyntaxError('Illegal character: {}\n'.format(characters[pos]))
-        else:
-            pos = match.end(0)
-    tokens.append(Token((None, EOF)))
-    tokens = inference(tokens)
-    return tokens
+class Lexer():
+    def __init__(self, eqn: str):
+        self.eqn = eqn
+        self.vars = []
 
-def inference(tokens: List[Token]) -> List[Token]:
-    """Function adds MUL tokens between variables and numbers, constants, brackets or functions"""
-    mul_token = Token(("*", MUL))
-    i = 0
-    while i != len(tokens):
-        if tokens[i-1].tag in (NUMBER, R_BRACKET) and tokens[i].tag in (VARIABLE, CONSTANT, L_BRACKET, FUNC):
-            tokens.insert(i, mul_token)
-        i += 1
-    return tokens
+    def lex(self, token_exprs):
+        """Method takes an eqn in string format and returns a list of tokens"""
+        pos = 0
+        tokens = []
+        while pos < len(self.eqn):
+            match = None
+            for token_expr in token_exprs:
+                pattern, tag = token_expr
+                regex = re.compile(pattern)
+                match = regex.match(self.eqn, pos)
+                if match:
+                    text = match.group(0)
+                    if tag:
+                        token = Token((text, tag))
+                        tokens.append(token)
+                    break
+            if not match:
+                raise SyntaxError('Illegal character: {}\n'.format(self.eqn[pos]))
+            else:
+                pos = match.end(0)
+        tokens.append(Token((None, EOF)))
+        tokens = self.inference(tokens)
+        self.check_for_vars(tokens)
+        return tokens
 
-def obilisk_lex(characters):
-    return lex(characters, token_exprs)
+    @staticmethod
+    def inference(tokens: List[Token]) -> List[Token]:
+        """Function adds MUL tokens between variables and numbers, constants, brackets or functions"""
+        mul_token = Token(("*", MUL))
+        i = 0
+        while i != len(tokens):
+            if tokens[i-1].tag in (NUMBER, R_BRACKET) and tokens[i].tag in (VARIABLE, CONSTANT, L_BRACKET, FUNC):
+                tokens.insert(i, mul_token)
+            i += 1
+        return tokens
+
+    def obilisk_lex(self):
+        return self.lex(token_exprs)
+
+    def check_for_vars(self, tokens: List[Token]):
+        """Function checks for variable tokens and stores the values in a list"""
+        for token in tokens:
+            if token.tag == VARIABLE:
+                if token.value not in self.vars:
+                    self.vars.append(token.value)
 
 
 def parse(eqn):
-    tokens = obilisk_lex(eqn)
+    lexer = Lexer(eqn)
+    tokens = lexer.obilisk_lex()
     print("\n", eqn)
     for tok in tokens:
         print(tok)
+    print(lexer.vars)
     return tokens

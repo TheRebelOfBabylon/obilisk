@@ -1,4 +1,4 @@
-from parser.ast import MatrixNode, BinOpNode, VariableNode, NumberNode, EquationNode, ExpressionNode, TermNode, FactorNode, ConstantNode, FuncNode
+from parser.ast import MatrixNode, BinOpNode, VariableNode, NumberNode, EquationNode, ExpressionNode, TermNode, FactorNode, ConstantNode, FuncNode, UniOpNode
 from parser.lexer import Token, PLUS, MINUS, ENDL, EQUAL, EXP, MUL, DIV, L_MATRIX_BR, L_BRACKET, NUMBER, FUNC, VARIABLE, R_MATRIX_BR, R_BRACKET, COMMA, CONSTANT, EOF
 
 from typing import List
@@ -106,9 +106,17 @@ class TreeBuilder():
         return base
 
     def Atom(self):
-        """Atom ::= Matrix|NUMBER|VARIABLE|CONSTANT|L_BRACKET Expression R_BRACKET|FUNC L_BRACKET Expression R_BRACKET|EOF"""
+        """Atom ::= (+|-)Atom|Matrix|NUMBER|VARIABLE|CONSTANT|L_BRACKET Expression R_BRACKET|FUNC L_BRACKET Expression R_BRACKET|EOF"""
         current_token = self.tokens[self.pos]
-        if current_token.tag == NUMBER:
+        if current_token.tag == PLUS:
+            uni_op = current_token
+            self.consume_token(PLUS)
+            return UniOpNode(uni_op, self.Atom())
+        elif current_token.tag == MINUS:
+            uni_op = current_token
+            self.consume_token(MINUS)
+            return UniOpNode(uni_op, self.Atom())
+        elif current_token.tag == NUMBER:
             self.consume_token(NUMBER)
             return NumberNode(current_token)
         elif current_token.tag == VARIABLE:

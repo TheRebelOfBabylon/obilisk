@@ -1,475 +1,356 @@
-
-from math_core.Equation import Equation, stringify
-import math, cmath
-from typing import List, Tuple, Union
-
-def is_even(s: Union[int, float]) -> bool:
-    """Tests if number is even."""
-    if s % 2 == 0:
-
-        return True
-
-    else:
-
-        return False
-
-def div_check(x: Union[int, float, complex], y: Union[int, float, complex]) -> bool:
-    """Detects divisions by zero."""
-    try:
-        x / y
-
-    except ZeroDivisionError:
-
-        return True
-
-    else:
-
-        return False
-
-def operation(num_one: str, oper: str, num_two: str) -> Union[int, float, complex]:
-    """Takes two numbers in string format and performs specified input operation."""
-    try:
-
-        num_one = float(num_one)
-
-    except:
-
-        num_one = complex(num_one)
-
-    try:
-
-        num_two = float(num_two)
-
-    except:
-
-        num_two = complex(num_two)
-
-    operation_ans = 0
-
-    if oper == "^":
-
-        operation_ans = num_one ** num_two
-
-    elif oper == "/":
-
-        # Check if division by zero
-        if div_check(num_one, num_two) == True:
-
-            operation_ans = math.inf
-
-        else:
-
-            operation_ans = num_one / num_two
-
-    elif oper == "*":
-
-        operation_ans = num_one * num_two
-
-    elif oper == "+":
-
-        operation_ans = num_one + num_two
-
-    elif oper == "-":
-
-        operation_ans = num_one - num_two
-
-    elif oper == "SIN":
-
-        num_two = math.radians(num_two)
-        operation_ans = round(math.sin(num_two), 7)
-
-    elif oper == "COS":
-
-        num_two = math.radians(num_two)
-        operation_ans = round(math.cos(num_two), 7)
-
-    elif oper == "TAN":
-
-        num_two = math.radians(num_two)
-        operation_ans = round(math.tan(num_two), 7)
-
-    elif oper == "SEC":
-
-        num_two = math.radians(num_two)
-        if div_check(1, round(math.cos(num_two), 7)) == True:
-
-            operation_ans = math.inf
-
-        else:
-
-            operation_ans = round(1 / math.cos(num_two), 7)
-
-    elif oper == "CSC":
-
-        num_two = math.radians(num_two)
-        if div_check(1, round(math.sin(num_two), 7)) == True:
-
-            operation_ans = math.inf
-
-        else:
-
-            operation_ans = round(1 / math.sin(num_two), 7)
-
-    elif oper == "COT":
-
-        num_two = math.radians(num_two)
-        if div_check(1, round(math.tan(num_two), 7)) == True:
-
-            operation_ans = math.inf
-
-        else:
-
-            operation_ans = round(1 / math.tan(num_two), 7)
-
-    elif oper == "ASIN":
-
-        operation_ans = math.asin(num_two)
-        operation_ans = round(math.degrees(operation_ans), 7)
-
-    elif oper == "ACOS":
-
-        operation_ans = math.acos(num_two)
-        operation_ans = round(math.degrees(operation_ans), 7)
-
-    elif oper == "ATAN":
-
-        operation_ans = math.atan(num_two)
-        operation_ans = round(math.degrees(operation_ans), 7)
-
-    elif oper == "ASEC":
-
-        if div_check(1, num_two) == True:
-
-            operation_ans = math.inf
-
-        else:
-
-            operation_ans = round(math.degrees(math.acos(1 / num_two)), 7)
-
-    elif oper == "ACSC":
-
-        if div_check(1, num_two) == True:
-
-            operation_ans = math.inf
-
-        else:
-
-            operation_ans = round(math.degrees(math.asin(1 / num_two)), 7)
-
-    elif oper == "ACOT":
-
-        if div_check(1, num_two) == True:
-
-            operation_ans = round(math.degrees(math.atan(math.inf)), 7)
-
-        else:
-
-            operation_ans = round(math.degrees(math.atan(1 / num_two)), 7)
-
-    elif oper == "SINH":
-
-        operation_ans = round(math.sinh(num_two), 7)
-
-    elif oper == "COSH":
-
-        operation_ans = round(math.cosh(num_two), 7)
-
-    elif oper == "TANH":
-
-        operation_ans = round(math.tanh(num_two), 7)
-
-    elif oper == "SECH":
-
-        if div_check(1, round(math.cosh(num_two), 7)) == True:
-
-            operation_ans = math.inf
-
-        else:
-
-            operation_ans = round(1 / math.cosh(num_two), 7)
-
-    elif oper == "CSCH":
-
-        if div_check(1, round(math.sinh(num_two), 7)) == True:
-
-            operation_ans = math.inf
-
-        else:
-
-            operation_ans = round(1 / math.sinh(num_two), 7)
-
-    elif oper == "COTH":
-
-        if div_check(1, round(math.tanh(num_two), 7)) == True:
-
-            operation_ans = math.inf
-
-        else:
-
-            operation_ans = round(1 / math.tanh(num_two), 7)
-
-    elif oper == "ASINH":
-
-        operation_ans = round(math.asinh(num_two), 7)
-
-    elif oper == "ACOSH":
-
-        operation_ans = round(math.acosh(num_two), 7)
-
-    elif oper == "ATANH":
-
-        operation_ans = round(math.atanh(num_two), 7)
-
-    elif oper == "ASECH":
-
-        if div_check(1, num_two) == True:
-
-            operation_ans = math.inf
-
-        else:
-
-            operation_ans = round(math.acosh(1 / num_two), 7)
-
-    elif oper == "ACSCH":
-
-        if div_check(1, num_two) == True:
-
-            operation_ans = math.inf
-
-        else:
-
-            operation_ans = round(math.asinh(1 / num_two), 7)
-
-    elif oper == "ACOTH":
-
-        if div_check(1, num_two) == True:
-
-            operation_ans = math.inf
-
-        else:
-
-            operation_ans = round(math.atanh(1 / num_two), 7)
-
-    elif oper == "LN":
-
-        operation_ans = math.log(num_two)
-
-    elif oper == "LOG":
-
-        operation_ans = math.log(num_two, num_one)
-
-    elif oper == "SQRT":
-
-        operation_ans = cmath.sqrt(num_two)
-
-    return operation_ans
-
-trig_one = [
-    "SIN",
-    "COS",
-    "TAN",
-    "ASIN",
-    "ACOS",
-    "ATAN",
-    "SINH",
-    "COSH",
-    "TANH",
-    "SECH",
-    "CSCH",
-    "COTH",
-    "ASINH",
-    "ACOSH",
-    "ATANH",
-    "LN",
-    "SQRT",
+from math_core.Equation import Equation
+from parser.ast import FuncNode, BinOpNode, AST, UniOpNode
+from parser.ast import FUNCNode, BINOPNode, NUMNode, CONSTNode, VARNode, UNIOPNode
+from parser.lexer import EQUAL, MUL, MINUS, PLUS, EXP, DIV
+
+import math
+import cmath
+from typing import Union, List
+
+list_of_func = [
+    "cos",
+    "sin",
+    "tan",
+    "abs",
+    "log",
+    "ln",
+    "sqrt",
+    "sec",
+    "csc",
+    "cot",
+    "acos",
+    "asin",
+    "atan",
+    "asec",
+    "acsc",
+    "acot",
+    "cosh",
+    "sinh",
+    "tanh",
+    "sech",
+    "csch",
+    "coth",
+    "acosh",
+    "asinh",
+    "atanh",
+    "asech",
+    "acsch",
+    "acoth",
+    "derivative",
+    "integral",
 ]
 
-trig_two = {
-    "SEC": "COS",
-    "CSC": "SIN",
-    "COT": "TAN",
-    "ASEC": "ACOS",
-    "ACSC": "ASIN",
-    "ACOT": "ATAN",
-    "ASECH": "ACOSH",
-    "ACSCH": "ASINH",
-    "ACOTH": "ATANH",
-}
+
+def stringify(num: Union[int, float, complex]) -> str:
+    """Method takes a number and returns a string"""
+    if type(num) == float:
+        if num.is_integer():
+            return str(int(num))
+    return str(num)
+
 
 class Arithmetic(Equation):
+    def calculate(self) -> Union[float, complex, int]:
+        """Method calls the method from the Interpreter class to climb the AST and solve"""
+        ans = self.solve()
+        self.solution.append("The final answer is "+stringify(ans))
+        return ans
 
-    def calculate(self, solution: List[Union[str, int]] = [1], is_first: bool = True) -> Union[int, float, complex]:
-        """Using the rules of BEMDAS, function solves any arithmetic problem."""
-        #print("At the beginning b = "+str(b), self.eqn)
-        op = "0"
-        oper = "x"
-        y = 0
-        z = 0
-        t = 0
-        b = 1
-        bracket = []
-        if len(self.eqn) == 3:
-            calc = complex(self.eqn_string)
-            if calc.imag == 0:
-                calc = calc.real
-        brack_num = 0
-        length = len(self.eqn)
-        from math_core.Equation import oper_dict
+    def solve(self):
+        """Method which initiates tree climbing"""
+        return self.climb_tree(self.tree)
 
-        while t <= (length - 1):
+    def climb_tree(self, node: AST):
+        """Method to climb tree and find answer"""
+        if node.type == UNIOPNode:
+            return self.visit_UNIOPNode(node)
+        elif node.type == BINOPNode:
+            return self.visit_BINOPNode(node)
+        elif node.type == FUNCNode:
+            return self.visit_FUNCNode(node)
+        elif node.type == NUMNode:
+            try:
+                num = float(node.value)
+            except:
+                num = complex(node.value)
+            return num
+        elif node.type == VARNode:
+            return node.value
+        elif node.type == CONSTNode:
+            return self.vist_CONSTNode(node)
 
-            # print(t,n[t],length)
+    def visit_UNIOPNode(self, node: UniOpNode):
+        """Method to evaulate UniOpNodes"""
+        if node.op.tag == PLUS:
+            return +self.climb_tree(node.right)
+        elif node.op.tag == MINUS:
+            return -self.climb_tree(node.right)
 
-            if (self.eqn[t] == "("+str(b+1)) :
+    def visit_BINOPNode(self, node: BinOpNode):
+        """Method to evaluate BinOpNodes"""
+        left = self.climb_tree(node.left)
+        right = self.climb_tree(node.right)
+        if node.op.tag == EXP:
+            ans = left ** right
 
-                b+=1
-                brack_num = ")" + str(b)
-                y = t + 1
-                while brack_num not in self.eqn[y]:
-                    bracket.insert(z, self.eqn[y])
-                    z = z + 1
-                    y = y + 1
+            self.solution.append(stringify(left)+"^"+stringify(right)+" = "+stringify(ans))
+            self.update_eqn_string(stringify(left)+"^"+stringify(right), stringify(ans))
+            return ans
+        elif node.op.tag == MUL:
+            ans = left * right
+            self.solution.append(stringify(left)+"*"+stringify(right) + " = " + stringify(ans))
+            self.update_eqn_string(stringify(left)+"*"+stringify(right), stringify(ans))
+            return ans
+        elif node.op.tag == DIV:
+            ans = left / right
+            self.solution.append(stringify(left)+"/"+stringify(right) + " = " + stringify(ans))
+            self.update_eqn_string(stringify(left)+"/"+stringify(right), stringify(ans))
+            return ans
+        elif node.op.tag == PLUS:
+            ans = left + right
+            self.solution.append(stringify(left)+"+"+stringify(right) + " = " + stringify(ans))
+            self.update_eqn_string(stringify(left)+"+"+stringify(right), stringify(ans))
+            return ans
+        elif node.op.tag == MINUS:
+            ans = left - right
+            self.solution.append(stringify(left)+"-"+stringify(right) + " = " + stringify(ans))
+            self.update_eqn_string(stringify(left)+"-"+stringify(right), stringify(ans))
+            return ans
+        #elif node.op.tag == EQUAL:
+            #return left, right
 
-                del self.eqn[(t + 1):(t + len(bracket) + 2)]
-                length = len(self.eqn)
-                #print(self.eqn,bracket,length)
-                bracket.insert(0, "(1")
-                bracket.append(")1")
-                bracket_string = stringify(bracket)
-                #print(bracket, bracket_string, "b = "+str(b))
-                bracket_inst = Arithmetic(bracket_string)
-                #print("do we ever get here?")
-                self.eqn[t] = str(bracket_inst.calculate(solution=solution, is_first=False))
-                if is_first:
-                    self.eqn_string_update()
-                    if solution[-1] != "Equation is now " + self.eqn_string:
-                        solution.append("Equation is now " + self.eqn_string)
-                b = b - 1
-                bracket.clear()
+    def visit_FUNCNode(self, node: FuncNode):
+        """Method to evaluate FuncNodes"""
+        if node.op.value in list_of_func or node.op.value.upper() in list_of_func:
+            if node.op.value in ("log", "LOG"):
+                if len(node.args) == 2:
+                    base = self.climb_tree(node.args[0])
+                    exponent = self.climb_tree(node.args[1])
+                    ans = math.log(base, exponent)
+                    self.solution.append(node.op.value+"("+stringify(base)+","+stringify(exponent)+") = "+stringify(ans))
+                    self.update_eqn_string(node.op.value+"("+stringify(base)+","+stringify(exponent)+")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for log function. Args = {}".format(node.args))
+            elif node.op.value in ("ln", "LN"):
+                if len(node.args) == 1:
+                    exponent = self.climb_tree(node.args[0])
+                    ans = math.log(exponent)
+                    self.solution.append(node.op.value+"("+stringify(exponent)+") = "+stringify(ans))
+                    self.update_eqn_string(node.op.value+"("+stringify(exponent)+")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for ln function. Args = {}".format(node.args))
+            elif node.op.value in ("sqrt", "SQRT"):
+                if len(node.args) == 1:
+                    num = self.climb_tree(node.args[0])
+                    ans = cmath.sqrt(num)
+                    self.solution.append(node.op.value+"("+stringify(num)+") = "+stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(num) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for sqrt function. Args = {}".format(node.args))
+            elif node.op.value in ("sin", "SIN", "cos", "COS", "tan", "TAN", "sinh", "SINH", "cosh", "COSH", "tanh", "TANH", "asinh", "ASINH", "acosh", "ACOSH", "atanh", "ATANH"):
+                if len(node.args) == 1:
+                    num = self.climb_tree(node.args[0])
+                    oper = getattr(math, node.op.value.lower())
+                    ans = oper(math.radians(num))
+                    self.solution.append(node.op.value+"(" + stringify(num) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(num) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("sinh", "SINH", "cosh", "COSH", "tanh", "TANH", "asinh", "ASINH", "acosh", "ACOSH", "atanh", "ATANH"):
+                if len(node.args) == 1:
+                    num = self.climb_tree(node.args[0])
+                    oper = getattr(math, node.op.value.lower())
+                    ans = oper(num)
+                    self.solution.append(node.op.value + "(" + stringify(num) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(num) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("asin", "ASIN", "acos", "ACOS", "atan", "ATAN"):
+                if len(node.args) == 1:
+                    num = self.climb_tree(node.args[0])
+                    oper = getattr(math, node.op.value.lower())
+                    ans = math.degrees(oper(num))
+                    self.solution.append(node.op.value + "(" + stringify(num) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(num) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("sinh", "SINH", "cosh", "COSH", "tanh", "TANH"):
+                if len(node.args) == 1:
+                    num = self.climb_tree(node.args[0])
+                    oper = getattr(math, node.op.value.lower())
+                    ans = oper(num)
+                    self.solution.append(node.op.value + "(" + stringify(num) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(num) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("sec", "SEC"):
+                if len(node.args) == 1:
+                    result = self.climb_tree(node.args[0])
+                    if self.div_check(1, result):
+                        ans = math.inf
+                    else:
+                        ans = 1/math.cos(result)
+                    self.solution.append("sec("+stringify(result)+") = 1/cos("+stringify(result)+") = "+stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(result) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("csc", "CSC"):
+                if len(node.args) == 1:
+                    result = self.climb_tree(node.args[0])
+                    if self.div_check(1, result):
+                        ans = math.inf
+                    else:
+                        ans = 1 / math.sin(result)
+                    self.solution.append("csc(" + stringify(result) + ") = 1/sin(" + stringify(result) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(result) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("cot", "COT"):
+                if len(node.args) == 1:
+                    result = self.climb_tree(node.args[0])
+                    if self.div_check(1, result):
+                        ans = math.inf
+                    else:
+                        ans = 1 / math.tan(result)
+                    self.solution.append("cot(" + stringify(result) + ") = 1/tan(" + stringify(result) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(result) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("asec", "ASEC"):
+                if len(node.args) == 1:
+                    result = self.climb_tree(node.args[0])
+                    if self.div_check(1, result):
+                        ans = math.inf
+                    else:
+                        ans = math.acos(1/result)
+                    self.solution.append("asec(" + stringify(result) + ") = acos(1/" + stringify(result) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(result) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("acsc", "ACSC"):
+                if len(node.args) == 1:
+                    result = self.climb_tree(node.args[0])
+                    if self.div_check(1, result):
+                        ans = math.inf
+                    else:
+                        ans = math.asin(1/result)
+                    self.solution.append("acsc(" + stringify(result) + ") = asin(1/" + stringify(result) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(result) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("acot", "ACOT"):
+                if len(node.args) == 1:
+                    result = self.climb_tree(node.args[0])
+                    if self.div_check(1, result):
+                        ans = math.inf
+                    else:
+                        ans = math.atan(1/result)
+                    self.solution.append("acot(" + stringify(result) + ") = atan(1/" + stringify(result) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(result) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("sech", "SECH"):
+                if len(node.args) == 1:
+                    result = self.climb_tree(node.args[0])
+                    if self.div_check(1, result):
+                        ans = math.inf
+                    else:
+                        ans = 1 / math.cosh(result)
+                    self.solution.append("sech(" + stringify(result) + ") = 1/cosh(" + stringify(result) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(result) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("csch", "CSCH"):
+                if len(node.args) == 1:
+                    result = self.climb_tree(node.args[0])
+                    if self.div_check(1, result):
+                        ans = math.inf
+                    else:
+                        ans = 1 / math.sinh(result)
+                    self.solution.append("csch(" + stringify(result) + ") = 1/sinh(" + stringify(result) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(result) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("coth", "COTH"):
+                if len(node.args) == 1:
+                    result = self.climb_tree(node.args[0])
+                    if self.div_check(1, result):
+                        ans = math.inf
+                    else:
+                        ans = 1 / math.tanh(result)
+                    self.solution.append("coth(" + stringify(result) + ") = 1/tanh(" + stringify(result) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(result) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("asech", "ASECH"):
+                if len(node.args) == 1:
+                    result = self.climb_tree(node.args[0])
+                    if self.div_check(1, result):
+                        ans = math.inf
+                    else:
+                        ans = math.acosh(1/result)
+                    self.solution.append("asech(" + stringify(result) + ") = acosh(1/" + stringify(result) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(result) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("acsch", "ACSCH"):
+                if len(node.args) == 1:
+                    result = self.climb_tree(node.args[0])
+                    if self.div_check(1, result):
+                        ans = math.inf
+                    else:
+                        ans = math.asinh(1/result)
+                    self.solution.append("acsch(" + stringify(result) + ") = asinh(1/" + stringify(result) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(result) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("acoth", "ACOTH"):
+                if len(node.args) == 1:
+                    result = self.climb_tree(node.args[0])
+                    if self.div_check(1, result):
+                        ans = math.inf
+                    else:
+                        ans = math.atanh(1/result)
+                    self.solution.append("acoth(" + stringify(result) + ") = atanh(1/" + stringify(result) + ") = " + stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(result) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+            elif node.op.value in ("abs", "ABS"):
+                if len(node.args) == 1:
+                    num = self.climb_tree(node.args[0])
+                    ans = abs(num)
+                    self.solution.append("abs("+stringify(num)+") = "+stringify(ans))
+                    self.update_eqn_string(node.op.value + "(" + stringify(num) + ")", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
+        else:
+            return Exception("Invalid function{}".format(node.op.value))
 
-            t = t + 1
+    def vist_CONSTNode(self, node: CONSTNode):
+        """This method takes a CONSTNode and returns the constant if it exits"""
+        if node.value in ("#pi", "#PI"):
+            return math.pi
+        elif node.value in ("#e", "#E"):
+            return math.e
+        else:
+            raise ValueError("Constant {} is not recognized".format(node.value))
 
-        # for loop to walk list of operations
-        for s in oper_dict.values():
+    @staticmethod
+    def div_check(x: Union[int, float, complex], y: Union[int, float, complex]) -> bool:
+        """Detects divisions by zero."""
+        try:
+            x / y
+        except ZeroDivisionError:
+            return True
+        else:
+            return False
 
-            op = s
-
-            # while loop to walk the inputted array
-            t = 0
-            while t <= (length - 1):
-                # print(s,t,self.eqn[t],length)
-
-                if length == 1:
-                    calc = self.eqn[t]
-
-                if self.eqn[t] == op:
-
-                    if op in trig_one:
-
-                        calc = operation(0, op, self.eqn[t + 1])
-                        solution.append("Step "+str(solution[0])+":")
-                        solution[0]=solution[0]+1
-                        solution.append(op.lower() + "(" + self.eqn[t + 1] + ") = " + str(calc))
-                        #print(solution)
-                        self.eqn[t] = str(calc)
-                        del self.eqn[t + 1]
-                        length = len(self.eqn)
-                    # print(self.eqn, calc)
-
-                    elif op in trig_two:
-
-                        calc = operation(0, op, self.eqn[t + 1])
-                        solution.append("Step " + str(solution[0]) + ":")
-                        solution[0] = solution[0] + 1
-                        solution.append(op.lower() + "(" + self.eqn[t + 1] + ") = 1/"+trig_two[op]+"(" + self.eqn[t + 1] + ") = " + str(calc))
-                        #print(solution)
-                        self.eqn[t] = str(calc)
-                        del self.eqn[t + 1]
-                        length = len(self.eqn)
-                    # print(self.eqn, calc)
-
-                    elif op == "LOG":
-
-                        calc = operation(self.eqn[t + 1], op, self.eqn[t + 2])
-                        solution.append("Step " + str(solution[0]) + ":")
-                        solution[0] = solution[0] + 1
-                        solution.append("Log(" + self.eqn[t + 1] + ", " + self.eqn[t + 2] + ") = " + str(calc))
-                        #print(solution)
-                        self.eqn[t] = str(calc)
-                        del self.eqn[t + 1:t + 3]
-                        # print(self.eqn)
-                        length = len(self.eqn)
-
-                    if is_first:
-                        self.eqn_string_update()
-                        if solution[-1] != "Equation is now " + self.eqn_string:
-                            solution.append("Equation is now " + self.eqn_string)
-
-                t = t + 1
-
-        # After resolving complex calculations, now to resolve ^*/+-
-        for s in range(0, 3):
-
-            if s == 0:
-
-                op = "^"
-                op1 = ""
-
-            elif s == 1:
-
-                op = "*"
-                op1 = "/"
-
-            elif s == 2:
-
-                op = "+"
-                op1 = "-"
-
-            t = 0
-            while t <= length - 1:
-
-                if self.eqn[t] == op:
-
-                    calc = operation(self.eqn[t - 1], op, self.eqn[t + 1])
-                    solution.append("Step " + str(solution[0]) + ":")
-                    solution[0] = solution[0] + 1
-                    solution.append(self.eqn[t - 1] + op + self.eqn[t + 1] + " = " + str(calc))
-                    #print(solution)
-                    self.eqn[t - 1] = str(calc)
-                    del self.eqn[t:t + 2]
-                    t = t - 1  # line added to make sure all ops are performed
-                    length = len(self.eqn)
-                    if is_first:
-                        self.eqn_string_update()
-                        if solution[-1] != "Equation is now " + self.eqn_string:
-                            solution.append("Equation is now " + self.eqn_string)
-                # print(n, calc)
-
-                elif self.eqn[t] == op1:
-
-                    calc = operation(self.eqn[t - 1], op1, self.eqn[t + 1])
-                    solution.append("Step " + str(solution[0]) + ":")
-                    solution[0] = solution[0] + 1
-                    solution.append(self.eqn[t - 1] + op1 + self.eqn[t + 1] + " = " + str(calc))
-                    #print(solution)
-                    self.eqn[t - 1] = str(calc)
-                    del self.eqn[t:t + 2]
-                    t = t - 1  # line added to make sure all ops are performed
-                    length = len(self.eqn)
-                    if is_first:
-                        self.eqn_string_update()
-                        if solution[-1] != "Equation is now " + self.eqn_string:
-                            solution.append("Equation is now " + self.eqn_string)
-                # print(n, calc)
-
-                t = t + 1
-
-        if is_first:
-
-            solution.append("Final answer is "+str(calc))
-
-            for i in range(1, len(solution)):
-                self.solution.append(solution[i])
-
-        return calc
-
+    def update_eqn_string(self, section_to_replace: str, new_section: str):
+        """Method which updates the eqn string based on recent ops"""
+        self.solution.append("------")
+        if "("+section_to_replace+")" in self.eqn_string:
+            self.eqn_string = self.eqn_string.replace("("+section_to_replace+")", new_section)
+        else:
+            self.eqn_string = self.eqn_string.replace(section_to_replace, new_section)
+        self.solution.append(self.eqn_string)
+        self.solution.append("------")

@@ -1,40 +1,40 @@
 from math_core.Equation import Equation
 from math_core.Arithmetic import Arithmetic
-from math_core.Algebra import Algebra
+#from math_core.Algebra import Algebra
+from parser.lexer import Lexer
+from parser.combinator import TreeBuilder
 
 from typing import List, Tuple, Union
+from copy import deepcopy
 
-def decode(input_eqn: str) -> Tuple[Equation, str]:
 
-    eqn = Equation(input_eqn)
-    if eqn.var_type[0] == "":
+class Obilisk:
+    def __init__(self, eqn_string: str):
+        self.eqn_string = eqn_string
+        self.tokens = None
+        self.tree = None
+        self.vars = None
+        self.parse()
 
-        return eqn, "compute"
+    def parse(self):
+        """This method takes the inputted equation in string format, tokenizes it and creates an AST"""
+        lexer = Lexer(self.eqn_string)
+        self.vars = deepcopy(lexer.vars)
+        self.tokens = lexer.obilisk_lex()
+        tokens = TreeBuilder(self.tokens)
+        self.tree = tokens.build_tree()
 
-    elif len(eqn.var_type) > 1:
 
-        #raise NotImplementedError("Multivariable problems are not yet supported.")
-        eqn.solution.append("Multivariable problems are not yet supported.")
-        return eqn, "not supported"
-
+def decode(input_eqn: str) -> Union[List[str], int, float, complex]:
+    """Function creates an Obilisk object, parses the function and then decides how to solve it."""
+    obi = Obilisk(input_eqn)
+    if not obi.vars:
+        arithmetic = Arithmetic(obi.eqn_string, obi.tokens, obi.tree)
+        return arithmetic.calculate(), arithmetic.solution
+    elif len(obi.vars) == 1:
+        algebra = Algebra()
+        return algebra.isolate()
     else:
-
-        return eqn, "solve"
-
-def compute(input: Equation) -> Tuple[List[str], List[Union[int, float, complex]]]:
-
-    ans = []
-    eqn = Arithmetic(input.eqn_string)
-    ans.append(eqn.calculate())
-
-    return eqn.solution, ans
-
-def solve(input: Equation) -> Tuple[List[str], List[Union[int, float, complex]]]:
-
-    ans = []
-    eqn = Algebra(input.eqn_string)
-    eqn.isolate()
-    for i in eqn.rhs:
-        ans.append(i[1])
-
-    return eqn.solution, ans
+        eqn = Equation()
+        eqn.solution.append("Multivariable problems are not yet supported.")
+        return eqn.solution
