@@ -1,7 +1,7 @@
 from parser.ast import BinOpNode, FuncNode, NumberNode, VariableNode, ConstantNode, UniOpNode, NUMNode, CONSTNode
 from parser.lexer import Token, VARIABLE, EXP, NUMBER, MUL, EQUAL, PLUS, MINUS
 
-#TODO - Add support for optional unary operators and for certain terms to not exist at all
+#TODO - Add support for certain terms to not exist at all
 
 NUM_OR_CONST = NUMNode + CONSTNode #Some number can be a variable or a constant
 PLUS_MINUS = PLUS+MINUS

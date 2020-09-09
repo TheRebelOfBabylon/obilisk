@@ -42,16 +42,21 @@ class TreeBuilder():
             raise Exception('Invalid syntax')
 
     def Equation(self):
-        """Equation ::= Expression|Expression EQUAL Expression"""
-        LHS = self.Expression()
-
+        """Equation ::= FUNC Equation|Expression|Expression EQUAL Expression"""
         current_token = self.tokens[self.pos]
-        if current_token.tag == EQUAL:
-            equal_token = current_token
-            self.consume_token(EQUAL)
-            RHS = self.Expression()
-            return BinOpNode(LHS, equal_token, RHS)
-        return LHS
+        if current_token.tag == FUNC:
+            op = current_token
+            self.consume_token(FUNC)
+            return FuncNode(op, [self.Equation()])
+        else:
+            LHS = self.Expression()
+            current_token = self.tokens[self.pos]
+            if current_token.tag == EQUAL:
+                equal_token = current_token
+                self.consume_token(EQUAL)
+                RHS = self.Expression()
+                return BinOpNode(LHS, equal_token, RHS)
+            return LHS
 
     def Expression(self):
         """Expression ::= Term|(Term(PLUS|MINUS)Term)+"""

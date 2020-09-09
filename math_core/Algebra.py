@@ -5,7 +5,7 @@
 4. Solve
 """
 from math_core.Equation import Equation
-from parser.ast import AST, BINOPNode, VARNode
+from parser.ast import AST, BINOPNode, VARNode, UNIOPNode, FUNCNode
 from parser.lexer import Token, EQUAL, EXP
 from math_core.algebra_formats import quadratic, NUM_OR_CONST, PLUS_MINUS
 
@@ -26,18 +26,23 @@ class Algebra(Equation):
 
     def seperate_lhs_rhs(self):
         """Method takes the lhs and rhs of the AST and splits them"""
-        if self.tree.op.tag == EQUAL:
-            self.lhs = deepcopy(self.tree.left)
-            self.rhs = deepcopy(self.tree.right)
+        if self.tree.type == BINOPNode:
+            if self.tree.op.tag == EQUAL:
+                self.lhs = deepcopy(self.tree.left)
+                self.rhs = deepcopy(self.tree.right)
+        elif self.tree.type == FUNCNode:
+            if self.tree.op.value in ("solve", "isolate", "roots"):
+                self.tree = deepcopy(self.tree.args[0])
+                self.lhs = deepcopy(self.tree.left)
+                self.rhs = deepcopy(self.tree.right)
 
     def check_solvability(self, format: AST) -> bool:
         """Method checks if the equation is already in a solvable format"""
         return self.climb_tree(self.tree, format)
 
     def climb_tree(self, actual_tree: AST, template: AST) -> bool:
-        # TODO - Add support for optional unary operators and for certain terms to not exist at all
         """Method climbs the tree if the corresponding nodes are the same"""
-        if actual_tree.type == BINOPNode:
+        if actual_tree.type == BINOPNode and template.type == BINOPNode:
             #checking to see if it's the right power
             if actual_tree.op.tag == EXP:
                 if actual_tree.right.value == template.right.value:
@@ -47,10 +52,12 @@ class Algebra(Equation):
                     check_left = self.climb_tree(actual_tree.left, template.left)
                     if check_left:
                         return self.climb_tree(actual_tree.right, template.right)
-        elif actual_tree.type in NUM_OR_CONST:
+        elif actual_tree.type == UNIOPNode:
+            return self.climb_tree(actual_tree.right, template)
+        elif actual_tree.type in NUM_OR_CONST and template.type in NUM_OR_CONST:
             if actual_tree.type in template.type:
                 return True
-        elif actual_tree.type == VARNode:
+        elif actual_tree.type == VARNode and template.type == VARNode:
             if actual_tree.type == template.type:
                 return True
         return False

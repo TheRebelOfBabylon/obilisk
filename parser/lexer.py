@@ -41,6 +41,7 @@ token_exprs = [
     (r'\,', COMMA),
     (r'#[a-zA-Z_]+', CONSTANT),
     (r'derivative|integral', FUNC),
+    (r'solve|isolate|roots', FUNC),
     (r'd/d[a-zA-Z_]', FUNC),
     (r'abs|ABS', FUNC),
     (r'(sin|cos|tan)|(SIN|COS|TAN)', FUNC),
