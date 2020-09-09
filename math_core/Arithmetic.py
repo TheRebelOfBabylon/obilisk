@@ -1,11 +1,11 @@
 from math_core.Equation import Equation
-from parser.ast import FuncNode, BinOpNode, AST, UniOpNode
+from parser.ast import FuncNode, BinOpNode, AST, UniOpNode, NumberNode
 from parser.ast import FUNCNode, BINOPNode, NUMNode, CONSTNode, VARNode, UNIOPNode
-from parser.lexer import EQUAL, MUL, MINUS, PLUS, EXP, DIV
+from parser.lexer import MUL, MINUS, PLUS, EXP, DIV
 
 import math
 import cmath
-from typing import Union, List
+from typing import Union
 
 list_of_func = [
     "cos",
@@ -36,8 +36,6 @@ list_of_func = [
     "asech",
     "acsch",
     "acoth",
-    "derivative",
-    "integral",
 ]
 
 
@@ -326,7 +324,7 @@ class Arithmetic(Equation):
         else:
             return Exception("Invalid function{}".format(node.op.value))
 
-    def vist_CONSTNode(self, node: CONSTNode):
+    def vist_CONSTNode(self, node: NumberNode):
         """This method takes a CONSTNode and returns the constant if it exits"""
         if node.value in ("#pi", "#PI"):
             return math.pi

@@ -23,7 +23,7 @@ class FuncNode(AST):
 
 
 class UniOpNode(AST):
-    def __init__(self, op: Token, right: [Union[AST, Token]]):
+    def __init__(self, op: Token, right: Union[AST, Token]):
         self.right = right
         self.op = op
         self.type = UNIOPNode
@@ -33,7 +33,7 @@ class UniOpNode(AST):
 
 
 class BinOpNode(AST):
-    def __init__(self, left: List[Union[AST, Token]], op: Token, right: List[Union[AST, Token]]):
+    def __init__(self, left: Union[AST, Token], op: Token, right: Union[AST, Token]):
         self.left = left
         self.op = op
         self.right = right
@@ -44,10 +44,10 @@ class BinOpNode(AST):
 
 
 class NumberNode(AST):
-    def __init__(self, token: Token):
+    def __init__(self, token: Token, type: str):
         self.value = token.value
         self.tag = token.tag
-        self.type = NUMNode
+        self.type = type
 
     def __repr__(self):
         return 'NumberNode(%s, %s)' % (self.value, self.tag)
