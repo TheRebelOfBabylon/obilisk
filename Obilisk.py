@@ -1,7 +1,6 @@
 from math_core.Equation import Equation
 from math_core.Arithmetic import Arithmetic
 from math_core.Algebra import Algebra
-from math_core.algebra_formats import quadratic
 from parser.lexer import Lexer
 from parser.combinator import TreeBuilder
 
@@ -34,8 +33,7 @@ def decode(input_eqn: str) -> Union[List[str], int, float, complex]:
         return arithmetic.calculate(), arithmetic.solution
     elif len(obi.vars) == 1:
         algebra = Algebra(obi.eqn_string, obi.tokens, obi.tree, obi.vars[0])
-        print(algebra.tree)
-        return algebra.check_solvability(quadratic)
+        return algebra.check_solvability()
     else:
         eqn = Equation()
         eqn.solution.append("Multivariable problems are not yet supported.")

@@ -69,7 +69,7 @@ class Arithmetic(Equation):
         elif node.type == NUMNode:
             try:
                 num = float(node.value)
-            except:
+            except ValueError:
                 num = complex(node.value)
             return num
         elif node.type == VARNode:
@@ -78,7 +78,7 @@ class Arithmetic(Equation):
             return self.vist_CONSTNode(node)
 
     def visit_UNIOPNode(self, node: UniOpNode):
-        """Method to evaulate UniOpNodes"""
+        """Method to evaluate UniOpNodes"""
         if node.op.tag == PLUS:
             return +self.climb_tree(node.right)
         elif node.op.tag == MINUS:

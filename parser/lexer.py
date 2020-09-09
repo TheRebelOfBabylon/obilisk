@@ -39,7 +39,7 @@ token_exprs = [
     (r'\;', ENDL),
     (r'(sqrt|SQRT)', FUNC),
     (r'\,', COMMA),
-    (r'#[a-zA-Z_]+', CONSTANT),
+    (r'#(pi|PI|e|E)', CONSTANT),
     (r'derivative|integral', FUNC),
     (r'solve|isolate|roots', FUNC),
     (r'd/d[a-zA-Z_]', FUNC),
@@ -105,7 +105,7 @@ class Lexer():
         mul_token = Token(("*", MUL))
         i = 0
         while i != len(tokens):
-            if tokens[i-1].tag in (NUMBER, R_BRACKET) and tokens[i].tag in (VARIABLE, CONSTANT, L_BRACKET, FUNC):
+            if tokens[i-1].tag in (NUMBER, R_BRACKET, CONSTANT) and tokens[i].tag in (VARIABLE, CONSTANT, L_BRACKET, FUNC):
                 tokens.insert(i, mul_token)
             i += 1
         return tokens
