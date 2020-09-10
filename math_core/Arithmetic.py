@@ -1,7 +1,7 @@
 from math_core.Equation import Equation
 from parser.ast import FuncNode, BinOpNode, AST, UniOpNode, NumberNode
-from parser.ast import FUNCNode, BINOPNode, NUMNode, CONSTNode, VARNode, UNIOPNode
-from parser.lexer import MUL, MINUS, PLUS, EXP, DIV
+from parser.ast import FUNCNode, BINOPNode, NUMNode, VARNode, UNIOPNode
+from parser.lexer import MUL, MINUS, PLUS, EXP, DIV, NUMBER, CONSTANT
 
 import math
 import cmath
@@ -67,15 +67,9 @@ class Arithmetic(Equation):
         elif node.type == FUNCNode:
             return self.visit_FUNCNode(node)
         elif node.type == NUMNode:
-            try:
-                num = float(node.value)
-            except ValueError:
-                num = complex(node.value)
-            return num
+            return self.vist_NUMNode(node)
         elif node.type == VARNode:
             return node.value
-        elif node.type == CONSTNode:
-            return self.vist_CONSTNode(node)
 
     def visit_UNIOPNode(self, node: UniOpNode):
         """Method to evaluate UniOpNodes"""
@@ -324,14 +318,21 @@ class Arithmetic(Equation):
         else:
             return Exception("Invalid function{}".format(node.op.value))
 
-    def vist_CONSTNode(self, node: NumberNode):
+    def vist_NUMNode(self, node: NumberNode):
         """This method takes a CONSTNode and returns the constant if it exits"""
-        if node.value in ("#pi", "#PI"):
-            return math.pi
-        elif node.value in ("#e", "#E"):
-            return math.e
-        else:
-            raise ValueError("Constant {} is not recognized".format(node.value))
+        if node.tag == NUMBER:
+            try:
+                num = float(node.value)
+            except ValueError:
+                num = complex(node.value)
+            return num
+        elif node.tag == CONSTANT:
+            if node.value in ("#pi", "#PI"):
+                return math.pi
+            elif node.value in ("#e", "#E"):
+                return math.e
+            else:
+                raise ValueError("Constant {} is not recognized".format(node.value))
 
     @staticmethod
     def div_check(x: Union[int, float, complex], y: Union[int, float, complex]) -> bool:

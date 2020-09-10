@@ -1,4 +1,4 @@
-from parser.ast import MatrixNode, BinOpNode, VariableNode, NumberNode, EquationNode, ExpressionNode, TermNode, FactorNode, ConstantNode, FuncNode, UniOpNode, NUMNode, CONSTNode
+from parser.ast import MatrixNode, BinOpNode, VariableNode, NumberNode, EquationNode, ExpressionNode, TermNode, FactorNode, ConstantNode, FuncNode, UniOpNode, NUMNode
 from parser.lexer import Token, PLUS, MINUS, ENDL, EQUAL, EXP, MUL, DIV, L_MATRIX_BR, L_BRACKET, NUMBER, FUNC, VARIABLE, R_MATRIX_BR, R_BRACKET, COMMA, CONSTANT, EOF
 
 from typing import List
@@ -44,7 +44,7 @@ class TreeBuilder():
     def Equation(self):
         """Equation ::= FUNC Equation|Expression|Expression EQUAL Expression"""
         current_token = self.tokens[self.pos]
-        if current_token.tag == FUNC:
+        if current_token.tag == FUNC and current_token.value in ("derivative", "integral", "solve", "isolate", "roots"):
             op = current_token
             self.consume_token(FUNC)
             return FuncNode(op, [self.Equation()])
@@ -123,13 +123,13 @@ class TreeBuilder():
             return UniOpNode(uni_op, self.Atom())
         elif current_token.tag == NUMBER:
             self.consume_token(NUMBER)
-            return NumberNode(current_token, NUMNode)
+            return NumberNode(current_token)
         elif current_token.tag == VARIABLE:
             self.consume_token(VARIABLE)
             return VariableNode(current_token)
         elif current_token.tag == CONSTANT:
             self.consume_token(CONSTANT)
-            return NumberNode(current_token, CONSTNode)
+            return NumberNode(current_token)
         elif current_token.tag == FUNC:
             funcToken = current_token
             self.consume_token(FUNC)

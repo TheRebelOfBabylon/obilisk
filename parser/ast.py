@@ -6,7 +6,6 @@ FUNCNode = 'FUNCNode'
 BINOPNode = 'BINOPNode'
 NUMNode = 'NUMNode'
 VARNode = 'VARNode'
-CONSTNode = 'CONSTNode'
 UNIOPNode = 'UNIOPNode'
 
 class AST:
@@ -42,15 +41,20 @@ class BinOpNode(AST):
     def __repr__(self):
         return 'BinOpNode(%s, %s, %s)' % (self.left, self.op.value, self.right)
 
+    def __hash__(self):
+        return hash((self.left, self.right))
 
 class NumberNode(AST):
-    def __init__(self, token: Token, type: str):
+    def __init__(self, token: Token):
         self.value = token.value
         self.tag = token.tag
-        self.type = type
+        self.type = NUMNode
 
     def __repr__(self):
         return 'NumberNode(%s, %s)' % (self.value, self.tag)
+
+    def __hash__(self):
+        return hash(self.type)
 
 
 class VariableNode(AST):
@@ -61,6 +65,9 @@ class VariableNode(AST):
 
     def __repr__(self):
         return 'VariableNode(%s, %s)' % (self.value, self.tag)
+
+    def __hash__(self):
+        return hash(self.type)
 
 class MatrixNode(AST):
     def __init__(self, indices: List[Union[Token, AST]]):

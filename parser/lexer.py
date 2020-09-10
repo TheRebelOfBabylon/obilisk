@@ -39,7 +39,7 @@ token_exprs = [
     (r'\;', ENDL),
     (r'(sqrt|SQRT)', FUNC),
     (r'\,', COMMA),
-    (r'#(pi|PI|e|E)', CONSTANT),
+    (r'\#(pi|PI|e|E)', CONSTANT),
     (r'derivative|integral', FUNC),
     (r'solve|isolate|roots', FUNC),
     (r'd/d[a-zA-Z_]', FUNC),
@@ -68,6 +68,8 @@ class Token:
     def __repr__(self):
         return 'Token(%s, %s)' % (self.value, self.tag)
 
+    # def __hash__(self):
+    #     return hash(self.tag)
 
 class Lexer():
     def __init__(self, eqn: str):
@@ -103,10 +105,17 @@ class Lexer():
     def inference(tokens: List[Token]) -> List[Token]:
         """Function adds MUL tokens between variables and numbers, constants, brackets or functions"""
         mul_token = Token(("*", MUL))
+        one_token = Token(("1", NUMBER))
         i = 0
+        if tokens[0].tag == VARIABLE:
+            tokens.insert(0, mul_token)
+            tokens.insert(0, one_token)
         while i != len(tokens):
             if tokens[i-1].tag in (NUMBER, R_BRACKET, CONSTANT) and tokens[i].tag in (VARIABLE, CONSTANT, L_BRACKET, FUNC):
                 tokens.insert(i, mul_token)
+            elif tokens[i-1].tag in (PLUS, MINUS) and tokens[i].tag == VARIABLE:
+                tokens.insert(i, mul_token)
+                tokens.insert(i, one_token)
             i += 1
         return tokens
 
