@@ -25,16 +25,17 @@ class Obilisk:
         self.tree = tokens.build_tree()
 
 
-def decode(input_eqn: str) -> Union[List[str], int, float, complex]:
+def decode(input_eqn: str) -> Tuple[Union[int, float, complex, None], List[str]]:
     """Function creates an Obilisk object, parses the function and then decides how to solve it."""
     obi = Obilisk(input_eqn)
     if not obi.vars:
         arithmetic = Arithmetic(obi.eqn_string, obi.tokens, obi.tree)
         return arithmetic.calculate(), arithmetic.solution
     elif len(obi.vars) == 1:
+        #print(obi.vars)
         algebra = Algebra(obi.eqn_string, obi.tokens, obi.tree, obi.vars[0])
-        return algebra.check_solvability()
+        return algebra.isolate(), algebra.solution
     else:
         eqn = Equation()
         eqn.solution.append("Multivariable problems are not yet supported.")
-        return eqn.solution
+        return None, eqn.solution

@@ -65,23 +65,34 @@ class Algebra(Equation):
 
     def check_solvability(self) -> Tuple[bool, str]:
         """Method checks if the equation is already in a solvable format"""
+        tree_hash = hash(self.tree)
+        print("tree_hash = ", tree_hash)
+        print("tree ", self.tree)
         for template, name in list_of_templates:
+            print(name)
             temp_hash = hash(template)
-            tree_hash = hash(self.tree)
+            print("temp_hash = ", temp_hash)
+            print("temp_tree", template)
             if temp_hash == tree_hash:
                 return True, name
         return False, None
 
-    def isolate(self, template: Tuple[AST, str]):
+    def isolate(self):
         """Method will take the equation in standard polynomial form and solve it"""
-        if "quadratic" in template[1]:
-            return self.quadratic_formula()
+        _, template_name = self.check_solvability()
+        print("The template is ", template_name)
+        if template_name is not None:
+            if "quadratic" in template_name:
+                return self.quadratic_formula()
 
     def quadratic_formula(self) -> List[Union[int, float, complex]]:
         """Method solves a quadratic using the quadratic formula"""
-        self.get_coeff(self.tree)
-        if len(self.coeff) != 4 and self.coeff[-1] != 0.0:
+        self.get_coeff()
+        if len(self.coeff) != 4:
             raise ValueError("Quadratics must have 3 terms.")
+        if self.coeff[-1] != 0.0:
+            #TODO - We need to move all numerical values from RHS to LHS. RHS must be equal to 0
+            pass
         self.solution.append("")
         print("\n-- Using the quadratic formula --")
         self.solution.append("-- Using the quadratic formula --")
@@ -91,13 +102,13 @@ class Algebra(Equation):
         self.solution.append("x = (-b +/- √(b^2 - 4ac))/2a")
 
         self.solution.append("")
-        a = self.coeff[0]
+        a = self.coeff[0][0]
         print("a = " + str(a))
         self.solution.append("a = " + str(a))
-        b = self.coeff[1]
+        b = self.coeff[1][0]
         print("b = " + str(b))
         self.solution.append("b = " + str(b))
-        c = self.coeff[2]
+        c = self.coeff[2][0]
         print("c = " + str(c))
         self.solution.append("c = " + str(c))
         print("")
@@ -116,27 +127,38 @@ class Algebra(Equation):
     def get_coeff(self):
         """This method will get all coefficients from a polynomial in standard form"""
         self.goto_next_node(self.tree)
+        highest_deg = self.coeff[0][1]
+        k = 0
+        for i in range(highest_deg, 0, -1):
+            if i != self.coeff[k][1]:
+                self.coeff.insert(k, (0, i))
+            k += 1
 
-    def goto_next_node(self, node: AST, multiplier=1):
+    def goto_next_node(self, node: AST, multiplier=1, exponent=0):
         """Method to go through the AST of a standard polynomial"""
-        # TODO - self.coeff should be a list of tuples: [0] is coeff, [1] is power
         num = None
         if node.type == BINOPNode:
-            if node.op.tag in (PLUS, MINUS, EQUAL):
-                self.goto_next_node(node.left, multiplier)
-                self.goto_next_node(node.right, multiplier)
+            if node.op.tag in (PLUS, EQUAL):
+                self.goto_next_node(node.left, multiplier=multiplier, exponent=exponent)
+                self.goto_next_node(node.right, multiplier=multiplier, exponent=exponent)
+            elif node.op.tag == MINUS:
+                self.goto_next_node(node.left, multiplier=multiplier, exponent=exponent)
+                self.goto_next_node(node.right, multiplier=multiplier*-1, exponent=exponent)
             elif node.op.tag == MUL and node.left.type in (NUMNode, UNIOPNode):
-                if node.right.type == VARNode or node.right.op.tag == EXP:
-                    self.goto_next_node(node.left, multiplier)
+                if node.right.type == VARNode:
+                    self.goto_next_node(node.left, multiplier=multiplier, exponent=1)
+                elif node.right.type == BINOPNode and node.right.op.tag == EXP:
+                    if node.right.right.type == NUMNode:
+                        self.goto_next_node(node.left, multiplier=multiplier, exponent=self.goto_NUMNode(node.right.right))
         elif node.type == NUMNode:
             num = self.goto_NUMNode(node)
         elif node.type == UNIOPNode:
             if node.op.tag == PLUS:
-                self.goto_next_node(node.right, multiplier=multiplier*1)
+                self.goto_next_node(node.right, multiplier=multiplier*1, exponent=exponent)
             elif node.op.tag == MINUS:
-                self.goto_next_node(node.right, multiplier=multiplier*-1)
+                self.goto_next_node(node.right, multiplier=multiplier*-1, exponent=exponent)
         if num is not None:
-            self.coeff.append(num*multiplier)
+            self.coeff.append((num*multiplier, exponent))
 
     def goto_NUMNode(self, node: NumberNode):
         """Extract coefficients"""
@@ -153,5 +175,8 @@ class Algebra(Equation):
                 num = math.e
             else:
                 raise ValueError("Constant {} is not recognized".format(node.value))
+        if type(num) == float:
+            if num.is_integer():
+                return int(num)
         return num
 

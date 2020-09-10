@@ -30,6 +30,16 @@ class UniOpNode(AST):
     def __repr__(self):
         return 'UniOpNode(%s, %s)' % (self.op.value, self.right)
 
+    def __hash__(self):
+        return hash(self.go_down_node(node=self))
+
+    def go_down_node(self, node):
+        # TODO - probably gonna need to add to this code to deal with unary ops acting on expressions
+        if node.right.type == UNIOPNode:
+            return self.go_down_node(node.right)
+        elif node.right.type == NUMNode:
+            return node.right
+
 
 class BinOpNode(AST):
     def __init__(self, left: Union[AST, Token], op: Token, right: Union[AST, Token]):
