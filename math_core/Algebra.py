@@ -45,7 +45,7 @@ class Algebra(Equation):
         self.var = var
         self.lhs = None
         self.rhs = None
-        self.coeff = None
+        self.coeff = []
         self.seperate_lhs_rhs()
 
     def __repr__(self):
@@ -75,12 +75,11 @@ class Algebra(Equation):
     def isolate(self, template: Tuple[AST, str]):
         """Method will take the equation in standard polynomial form and solve it"""
         if "quadratic" in template[1]:
-            return self.quadratic_formula(template[0])
+            return self.quadratic_formula()
 
-    def quadratic_formula(self, template: AST) -> List[Union[int, float, complex]]:
+    def quadratic_formula(self) -> List[Union[int, float, complex]]:
         """Method solves a quadratic using the quadratic formula"""
-        self.coeff = [0]*4
-        self.find_coeffs(self.tree, template)
+        self.get_coeff(self.tree)
         if len(self.coeff) != 4 and self.coeff[-1] != 0.0:
             raise ValueError("Quadratics must have 3 terms.")
         self.solution.append("")
@@ -114,27 +113,34 @@ class Algebra(Equation):
 
         return ans
 
-    def find_coeffs(self, actual_tree: AST, template: AST):
-        """This method goes through the tree and finds the coefficients"""
-        # TODO - Add support for unary ops and binary minus ops
-        if actual_tree.type == BINOPNode and template.type == BINOPNode:
-            if actual_tree.op.tag in template.op.tag:
-                self.find_coeffs(actual_tree.left, template.left)
-                self.find_coeffs(actual_tree.right, template.right)
-        # elif actual_tree.type == UNIOPNode:
-        #     self.resolve_UNIOPNode(actual_tree, template)
-        elif actual_tree.type in NUMNode and template.type in NUMNode:
-            self.resolve_NumberNode(actual_tree, template)
+    def get_coeff(self):
+        """This method will get all coefficients from a polynomial in standard form"""
+        self.goto_next_node(self.tree)
 
-    # def resolve_UNIOPNode(self, node: UniOpNode, template: AST):
-    #     """Method to evaluate UniOpNodes"""
-    #     if node.op.tag == PLUS:
-    #         return self.find_coeffs(+node.right, template)
-    #     elif node.op.tag == MINUS:
-    #         return self.find_coeffs(-node.right, template)
+    def goto_next_node(self, node: AST, multiplier=1):
+        """Method to go through the AST of a standard polynomial"""
+        # TODO - self.coeff should be a list of tuples: [0] is coeff, [1] is power
+        num = None
+        if node.type == BINOPNode:
+            if node.op.tag in (PLUS, MINUS, EQUAL):
+                self.goto_next_node(node.left, multiplier)
+                self.goto_next_node(node.right, multiplier)
+            elif node.op.tag == MUL and node.left.type in (NUMNode, UNIOPNode):
+                if node.right.type == VARNode or node.right.op.tag == EXP:
+                    self.goto_next_node(node.left, multiplier)
+        elif node.type == NUMNode:
+            num = self.goto_NUMNode(node)
+        elif node.type == UNIOPNode:
+            if node.op.tag == PLUS:
+                self.goto_next_node(node.right, multiplier=multiplier*1)
+            elif node.op.tag == MINUS:
+                self.goto_next_node(node.right, multiplier=multiplier*-1)
+        if num is not None:
+            self.coeff.append(num*multiplier)
 
-    def resolve_NumberNode(self, node: NumberNode, template: NumberNode):
-        """Method to evaluate NumberNodes"""
+    def goto_NUMNode(self, node: NumberNode):
+        """Extract coefficients"""
+        num = 0.0
         if node.tag == NUMBER:
             try:
                 num = float(node.value)
@@ -147,11 +153,5 @@ class Algebra(Equation):
                 num = math.e
             else:
                 raise ValueError("Constant {} is not recognized".format(node.value))
-        if template.value == 'a':
-            self.coeff[0] = num
-        elif template.value == 'b':
-            self.coeff[1] = num
-        elif template.value == 'c':
-            self.coeff[2] = num
-        elif template.value == 'd':
-            self.coeff[3] = num
+        return num
+

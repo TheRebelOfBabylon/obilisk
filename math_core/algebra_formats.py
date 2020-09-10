@@ -1,4 +1,4 @@
-from parser.ast import BinOpNode, FuncNode, NumberNode, VariableNode, ConstantNode, UniOpNode, NUMNode
+from parser.ast import BinOpNode, NumberNode, VariableNode
 from parser.lexer import Token, VARIABLE, EXP, NUMBER, MUL, EQUAL, PLUS, MINUS
 
 PLUS_MINUS = PLUS+MINUS
