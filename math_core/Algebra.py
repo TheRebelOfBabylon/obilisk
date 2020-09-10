@@ -5,14 +5,15 @@
 4. Solve
 """
 from math_core.Equation import Equation
-from parser.ast import AST, BINOPNode, VARNode, UNIOPNode, FUNCNode, UniOpNode, NumberNode, NUMNode, CONSTNode
-from parser.lexer import Token, EQUAL, EXP, MUL, PLUS, MINUS
+from parser.ast import AST, BINOPNode, VARNode, UNIOPNode, FUNCNode, UniOpNode, NumberNode, NUMNode
+from parser.lexer import Token, EQUAL, EXP, MUL, PLUS, MINUS, NUMBER, CONSTANT
 from math_core.algebra_formats import quadratic_left_full, quadratic_left_no_b, quadratic_left_no_c, quadratic_left_no_bc, \
-    NUM_OR_CONST, quadratic_right_full, quadratic_right_no_b, quadratic_right_no_c, quadratic_right_no_bc
+     quadratic_right_full, quadratic_right_no_b, quadratic_right_no_c, quadratic_right_no_bc
 
 from typing import List, Union, Tuple
 from copy import deepcopy
 import math
+import pytest
 
 list_of_templates = [
     quadratic_left_full,
@@ -24,6 +25,19 @@ list_of_templates = [
     quadratic_right_no_c,
     quadratic_right_no_bc,
 ]
+
+
+def round_complex(num: complex) -> Union[complex, float]:
+    """Function will take a complex number and round its real and imaginary parts if they're extremely small"""
+    if type(num) == complex:
+        if num.real == -0.0 or num.real == 0 or pytest.approx(num.real) == 0.0:
+            if num.imag == -0.0 or num.imag == 0 or pytest.approx(num.imag) == 0.0:
+                return 0.0
+            return num.imag*1j
+        elif num.imag == -0.0 or num.imag == 0 or pytest.approx(num.imag) == 0.0:
+            return num.real
+    return num
+
 
 class Algebra(Equation):
     def __init__(self, eqn_string: str = None, tokens: List[Token] = None, tree: List[Union[AST, Token]] = None, var: str = None):
@@ -52,51 +66,64 @@ class Algebra(Equation):
     def check_solvability(self) -> Tuple[bool, str]:
         """Method checks if the equation is already in a solvable format"""
         for template, name in list_of_templates:
-            check = self.climb_tree(self.tree, template)
-            if check:
+            temp_hash = hash(template)
+            tree_hash = hash(self.tree)
+            if temp_hash == tree_hash:
                 return True, name
         return False, None
-
-    def climb_tree(self, actual_tree: AST, template: AST) -> bool:
-        """Method climbs the tree if the corresponding nodes are the same"""
-        if actual_tree.type == BINOPNode and template.type == BINOPNode:
-            #checking to see if it's the right power
-            if actual_tree.op.tag == EXP:
-                if actual_tree.right.value == template.right.value:
-                    return True
-            else:
-                if actual_tree.op.tag in template.op.tag:
-                    check_left = self.climb_tree(actual_tree.left, template.left)
-                    if check_left:
-                        return self.climb_tree(actual_tree.right, template.right)
-        elif actual_tree.type == UNIOPNode:
-            return self.climb_tree(actual_tree.right, template)
-        elif actual_tree.type in NUM_OR_CONST and template.type in NUM_OR_CONST:
-            if actual_tree.type in template.type:
-                return True
-        elif actual_tree.type == VARNode and template.type == VARNode:
-            if actual_tree.type == template.type:
-                return True
-        return False
 
     def isolate(self, template: Tuple[AST, str]):
         """Method will take the equation in standard polynomial form and solve it"""
         if "quadratic" in template[1]:
             return self.quadratic_formula(template[0])
 
-    def quadratic_formula(self, template: AST):
+    def quadratic_formula(self, template: AST) -> List[Union[int, float, complex]]:
         """Method solves a quadratic using the quadratic formula"""
         self.coeff = [0]*4
         self.find_coeffs(self.tree, template)
+        if len(self.coeff) != 4 and self.coeff[-1] != 0.0:
+            raise ValueError("Quadratics must have 3 terms.")
+        self.solution.append("")
+        print("\n-- Using the quadratic formula --")
+        self.solution.append("-- Using the quadratic formula --")
+        print("ax^2 + bx + c = 0")
+        self.solution.append("ax^2 + bx + c = 0")
+        print("x = (-b +/- √(b^2 - 4ac))/2a\n")
+        self.solution.append("x = (-b +/- √(b^2 - 4ac))/2a")
+
+        self.solution.append("")
+        a = self.coeff[0]
+        print("a = " + str(a))
+        self.solution.append("a = " + str(a))
+        b = self.coeff[1]
+        print("b = " + str(b))
+        self.solution.append("b = " + str(b))
+        c = self.coeff[2]
+        print("c = " + str(c))
+        self.solution.append("c = " + str(c))
+        print("")
+
+        ans = [0, 0]
+        ans[0] = ((-1 * b) + ((b ** 2) - (4 * a * c)) ** 0.5) / (2 * a)
+        ans[-1] = ((-1 * b) - ((b ** 2) - (4 * a * c)) ** 0.5) / (2 * a)
+
+        self.solution.append("\nThe final answers are:")
+        for i in range(len(ans)):
+            ans[i] = round_complex(ans[i])
+            self.solution.append(str(ans[i]))
+
+        return ans
 
     def find_coeffs(self, actual_tree: AST, template: AST):
+        """This method goes through the tree and finds the coefficients"""
+        # TODO - Add support for unary ops and binary minus ops
         if actual_tree.type == BINOPNode and template.type == BINOPNode:
             if actual_tree.op.tag in template.op.tag:
                 self.find_coeffs(actual_tree.left, template.left)
                 self.find_coeffs(actual_tree.right, template.right)
         # elif actual_tree.type == UNIOPNode:
         #     self.resolve_UNIOPNode(actual_tree, template)
-        elif actual_tree.type in NUM_OR_CONST and template.type in NUM_OR_CONST:
+        elif actual_tree.type in NUMNode and template.type in NUMNode:
             self.resolve_NumberNode(actual_tree, template)
 
     # def resolve_UNIOPNode(self, node: UniOpNode, template: AST):
@@ -108,12 +135,12 @@ class Algebra(Equation):
 
     def resolve_NumberNode(self, node: NumberNode, template: NumberNode):
         """Method to evaluate NumberNodes"""
-        if node.type == NUMNode:
+        if node.tag == NUMBER:
             try:
                 num = float(node.value)
             except ValueError:
                 num = complex(node.value)
-        elif node.type == CONSTNode:
+        elif node.tag == CONSTANT:
             if node.value in ("#pi", "#PI"):
                 num = math.pi
             elif node.value in ("#e", "#E"):

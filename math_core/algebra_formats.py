@@ -1,17 +1,16 @@
-from parser.ast import BinOpNode, FuncNode, NumberNode, VariableNode, ConstantNode, UniOpNode, NUMNode, CONSTNode
+from parser.ast import BinOpNode, FuncNode, NumberNode, VariableNode, ConstantNode, UniOpNode, NUMNode
 from parser.lexer import Token, VARIABLE, EXP, NUMBER, MUL, EQUAL, PLUS, MINUS
 
-
-NUM_OR_CONST = NUMNode + CONSTNode #Some number can be a variable or a constant
 PLUS_MINUS = PLUS+MINUS
 
+
 def create_num_node(var: str) -> NumberNode:
-    return NumberNode(Token((var, NUMBER)), NUM_OR_CONST)
+    return NumberNode(Token((var, NUMBER)))
 
 
 some_var = VariableNode(Token(("x", VARIABLE)))
 
-a = BinOpNode(create_num_node('a'), Token(("*", MUL)), BinOpNode(some_var, Token(("^", EXP)), NumberNode(Token(("2", NUMBER)), NUMNode)))
+a = BinOpNode(create_num_node('a'), Token(("*", MUL)), BinOpNode(some_var, Token(("^", EXP)), NumberNode(Token(("2", NUMBER)))))
 b = BinOpNode(create_num_node('b'), Token(("*", MUL)), some_var)
 c = create_num_node('c')
 d = create_num_node('d')
