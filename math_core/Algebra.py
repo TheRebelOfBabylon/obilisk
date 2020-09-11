@@ -33,9 +33,18 @@ def round_complex(num: complex) -> Union[complex, float]:
         if num.real == -0.0 or num.real == 0 or pytest.approx(num.real) == 0.0:
             if num.imag == -0.0 or num.imag == 0 or pytest.approx(num.imag) == 0.0:
                 return 0.0
-            return num.imag*1j
+            num = num.imag*1j
+            if num.real == -0 or num.real == -0.0:
+                num = 0+num.imag*1j
+            return num
         elif num.imag == -0.0 or num.imag == 0 or pytest.approx(num.imag) == 0.0:
-            return num.real
+            num = num.real
+            if num == -0 or num == -0.0:
+                num = 0
+            return num
+    if type(num) == float:
+        if num == -0.0:
+            num = 0.0
     return num
 
 
@@ -66,13 +75,8 @@ class Algebra(Equation):
     def check_solvability(self) -> Tuple[bool, str]:
         """Method checks if the equation is already in a solvable format"""
         tree_hash = hash(self.tree)
-        print("tree_hash = ", tree_hash)
-        print("tree ", self.tree)
         for template, name in list_of_templates:
-            print(name)
             temp_hash = hash(template)
-            print("temp_hash = ", temp_hash)
-            print("temp_tree", template)
             if temp_hash == tree_hash:
                 return True, name
         return False, None
@@ -80,7 +84,6 @@ class Algebra(Equation):
     def isolate(self):
         """Method will take the equation in standard polynomial form and solve it"""
         _, template_name = self.check_solvability()
-        print("The template is ", template_name)
         if template_name is not None:
             if "quadratic" in template_name:
                 return self.quadratic_formula()
@@ -129,9 +132,12 @@ class Algebra(Equation):
         self.goto_next_node(self.tree)
         highest_deg = self.coeff[0][1]
         k = 0
-        for i in range(highest_deg, 0, -1):
+        for i in range(highest_deg, -1, -1):
             if i != self.coeff[k][1]:
                 self.coeff.insert(k, (0, i))
+            if i == 0:
+                if self.coeff[-1][1] == 0 and self.coeff[-2][1] != 0:
+                    self.coeff.append((0, 0))
             k += 1
 
     def goto_next_node(self, node: AST, multiplier=1, exponent=0):
