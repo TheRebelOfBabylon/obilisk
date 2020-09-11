@@ -1,4 +1,4 @@
-from parser.lexer import Token
+from parser.lexer import Token, EXP, MUL
 
 from typing import List, Union
 
@@ -52,6 +52,9 @@ class BinOpNode(AST):
         return 'BinOpNode(%s, %s, %s)' % (self.left, self.op.value, self.right)
 
     def __hash__(self):
+        if self.op.tag == EXP:
+            if self.right.type == NUMNode:
+                return hash((self.left, self.right.value))
         return hash((self.left, self.right))
 
 class NumberNode(AST):
