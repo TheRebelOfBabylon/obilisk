@@ -154,12 +154,9 @@ class Algebra(Equation):
     def check_solvability(self) -> Tuple[bool, str]:
         """Method checks if the equation is already in a solvable format"""
         tree_hash = hash(self.tree)
-        print("Tree hash ", tree_hash)
-        print(self.tree)
         for template, name in list_of_templates:
             temp_hash = hash(template)
             if temp_hash == tree_hash:
-                print("temp_hash ", temp_hash, name)
                 return True, name
         return False, None
 
@@ -167,15 +164,16 @@ class Algebra(Equation):
         """Method will take the equation in standard polynomial form and solve it"""
         _, template_name = self.check_solvability()
         if template_name is not None:
-            print(template_name)
-            if "quadratic_left" in template_name:
+            if "right" in template_name:
+                new_left = self.tree.right
+                new_right = self.tree.left
+                self.tree.left = new_left
+                self.tree.right = new_right
+            if "quadratic" in template_name:
                 return self.quadratic_formula()
-            elif "quadratic_right" in template_name:
-                # TODO - We need to move all numerical values from RHS to LHS and all vars from RHS to LHS
-                pass
-            elif "cubic_left" in template_name:
+            elif "cubic" in template_name:
                 return self.cardano()
-            elif "quartic_left" in template_name:
+            elif "quartic" in template_name:
                 return self.ferrari()
 
     def quadratic_formula(self) -> List[Union[int, float, complex]]:
@@ -371,9 +369,7 @@ class Algebra(Equation):
         tree_build = TreeBuilder(tokens)
         tree = tree_build.build_tree()
         cubic = Algebra(resolvent, tokens, tree, lexer.vars[0])
-        print("do we get here?")
         cubic_ans = cubic.isolate()
-        print(cubic_ans)
 
         for i in cubic.solution:
             self.solution.append(i)

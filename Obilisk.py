@@ -32,7 +32,6 @@ def decode(input_eqn: str) -> Tuple[Union[int, float, complex, None], List[str]]
         arithmetic = Arithmetic(obi.eqn_string, obi.tokens, obi.tree)
         return arithmetic.calculate(), arithmetic.solution
     elif len(obi.vars) == 1:
-        #print(obi.vars)
         algebra = Algebra(obi.eqn_string, obi.tokens, obi.tree, obi.vars[0])
         return algebra.isolate(), algebra.solution
     else:
