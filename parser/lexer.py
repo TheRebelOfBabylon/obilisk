@@ -68,9 +68,6 @@ class Token:
     def __repr__(self):
         return 'Token(%s, %s)' % (self.value, self.tag)
 
-    # def __hash__(self):
-    #     return hash(self.tag)
-
 class Lexer():
     def __init__(self, eqn: str):
         self.eqn = eqn
@@ -106,6 +103,8 @@ class Lexer():
         """Function adds MUL tokens between variables and numbers, constants, brackets or functions"""
         mul_token = Token(("*", MUL))
         one_token = Token(("1", NUMBER))
+        l_brack_token = Token(("(", L_BRACKET))
+        r_brack_token = Token((")", R_BRACKET))
         i = 0
         if tokens[0].tag == VARIABLE:
             tokens.insert(0, mul_token)
@@ -113,9 +112,14 @@ class Lexer():
         while i != len(tokens):
             if tokens[i-1].tag in (NUMBER, R_BRACKET, CONSTANT) and tokens[i].tag in (VARIABLE, CONSTANT, L_BRACKET, FUNC):
                 tokens.insert(i, mul_token)
-            elif tokens[i-1].tag in (PLUS, MINUS, EQUAL) and tokens[i].tag == VARIABLE:
+            elif tokens[i-1].tag in (PLUS, MINUS, EQUAL, L_BRACKET) and tokens[i].tag == VARIABLE:
                 tokens.insert(i, mul_token)
                 tokens.insert(i, one_token)
+            elif tokens[i-1].tag == EXP and tokens[i].tag == VARIABLE:
+                tokens.insert(i+1, r_brack_token)
+                tokens.insert(i, mul_token)
+                tokens.insert(i, one_token)
+                tokens.insert(i, l_brack_token)
             i += 1
         return tokens
 

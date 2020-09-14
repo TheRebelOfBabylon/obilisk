@@ -165,16 +165,69 @@ class Algebra(Equation):
         _, template_name = self.check_solvability()
         if template_name is not None:
             if "right" in template_name:
-                new_left = self.tree.right
-                new_right = self.tree.left
-                self.tree.left = new_left
-                self.tree.right = new_right
+                self.swap_lhs_and_rhs()
             if "quadratic" in template_name:
                 return self.quadratic_formula()
             elif "cubic" in template_name:
                 return self.cardano()
             elif "quartic" in template_name:
                 return self.ferrari()
+        else:
+            if not self.check_for_x_power_x():
+                if self.tree.type == BINOPNode and self.tree.op.tag == EQUAL:
+                    if self.tree.left.type == NUMNode and self.tree.left.value in ("0", "0.0"):
+                        self.swap_lhs_and_rhs()
+                if self.tree.right.type == NUMNode and self.tree.right.value in ("0", "0.0"):
+                    self.get_coeff()
+                    if len(self.coeff) >= 7:
+                        #Jenkins Traub
+                        pass
+
+    def swap_lhs_and_rhs(self):
+        """This method takes the LHS and RHS of AST and swaps them"""
+        if self.tree.type == BINOPNode and self.tree.op.tag == EQUAL:
+            new_left = self.tree.right
+            new_right = self.tree.left
+            self.tree.left = new_left
+            self.tree.right = new_right
+
+    def check_for_x_power_x(self):
+        return self.check_for_exp(self.tree)
+
+    def check_for_exp(self, node: AST):
+        if node.type == BINOPNode and node.op.tag != EXP:
+            chk = self.check_for_exp(node.left)
+            if not chk:
+                return self.check_for_exp(node.right)
+            return True
+        elif node.type == UNIOPNode:
+            return self.check_for_exp(node.right)
+        elif node.type == BINOPNode and node.op.tag == EXP:
+            base = self.check_for_variable(node.left)
+            if base:
+                exponent = self.check_for_variable(node.right)
+                if exponent:
+                    return True
+            chk = self.check_for_exp(node.left)
+            if not chk:
+                return self.check_for_exp(node.right)
+            return True
+        elif node.type in (NUMNode, VARNode):
+            return False
+
+    def check_for_variable(self, node: AST):
+        """This method climbs through AST and checks for x^x or any variation"""
+        if node.type == VARNode:
+            return True
+        elif node.type == NUMNode:
+            return False
+        elif node.type == UNIOPNode:
+            return self.check_for_variable(node.right)
+        elif node.type == BINOPNode:
+            chk = self.check_for_variable(node.left)
+            if not chk:
+                return self.check_for_variable(node.right)
+            return True
 
     def quadratic_formula(self) -> List[Union[int, float, complex]]:
         """Method solves a quadratic using the quadratic formula"""
