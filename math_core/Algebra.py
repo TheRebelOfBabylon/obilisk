@@ -190,7 +190,7 @@ class Algebra(Equation):
                 return self.ferrari()
         else:
             if not self.check_for_x_power_x():
-                # next step compute low hanging fruit
+                self.compute_low_hanging_fruit()
                 # next make substitutions if possible and store in a dictionary
                 # next is to rearrange to standard format
                 # then recall this method
@@ -297,7 +297,7 @@ class Algebra(Equation):
                     new_args.append(temp)
             if num_chk:
                 if node.op.value.lower() == "log":
-                    eqn_string = "log("+new_args[0]+", "+new_args[1]+")"
+                    eqn_string = "log("+new_args[0]+","+new_args[1]+")"
                 else:
                     eqn_string = node.op.value.lower()+"("+new_args[0]+")"
                 ans = self.compute(eqn_string)
@@ -337,8 +337,11 @@ class Algebra(Equation):
         arithmetic = Arithmetic(eqn_string, tokens, tree)
         ans = arithmetic.calculate()
         ans = round_complex(ans)
-        for sol in arithmetic.solution:
-            self.solution.append(sol)
+        #print(eqn_string)
+        self.solution.append(arithmetic.solution[1])
+        #print(self.solution[-1])
+        self.update_eqn_string(eqn_string, stringify(ans))
+        #print(stringify(ans))
         return ans
 
     def replace_node(self, node: AST, old_node: AST, new_node: AST):
