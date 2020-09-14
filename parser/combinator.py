@@ -33,9 +33,9 @@ class TreeBuilder():
 
     def consume_token(self, tag):
         """Compares current token tag to given tag"""
-        print("\nGiven Tag: {}".format(tag))
-        print("Current Token: {}".format(self.tokens[self.pos]))
-        print("Current index: {}".format(self.pos))
+        #print("\nGiven Tag: {}".format(tag))
+        #print("Current Token: {}".format(self.tokens[self.pos]))
+        #print("Current index: {}".format(self.pos))
         if self.tokens[self.pos].tag == tag:
             self.pos += 1
         else:

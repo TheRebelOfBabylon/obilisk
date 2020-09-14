@@ -4,11 +4,12 @@
 3. Order equation into standard polynomial format
 4. Solve
 """
-from parser.lexer import Lexer
+from parser.lexer import Lexer, Token
 from parser.combinator import TreeBuilder
 from math_core.Equation import Equation
-from parser.ast import AST, BINOPNode, VARNode, UNIOPNode, FUNCNode, UniOpNode, NumberNode, NUMNode
+from parser.ast import AST, BINOPNode, VARNode, UNIOPNode, FUNCNode, UniOpNode, NumberNode, NUMNode, FuncNode, BinOpNode
 from parser.lexer import Token, EQUAL, EXP, MUL, PLUS, MINUS, NUMBER, CONSTANT
+from math_core.Arithmetic import list_of_func, Arithmetic, visit_NUMNode, stringify
 from math_core.algebra_formats import quadratic_left_full, quadratic_left_no_b, quadratic_left_no_c, \
     quadratic_left_no_bc, \
     quadratic_right_full, quadratic_right_no_b, quadratic_right_no_c, quadratic_right_no_bc, cubic_left_full, \
@@ -126,6 +127,21 @@ def cube_root(x: Union[int, float, complex]) -> Union[int, float, complex]:
             return -(-x) ** (1 / 3)
 
 
+def is_number(s: str) -> bool:
+    """Function tests if a string is a number."""
+    try:
+        float(s)
+        return True
+    except ValueError:
+        try:
+            complex(s)
+            return True
+        except ValueError:
+            return False
+    except TypeError:
+        return False
+
+
 class Algebra(Equation):
     def __init__(self, eqn_string: str = None, tokens: List[Token] = None, tree: List[Union[AST, Token]] = None,
                  var: str = None):
@@ -174,6 +190,10 @@ class Algebra(Equation):
                 return self.ferrari()
         else:
             if not self.check_for_x_power_x():
+                # next step compute low hanging fruit
+                # next make substitutions if possible and store in a dictionary
+                # next is to rearrange to standard format
+                # then recall this method
                 if self.tree.type == BINOPNode and self.tree.op.tag == EQUAL:
                     if self.tree.left.type == NUMNode and self.tree.left.value in ("0", "0.0"):
                         self.swap_lhs_and_rhs()
@@ -192,9 +212,11 @@ class Algebra(Equation):
             self.tree.right = new_right
 
     def check_for_x_power_x(self):
+        """This method climbs through AST and checks for x^x or any variation"""
         return self.check_for_exp(self.tree)
 
     def check_for_exp(self, node: AST):
+        """Method checks if there is an EXP node. If so, checks for variables"""
         if node.type == BINOPNode and node.op.tag != EXP:
             chk = self.check_for_exp(node.left)
             if not chk:
@@ -216,7 +238,7 @@ class Algebra(Equation):
             return False
 
     def check_for_variable(self, node: AST):
-        """This method climbs through AST and checks for x^x or any variation"""
+        """Returns True for variables, false for numbers"""
         if node.type == VARNode:
             return True
         elif node.type == NUMNode:
@@ -228,6 +250,114 @@ class Algebra(Equation):
             if not chk:
                 return self.check_for_variable(node.right)
             return True
+
+    def compute_low_hanging_fruit(self):
+        """Method finds any operator with a number of the left and right side and computes it"""
+        # TODO - Some equations are being computed multiple times, find out why
+        self.find_operator(self.tree)
+
+    def find_operator(self, node: AST):
+        """Method climbs through AST and finds operators"""
+        if node.type == BINOPNode:
+            left = None
+            if node.left.type == UNIOPNode:
+                left = self.go_through_uniop(node.left)
+            elif node.left.type == NUMNode:
+                left = self.find_operator(node.left)
+            if is_number(left):
+                right = None
+                if node.right.type == UNIOPNode:
+                    right = self.go_through_uniop(node.right)
+                elif node.left.type == NUMNode:
+                    right = self.find_operator(node.right)
+                if is_number(right):
+                    ans = self.compute(left+node.op.value+right)
+                    print(ans)
+                    ans_token = Token((stringify(ans), NUMBER))
+                    ans_node = NumberNode(ans_token)
+                    new_tree = self.replace_node(self.tree, node, ans_node)
+                    self.tree = deepcopy(new_tree)
+                    self.compute_low_hanging_fruit()
+            else:
+                self.find_operator(node.left)
+                self.find_operator(node.right)
+        elif node.type == FUNCNode and node.op.value.lower() in list_of_func:
+            new_args = []
+            num_chk = True
+            for arg in node.args:
+                temp = None
+                if arg.type == UNIOPNode:
+                    temp = self.go_through_uniop(arg)
+                elif arg.type == NUMNode:
+                    temp = self.find_operator(arg)
+                if not is_number(temp):
+                    num_chk = False
+                    break
+                else:
+                    new_args.append(temp)
+            if num_chk:
+                if node.op.value.lower() == "log":
+                    eqn_string = "log("+new_args[0]+", "+new_args[1]+")"
+                else:
+                    eqn_string = node.op.value.lower()+"("+new_args[0]+")"
+                ans = self.compute(eqn_string)
+                print(ans)
+                ans_token = Token((stringify(ans), NUMBER))
+                ans_node = NumberNode(ans_token)
+                new_tree = self.replace_node(self.tree, node, ans_node)
+                self.tree = deepcopy(new_tree)
+                self.compute_low_hanging_fruit()
+        elif node.type == UNIOPNode:
+            return self.go_through_uniop(node)
+        elif node.type == VARNode:
+            return None
+        elif node.type == NUMNode:
+            return stringify(visit_NUMNode(node))
+
+    def go_through_uniop(self, node: UniOpNode):
+        """Method goes through the uniop. If there is a number at the end, return number node"""
+        if node.type == UNIOPNode:
+            num = self.go_through_uniop(node.right)
+            if is_number(num):
+                if node.op.tag == PLUS:
+                    return stringify(+num)
+                elif node.op.tag == MINUS:
+                    return stringify(-num)
+        elif node.type == NUMNode:
+            return visit_NUMNode(node)
+        else:
+            return None
+
+    def compute(self, eqn_string: str):
+        """Method computes values using Arithmetic class and returns answer"""
+        lexer = Lexer(eqn_string)
+        tokens = lexer.obilisk_lex()
+        combinator = TreeBuilder(tokens)
+        tree = combinator.build_tree()
+        arithmetic = Arithmetic(eqn_string, tokens, tree)
+        ans = arithmetic.calculate()
+        for sol in arithmetic.solution:
+            self.solution.append(sol)
+        return ans
+
+    def replace_node(self, node: AST, old_node: AST, new_node: AST):
+        """Replaces old node from the self.tree with new node"""
+        if node == old_node:
+            return new_node
+        elif node.type == BINOPNode:
+            new_left = self.replace_node(node.left, old_node, new_node)
+            new_right = self.replace_node(node.right, old_node, new_node)
+            return BinOpNode(new_left, node.op, new_right)
+        elif node.type == UNIOPNode:
+            new_right = self.replace_node(node.right, old_node, new_node)
+            return UniOpNode(node.op, new_right)
+        elif node.type == FUNCNode:
+            new_args = []
+            for arg in node.args:
+                new_args.append(self.replace_node(arg, old_node, new_node))
+            return FuncNode(node.op, new_args)
+        elif node.type in (NUMNode, VARNode):
+            return node
 
     def quadratic_formula(self) -> List[Union[int, float, complex]]:
         """Method solves a quadratic using the quadratic formula"""

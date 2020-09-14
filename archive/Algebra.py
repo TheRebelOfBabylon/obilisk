@@ -43,44 +43,27 @@ var_dict = {
 def is_complex_coeff(string: str, var: str) -> bool:
     """Function checks if a monomial string has a complex coefficient. Returns True or False."""
     if var in string:
-
         coeff = ""
         k=0
         while string[k] != var:
-
             coeff+=string[k]
-
             k+=1
-
         if coeff == "":
-
             coeff = "1"
-
         elif coeff == "-":
-
             coeff = "-1"
-
         coeff = complex(coeff)
-
         if coeff.imag == 0:
-
             return False
-
         else:
-
             return True
-
     else:
-
         coeff = complex(string)
-
         if coeff.imag == 0:
-
             return False
-
         else:
-
             return True
+
 
 def cube_root(x: Union[int, float, complex]) -> Union[int, float, complex]:
     """Function takes the cubic root of a number. Created to ensure proper sign of answer is given."""

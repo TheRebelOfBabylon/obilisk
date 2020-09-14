@@ -47,6 +47,23 @@ def stringify(num: Union[int, float, complex]) -> str:
     return str(num)
 
 
+def visit_NUMNode(node: NumberNode):
+    """This method takes a CONSTNode and returns the constant if it exits"""
+    if node.tag == NUMBER:
+        try:
+            num = float(node.value)
+        except ValueError:
+            num = complex(node.value)
+        return num
+    elif node.tag == CONSTANT:
+        if node.value in ("#pi", "#PI"):
+            return math.pi
+        elif node.value in ("#e", "#E"):
+            return math.e
+        else:
+            raise ValueError("Constant {} is not recognized".format(node.value))
+
+
 class Arithmetic(Equation):
     def calculate(self) -> Union[float, complex, int]:
         """Method calls the method from the Interpreter class to climb the AST and solve"""
@@ -67,7 +84,7 @@ class Arithmetic(Equation):
         elif node.type == FUNCNode:
             return self.visit_FUNCNode(node)
         elif node.type == NUMNode:
-            return self.vist_NUMNode(node)
+            return visit_NUMNode(node)
         elif node.type == VARNode:
             return node.value
 
@@ -317,22 +334,6 @@ class Arithmetic(Equation):
                 return ValueError("Too few or too many arguments for {} function. Args = {}".format(node.op.value, node.args))
         else:
             return Exception("Invalid function{}".format(node.op.value))
-
-    def vist_NUMNode(self, node: NumberNode):
-        """This method takes a CONSTNode and returns the constant if it exits"""
-        if node.tag == NUMBER:
-            try:
-                num = float(node.value)
-            except ValueError:
-                num = complex(node.value)
-            return num
-        elif node.tag == CONSTANT:
-            if node.value in ("#pi", "#PI"):
-                return math.pi
-            elif node.value in ("#e", "#E"):
-                return math.e
-            else:
-                raise ValueError("Constant {} is not recognized".format(node.value))
 
     @staticmethod
     def div_check(x: Union[int, float, complex], y: Union[int, float, complex]) -> bool:
