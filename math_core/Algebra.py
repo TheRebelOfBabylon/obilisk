@@ -272,7 +272,7 @@ class Algebra(Equation):
                     right = self.find_operator(node.right)
                 if is_number(right):
                     ans = self.compute(left+node.op.value+right)
-                    print(ans)
+                    #print(ans)
                     ans_token = Token((stringify(ans), NUMBER))
                     ans_node = NumberNode(ans_token)
                     new_tree = self.replace_node(self.tree, node, ans_node)
@@ -301,7 +301,7 @@ class Algebra(Equation):
                 else:
                     eqn_string = node.op.value.lower()+"("+new_args[0]+")"
                 ans = self.compute(eqn_string)
-                print(ans)
+                #print(ans)
                 ans_token = Token((stringify(ans), NUMBER))
                 ans_node = NumberNode(ans_token)
                 new_tree = self.replace_node(self.tree, node, ans_node)
@@ -336,6 +336,7 @@ class Algebra(Equation):
         tree = combinator.build_tree()
         arithmetic = Arithmetic(eqn_string, tokens, tree)
         ans = arithmetic.calculate()
+        ans = round_complex(ans)
         for sol in arithmetic.solution:
             self.solution.append(sol)
         return ans

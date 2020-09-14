@@ -142,6 +142,7 @@ class TreeBuilder():
                     while current_token.tag == COMMA:
                         self.consume_token(COMMA)
                         result.append(self.Expression())
+                        current_token = self.tokens[self.pos]
                 if current_token.tag == R_BRACKET:
                     self.consume_token(R_BRACKET)
                     return FuncNode(funcToken, result)
