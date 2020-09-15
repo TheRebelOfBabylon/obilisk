@@ -30,7 +30,7 @@ from math_core.algebra_formats import quadratic_left_full, quadratic_left_no_b, 
     quartic_right_no_d, \
     quartic_right_no_de, quartic_right_no_e, monomial_x, monomial_x_power
 
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Any
 from copy import deepcopy
 import math
 import pytest
@@ -95,7 +95,7 @@ list_of_templates = [
 ]
 
 
-def round_complex(num: complex) -> Union[complex, float]:
+def round_complex(num: Any) -> Union[complex, float]:
     """Function will take a complex number and round its real and imaginary parts if they're extremely small"""
     if type(num) == complex:
         if num.real == -0.0 or num.real == 0 or pytest.approx(num.real) == 0.0:
@@ -282,6 +282,21 @@ class Algebra(Equation):
                     self.tree = deepcopy(new_tree)
                     return True
             if node.op.tag in (MUL, DIV, PLUS, MINUS):
+                num = None
+                if node.left.type == NUMNode:
+                    num = visit_NUMNode(node.left)
+                elif node.right.type == NUMNode:
+                    num = visit_NUMNode(node.right)
+                if round_complex(num) == 0:
+                    node_string = stringify_node(node)
+                    node_string = inference_string(node_string, self.var)
+                    self.solution.append(node_string + " = 0")
+                    self.update_eqn_string(node_string, "0")
+                    ans_token = Token(("0", NUMBER))
+                    ans_node = NumberNode(ans_token)
+                    new_tree = self.replace_node(self.tree, node, ans_node)
+                    self.tree = deepcopy(new_tree)
+                    return True
                 if node.op.tag == DIV:
                     if hash(node.left) == hash(node.right) and node.left.__repr__() == node.right.__repr__():
                         node_string = stringify_node(node)
@@ -293,8 +308,31 @@ class Algebra(Equation):
                         new_tree = self.replace_node(self.tree, node, ans_node)
                         self.tree = deepcopy(new_tree)
                         return True
+                elif node.op.tag == MINUS:
+                    if hash(node.left) == hash(node.right) and node.left.__repr__() == node.right.__repr__():
+                        node_string = stringify_node(node)
+                        node_string = inference_string(node_string, self.var)
+                        self.solution.append(node_string + " = 0")
+                        self.update_eqn_string(node_string, "0")
+                        ans_token = Token(("0", NUMBER))
+                        ans_node = NumberNode(ans_token)
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        self.tree = deepcopy(new_tree)
+                        return True
             elif node.op.tag == EXP:
-                if node.right.type == NUMNode:
+                if node.left.type == NUMNode:
+                    num = visit_NUMNode(node.left)
+                    if round_complex(num) == 0:
+                        node_string = stringify_node(node)
+                        node_string = inference_string(node_string, self.var)
+                        self.solution.append(node_string + " = 0")
+                        self.update_eqn_string(node_string, "0")
+                        ans_token = Token(("0", NUMBER))
+                        ans_node = NumberNode(ans_token)
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        self.tree = deepcopy(new_tree)
+                        return True
+                elif node.right.type == NUMNode:
                     num = visit_NUMNode(node.right)
                     if round_complex(num) == 1:
                         node_string = stringify_node(node.left)
