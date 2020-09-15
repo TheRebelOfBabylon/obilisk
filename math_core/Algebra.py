@@ -317,9 +317,7 @@ class Algebra(Equation):
                 self.tree = deepcopy(new_tree)
                 return True
             return self.find_operator(node.right)
-        elif node.type == VARNode:
-            return False
-        elif node.type == NUMNode:
+        else:
             return False
 
     def compute(self, eqn_string: str):
