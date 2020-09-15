@@ -253,9 +253,8 @@ class Algebra(Equation):
 
     def compute_low_hanging_fruit(self):
         """Method finds any operator with a number of the left and right side and computes it"""
-        chk = self.find_operator(self.tree)
-        while chk:
-            chk = self.find_operator(self.tree)
+        while self.find_operator(self.tree):
+            continue
 
     def find_operator(self, node: AST):
         """Method climbs through AST and finds operators"""
