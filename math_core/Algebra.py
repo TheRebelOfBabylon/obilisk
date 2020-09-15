@@ -253,40 +253,41 @@ class Algebra(Equation):
 
     def compute_low_hanging_fruit(self):
         """Method finds any operator with a number of the left and right side and computes it"""
-        self.find_operator(self.tree)
+        chk = self.find_operator(self.tree)
+        while chk:
+            chk = self.find_operator(self.tree)
 
     def find_operator(self, node: AST):
         """Method climbs through AST and finds operators"""
         if node.type == BINOPNode:
             left = None
-            if node.left.type == UNIOPNode:
-                left = self.go_through_uniop(node.left)
-            else:
-                left = self.find_operator(node.left)
-            right = None
-            if node.right.type == UNIOPNode:
-                right = self.go_through_uniop(node.right)
-            else:
-                right = self.find_operator(node.right)
-            if is_number(left) and is_number(right):
-                ans = self.compute(left+node.op.value+right)
-                ans_token = Token((stringify(ans), NUMBER))
-                ans_node = NumberNode(ans_token)
-                new_tree = self.replace_node(self.tree, node, ans_node)
-                self.tree = deepcopy(new_tree)
-                return stringify(ans)
-            return None
+            if node.left.type == NUMNode:
+                left = stringify(self.goto_NUMNode(node.left))
+            if is_number(left):
+                right = None
+                if node.right.type == NUMNode:
+                    right = stringify(self.goto_NUMNode(node.right))
+                if is_number(right):
+                    ans = self.compute(left+node.op.value+right)
+                    ans_token = Token((stringify(ans), NUMBER))
+                    ans_node = NumberNode(ans_token)
+                    new_tree = self.replace_node(self.tree, node, ans_node)
+                    self.tree = deepcopy(new_tree)
+                    return True
+            chk = self.find_operator(node.left)
+            if not chk:
+                chk = self.find_operator(node.right)
+            return chk
         elif node.type == FUNCNode and node.op.value.lower() in list_of_func:
             new_args = []
             num_chk = True
             for arg in node.args:
                 temp = None
-                if arg.type == UNIOPNode:
-                    temp = self.go_through_uniop(arg)
-                else:
-                    temp = self.find_operator(arg)
+                if arg.type == NUMNode:
+                    temp = stringify(self.goto_NUMNode(arg))
                 if not is_number(temp):
                     num_chk = False
+                    break
                 else:
                     new_args.append(temp)
             if num_chk:
@@ -299,28 +300,28 @@ class Algebra(Equation):
                 ans_node = NumberNode(ans_token)
                 new_tree = self.replace_node(self.tree, node, ans_node)
                 self.tree = deepcopy(new_tree)
-                return stringify(ans)
-            return None
+                return True
+            for arg in node.args:
+                chk = self.find_operator(arg)
+                if chk:
+                    break
+            return chk
         elif node.type == UNIOPNode:
-            return self.go_through_uniop(node)
+            right = None
+            if node.right.type == NUMNode:
+                right = stringify(visit_NUMNode(node.right))
+            if is_number(right):
+                ans = self.compute(node.op.value+right)
+                ans_token = Token((stringify(ans), NUMBER))
+                ans_node = NumberNode(ans_token)
+                new_tree = self.replace_node(self.tree, node, ans_node)
+                self.tree = deepcopy(new_tree)
+                return True
+            return self.find_operator(node.right)
         elif node.type == VARNode:
-            return None
+            return False
         elif node.type == NUMNode:
-            return stringify(visit_NUMNode(node))
-
-    def go_through_uniop(self, node: UniOpNode):
-        """Method goes through the uniop. If there is a number at the end, return number node"""
-        if node.type == UNIOPNode:
-            num = self.go_through_uniop(node.right)
-            if is_number(num):
-                if node.op.tag == PLUS:
-                    return stringify(+num)
-                elif node.op.tag == MINUS:
-                    return stringify(-num)
-        elif node.type == NUMNode:
-            return visit_NUMNode(node)
-        else:
-            return None
+            return False
 
     def compute(self, eqn_string: str):
         """Method computes values using Arithmetic class and returns answer"""
@@ -331,8 +332,9 @@ class Algebra(Equation):
         arithmetic = Arithmetic(eqn_string, tokens, tree)
         ans = arithmetic.calculate()
         ans = round_complex(ans)
-        self.solution.append(arithmetic.solution[1])
-        self.update_eqn_string(eqn_string, stringify(ans))
+        if "The final answer" not in arithmetic.solution[1]:
+            self.solution.append(arithmetic.solution[1])
+            self.update_eqn_string(eqn_string, stringify(ans))
         return ans
 
     def replace_node(self, node: AST, old_node: AST, new_node: AST):
