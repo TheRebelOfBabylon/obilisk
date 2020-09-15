@@ -6,9 +6,9 @@
 """
 from parser.lexer import Lexer, Token
 from parser.combinator import TreeBuilder
-from math_core.Equation import Equation
+from math_core.Equation import Equation, stringify_node, inference_string
 from parser.ast import AST, BINOPNode, VARNode, UNIOPNode, FUNCNode, UniOpNode, NumberNode, NUMNode, FuncNode, BinOpNode
-from parser.lexer import Token, EQUAL, EXP, MUL, PLUS, MINUS, NUMBER, CONSTANT
+from parser.lexer import Token, EQUAL, EXP, MUL, PLUS, MINUS, NUMBER, CONSTANT, DIV
 from math_core.Arithmetic import list_of_func, Arithmetic, visit_NUMNode, stringify
 from math_core.algebra_formats import quadratic_left_full, quadratic_left_no_b, quadratic_left_no_c, \
     quadratic_left_no_bc, \
@@ -28,7 +28,7 @@ from math_core.algebra_formats import quadratic_left_full, quadratic_left_no_b, 
     quartic_right_no_bde, \
     quartic_right_no_be, quartic_right_no_c, quartic_right_no_cd, quartic_right_no_cde, quartic_right_no_ce, \
     quartic_right_no_d, \
-    quartic_right_no_de, quartic_right_no_e
+    quartic_right_no_de, quartic_right_no_e, monomial_x, monomial_x_power
 
 from typing import List, Union, Tuple
 from copy import deepcopy
@@ -113,6 +113,8 @@ def round_complex(num: complex) -> Union[complex, float]:
     if type(num) == float:
         if num == -0.0:
             num = 0.0
+        if num.is_integer():
+            num = int(num)
     return num
 
 
@@ -259,20 +261,50 @@ class Algebra(Equation):
     def find_operator(self, node: AST):
         """Method climbs through AST and finds operators"""
         if node.type == BINOPNode:
-            left = None
             if node.left.type == NUMNode:
                 left = stringify(self.goto_NUMNode(node.left))
-            if is_number(left):
-                right = None
                 if node.right.type == NUMNode:
                     right = stringify(self.goto_NUMNode(node.right))
-                if is_number(right):
-                    ans = self.compute(left+node.op.value+right)
+                    ans = self.compute(left + node.op.value + right)
                     ans_token = Token((stringify(ans), NUMBER))
                     ans_node = NumberNode(ans_token)
                     new_tree = self.replace_node(self.tree, node, ans_node)
                     self.tree = deepcopy(new_tree)
                     return True
+            elif node.left.type == BINOPNode and node.left.right.type == NUMNode:
+                left = stringify(self.goto_NUMNode(node.left.right))
+                if node.right.type == NUMNode:
+                    right = stringify(self.goto_NUMNode(node.right))
+                    ans = self.compute(left + node.op.value + right)
+                    ans_token = Token((stringify(ans), NUMBER))
+                    ans_node = BinOpNode(node.left.left, node.left.op, NumberNode(ans_token))
+                    new_tree = self.replace_node(self.tree, node, ans_node)
+                    self.tree = deepcopy(new_tree)
+                    return True
+            if node.op.tag in (MUL, DIV, PLUS, MINUS):
+                if node.op.tag == DIV:
+                    if hash(node.left) == hash(node.right) and node.left.__repr__() == node.right.__repr__():
+                        node_string = stringify_node(node)
+                        node_string = inference_string(node_string, self.var)
+                        self.solution.append(node_string+" = 1")
+                        self.update_eqn_string(node_string, "1")
+                        ans_token = Token(("1", NUMBER))
+                        ans_node = NumberNode(ans_token)
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        self.tree = deepcopy(new_tree)
+                        return True
+            elif node.op.tag == EXP:
+                if node.right.type == NUMNode:
+                    num = visit_NUMNode(node.right)
+                    if round_complex(num) == 1:
+                        node_string = stringify_node(node.left)
+                        node_string = inference_string(node_string, self.var)
+                        self.solution.append("(" + node_string + ")^1" + " = " + node_string)
+                        self.update_eqn_string("(" + node_string + ")^1", "(" + node_string + ")")
+                        ans_node = node.left
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        self.tree = deepcopy(new_tree)
+                        return True
             chk = self.find_operator(node.left)
             if not chk:
                 chk = self.find_operator(node.right)
@@ -352,6 +384,15 @@ class Algebra(Equation):
             return FuncNode(node.op, new_args)
         elif node.type in (NUMNode, VARNode):
             return node
+
+    def check_for_monomial(self, node: AST):
+        """Method will check if a node is a monomial"""
+        if hash(node) == hash(monomial_x[0]):
+            return True
+        elif hash(node) == hash(monomial_x_power[0]):
+            return True
+        else:
+            return False
 
     def quadratic_formula(self) -> List[Union[int, float, complex]]:
         """Method solves a quadratic using the quadratic formula"""

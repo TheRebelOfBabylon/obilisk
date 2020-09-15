@@ -11,6 +11,9 @@ def create_num_node(var: str) -> NumberNode:
 
 some_var = VariableNode(Token(("x", VARIABLE)))
 
+monomial_x = (BinOpNode(create_num_node('a'), Token(("*", MUL)), some_var), "monomial_x")
+monomial_x_power = (BinOpNode(create_num_node('a'), Token(("*", MUL)), BinOpNode(some_var, Token(("^", EXP)), create_num_node('2'))), "monomial_x_power")
+
 a = BinOpNode(create_num_node('a'), Token(("*", MUL)), BinOpNode(some_var, Token(("^", EXP)), NumberNode(Token(("2", NUMBER)))))
 b = BinOpNode(create_num_node('b'), Token(("*", MUL)), some_var)
 c = create_num_node('c')

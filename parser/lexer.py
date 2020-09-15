@@ -112,11 +112,13 @@ class Lexer():
         while i != len(tokens):
             if tokens[i-1].tag in (NUMBER, R_BRACKET, CONSTANT) and tokens[i].tag in (VARIABLE, CONSTANT, L_BRACKET, FUNC):
                 tokens.insert(i, mul_token)
-            elif tokens[i-1].tag in (PLUS, MINUS, EQUAL, L_BRACKET) and tokens[i].tag == VARIABLE:
+            elif tokens[i-1].tag in (PLUS, MINUS, EQUAL, DIV, EXP, L_BRACKET) and tokens[i].tag == VARIABLE:
+                tokens.insert(i + 1, r_brack_token)
                 tokens.insert(i, mul_token)
                 tokens.insert(i, one_token)
-            elif tokens[i-1].tag == EXP and tokens[i].tag == VARIABLE:
-                tokens.insert(i+1, r_brack_token)
+                tokens.insert(i, l_brack_token)
+            elif tokens[i-2].tag != NUMBER and tokens[i-1].tag == MUL and tokens[i].tag == VARIABLE:
+                tokens.insert(i + 1, r_brack_token)
                 tokens.insert(i, mul_token)
                 tokens.insert(i, one_token)
                 tokens.insert(i, l_brack_token)
