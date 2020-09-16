@@ -2,6 +2,7 @@ from parser.lexer import Token, EXP, EQUAL
 from parser.ast import AST, BINOPNode, FUNCNode, UNIOPNode, VARNode, NUMNode
 
 from typing import List, Union
+import re
 
 
 def stringify_node(node: AST) -> str:
@@ -40,7 +41,14 @@ def stringify_node(node: AST) -> str:
 
 def inference_string(eqn_string: str, var: str) -> str:
     """Method will remove some parts of an equation which are redundant"""
-    eqn_string = eqn_string.replace('1*' + var, var)
+    regex = r'\([0-9]+(\.[0-9]*)?\*[a-zA-Z_]\)'
+    match = re.search(regex, eqn_string)
+    match_wo_br_or_mul = match.group().replace("(", '')
+    match_wo_br_or_mul = match_wo_br_or_mul.replace(")",'')
+    match_wo_br_or_mul = match_wo_br_or_mul.replace("*", '')
+    if match_wo_br_or_mul == "1"+var:
+        match_wo_br_or_mul = match_wo_br_or_mul.replace("1", '')
+    eqn_string = eqn_string.replace(match.group(), match_wo_br_or_mul)
     return eqn_string.replace('(' + var + ')', var)
 
 
@@ -54,7 +62,7 @@ class Equation:
     def update_eqn_string(self, section_to_replace: str, new_section: str):
         """Method which updates the eqn string based on recent ops"""
         self.solution.append("------")
-        if "("+section_to_replace+")" in self.eqn_string:
+        if "("+section_to_replace+")" in self.eqn_string and "("+section_to_replace+")^" not in self.eqn_string:
             self.eqn_string = self.eqn_string.replace("("+section_to_replace+")", new_section)
         else:
             self.eqn_string = self.eqn_string.replace(section_to_replace, new_section)
