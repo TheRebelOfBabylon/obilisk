@@ -8,7 +8,7 @@ from parser.lexer import Lexer, Token
 from parser.combinator import TreeBuilder
 from math_core.Equation import Equation, stringify_node, inference_string
 from parser.ast import AST, BINOPNode, VARNode, UNIOPNode, FUNCNode, UniOpNode, NumberNode, NUMNode, FuncNode, BinOpNode
-from parser.lexer import Token, EQUAL, EXP, MUL, PLUS, MINUS, NUMBER, CONSTANT, DIV
+from parser.lexer import Token, EQUAL, EXP, MUL, PLUS, MINUS, NUMBER, CONSTANT, DIV, FUNC
 from math_core.Arithmetic import list_of_func, Arithmetic, visit_NUMNode, stringify
 from math_core.algebra_formats import quadratic_left_full, quadratic_left_no_b, quadratic_left_no_c, \
     quadratic_left_no_bc, \
@@ -101,6 +101,33 @@ oper_dict = {
     DIV: (MUL, DIV),
     PLUS: (PLUS, MINUS),
     MINUS: (PLUS, MINUS),
+}
+
+trig_op_dict = {
+    "cos" : "acos",
+    "acos" : "cos",
+    "sin" : "asin",
+    "asin" : "sin",
+    "tan" : "atan",
+    "atan" : "tan",
+    "sec" : "asec",
+    "asec" : "sec",
+    "csc" : "acsc",
+    "acsc" : "csc",
+    "cot" : "acot",
+    "acot" : "cot",
+    "cosh" : "acosh",
+    "acosh" : "cosh",
+    "sinh" : "asinh",
+    "asinh" : "sinh",
+    "tanh" : "atanh",
+    "atanh" : "tanh",
+    "sech" : "asech",
+    "asech" : "sech",
+    "csch" : "acsch",
+    "acsch" : "csch",
+    "coth" : "acoth",
+    "acoth" : "coth",
 }
 
 def round_complex(num: Any) -> Union[complex, float]:
@@ -269,7 +296,7 @@ class Algebra(Equation):
     def find_operator(self, node: AST):
         """Method climbs through AST and finds operators"""
         if node.type == BINOPNode:
-            if node.left.type == NUMNode:
+            if node.left.type == NUMNode and node.op.tag != DIV:
                 left = stringify(self.goto_NUMNode(node.left))
                 if node.right.type == NUMNode:
                     right = stringify(self.goto_NUMNode(node.right))
@@ -282,14 +309,23 @@ class Algebra(Equation):
             elif node.left.type == BINOPNode and node.left.op.tag in oper_dict[node.op.tag] and node.left.right.type == NUMNode:
                 left = stringify(self.goto_NUMNode(node.left.right))
                 if node.right.type == NUMNode:
-                    right = stringify(self.goto_NUMNode(node.right))
-                    ans = self.compute(left + node.op.value + right)
-                    ans_token = Token((stringify(ans), NUMBER))
-                    ans_node = BinOpNode(node.left.left, node.left.op, NumberNode(ans_token))
-                    new_tree = self.replace_node(self.tree, node, ans_node)
-                    self.tree = deepcopy(new_tree)
-                    return True
-            if node.op.tag in (MUL, DIV, PLUS, MINUS):
+                    if node.left.op.tag == EXP and node.op.tag == EXP:
+                        right = stringify(self.goto_NUMNode(node.right))
+                        ans = self.compute(left + "*" + right)
+                        ans_token = Token((stringify(ans), NUMBER))
+                        ans_node = BinOpNode(node.left.left, node.left.op, NumberNode(ans_token))
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        self.tree = deepcopy(new_tree)
+                        return True
+                    else:
+                        right = stringify(self.goto_NUMNode(node.right))
+                        ans = self.compute(left + node.op.value + right)
+                        ans_token = Token((stringify(ans), NUMBER))
+                        ans_node = BinOpNode(node.left.left, node.left.op, NumberNode(ans_token))
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        self.tree = deepcopy(new_tree)
+                        return True
+            if node.op.tag in (MUL, DIV):
                 num = None
                 if node.left.type == NUMNode:
                     num = visit_NUMNode(node.left)
@@ -312,17 +348,6 @@ class Algebra(Equation):
                         self.solution.append(node_string+" = 1")
                         self.update_eqn_string(node_string, "1")
                         ans_token = Token(("1", NUMBER))
-                        ans_node = NumberNode(ans_token)
-                        new_tree = self.replace_node(self.tree, node, ans_node)
-                        self.tree = deepcopy(new_tree)
-                        return True
-                elif node.op.tag == MINUS:
-                    if hash(node.left) == hash(node.right) and node.left.__repr__() == node.right.__repr__():
-                        node_string = stringify_node(node)
-                        node_string = inference_string(node_string, self.var)
-                        self.solution.append(node_string + " = 0")
-                        self.update_eqn_string(node_string, "0")
-                        ans_token = Token(("0", NUMBER))
                         ans_node = NumberNode(ans_token)
                         new_tree = self.replace_node(self.tree, node, ans_node)
                         self.tree = deepcopy(new_tree)
@@ -369,6 +394,53 @@ class Algebra(Equation):
                         new_tree = self.replace_node(self.tree, node, ans_node)
                         self.tree = deepcopy(new_tree)
                         return True
+            elif node.op.tag in (PLUS, MINUS):
+                if node.left.type == NUMNode:
+                    num = visit_NUMNode(node.left)
+                    if round_complex(num) == 0:
+                        node_string = stringify_node(node.right)
+                        node_string = inference_string(node_string, self.var)
+                        self.solution.append("0" + node.op.value + node_string + " = " + node_string)
+                        self.update_eqn_string("0" + node.op.value + node_string, node_string)
+                        ans_node = node.right
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        self.tree = deepcopy(new_tree)
+                        return True
+                elif node.right.type == NUMNode:
+                    num = visit_NUMNode(node.right)
+                    if round_complex(num) == 0:
+                        node_string = stringify_node(node.left)
+                        node_string = inference_string(node_string, self.var)
+                        self.solution.append(node_string + node.op.value + "0 = " + node_string)
+                        self.update_eqn_string(node_string + node.op.value + "0", node_string)
+                        ans_node = node.left
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        self.tree = deepcopy(new_tree)
+                        return True
+                if node.op.tag == PLUS:
+                    if inference_string(stringify_node(node.left), self.var) == "-"+inference_string(stringify_node(node.right), self.var) or \
+                    inference_string(stringify_node(node.right), self.var) == "-"+inference_string(stringify_node(node.left), self.var) or \
+                    (node.left.type == UNIOPNode and node.left.right.__repr__() == node.right.__repr__()) or (node.right.type == UNIOPNode and node.right.right.__repr__() == node.left.__repr__()):
+                        node_string = stringify_node(node)
+                        node_string = inference_string(node_string, self.var)
+                        self.solution.append(node_string + " = 0")
+                        self.update_eqn_string(node_string, "0")
+                        ans_token = Token(("0", NUMBER))
+                        ans_node = NumberNode(ans_token)
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        self.tree = deepcopy(new_tree)
+                        return True
+                elif node.op.tag == MINUS:
+                    if hash(node.left) == hash(node.right) and node.left.__repr__() == node.right.__repr__():
+                        node_string = stringify_node(node)
+                        node_string = inference_string(node_string, self.var)
+                        self.solution.append(node_string + " = 0")
+                        self.update_eqn_string(node_string, "0")
+                        ans_token = Token(("0", NUMBER))
+                        ans_node = NumberNode(ans_token)
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        self.tree = deepcopy(new_tree)
+                        return True
             elif node.op.tag == EXP:
                 if node.left.type == NUMNode:
                     num = visit_NUMNode(node.left)
@@ -379,6 +451,19 @@ class Algebra(Equation):
                         self.update_eqn_string(node_string, "0")
                         ans_token = Token(("0", NUMBER))
                         ans_node = NumberNode(ans_token)
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        self.tree = deepcopy(new_tree)
+                        return True
+                elif node.left.type == BINOPNode and node.left.op.tag == EXP and node.left.right.type == NUMNode and node.right.type == BINOPNode and node.right.op.tag == DIV and node.right.left.type == NUMNode and node.right.right.type == NUMNode:
+                    numerator = visit_NUMNode(node.right.left)
+                    denom = visit_NUMNode(node.right.right)
+                    num = visit_NUMNode(node.left.right)
+                    if round_complex(num) == round_complex(denom) and round_complex(numerator) == 1:
+                        node_string = stringify_node(node.left.left)
+                        node_string = inference_string(node_string, self.var)
+                        self.solution.append("((" + node_string + ")^" + str(round_complex(num)) + ")^(" + str(round_complex(numerator)) + "/" + str(round_complex(denom)) + ") = " + node_string)
+                        self.update_eqn_string("((" + node_string + ")^" + str(round_complex(num)) + ")^(" + str(round_complex(numerator)) + "/" + str(round_complex(denom)) + ")", node_string)
+                        ans_node = node.left.left
                         new_tree = self.replace_node(self.tree, node, ans_node)
                         self.tree = deepcopy(new_tree)
                         return True
@@ -403,11 +488,52 @@ class Algebra(Equation):
                         new_tree = self.replace_node(self.tree, node, ans_node)
                         self.tree = deepcopy(new_tree)
                         return True
+                    elif round_complex(num) == 2 and node.left.type == FUNCNode and node.left.op.value.lower() == "sqrt":
+                        node_string = stringify_node(node.left.args[0])
+                        node_string = inference_string(node_string, self.var)
+                        self.solution.append("sqrt(" + node_string + ")^2" + " = " + node_string)
+                        self.update_eqn_string("sqrt(" + node_string + ")^2", node_string)
+                        ans_node = node.left.args[0]
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        self.tree = deepcopy(new_tree)
+                        return True
+                    elif node.left.type == BINOPNode and node.left.op.tag == EXP and node.left.right.type == BINOPNode and node.left.right.op.tag == DIV and node.left.right.left.type == NUMNode and node.left.right.right.type == NUMNode:
+                        numerator = visit_NUMNode(node.left.right.left)
+                        left = visit_NUMNode(node.left.right.right)
+                        if round_complex(num) == round_complex(left) and round_complex(numerator) == 1:
+                            node_string = stringify_node(node.left.left)
+                            node_string = inference_string(node_string, self.var)
+                            self.solution.append("((" + node_string + ")^(" + str(round_complex(numerator)) + "/" + str(round_complex(left)) + "))^" + str(round_complex(num)) + " = " + node_string)
+                            self.update_eqn_string("((" + node_string + ")^(" + str(round_complex(numerator)) + "/" + str(round_complex(left)) + "))^" + str(round_complex(num)), node_string)
+                            ans_node = node.left.left
+                            new_tree = self.replace_node(self.tree, node, ans_node)
+                            self.tree = deepcopy(new_tree)
+                            return True
             chk = self.find_operator(node.left)
             if not chk:
                 chk = self.find_operator(node.right)
             return chk
         elif node.type == FUNCNode and node.op.value.lower() in list_of_func:
+            if node.op.value.lower() == "sqrt" and node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].right.type == NUMNode:
+                num = visit_NUMNode(node.args[0].right)
+                if round_complex(num) == 2:
+                    node_string = stringify_node(node.args[0].left)
+                    node_string = inference_string(node_string, self.var)
+                    self.solution.append("sqrt((" + node_string + ")^2)" + " = abs(" + node_string + ")")
+                    self.update_eqn_string("sqrt((" + node_string + ")^2)", "abs(" + node_string + ")")
+                    ans_node = FuncNode(Token(("abs", FUNC)), [node.args[0].left])
+                    new_tree = self.replace_node(self.tree, node, ans_node)
+                    self.tree = deepcopy(new_tree)
+                    return True
+            elif node.op.value.lower() in trig_op_dict and node.args[0].type == FUNCNode and node.args[0].op.value.lower() == trig_op_dict[node.op.value.lower()]:
+                node_string = stringify_node(node.args[0].args[0])
+                node_string = inference_string(node_string, self.var)
+                self.solution.append(node.op.value.lower() + "(" + node.args[0].op.value.lower() + "(" + node_string + ")) = " + node_string)
+                self.update_eqn_string(node.op.value.lower() + "(" + node.args[0].op.value.lower() + "(" + node_string + "))", node_string)
+                ans_node = node.args[0].args[0]
+                new_tree = self.replace_node(self.tree, node, ans_node)
+                self.tree = deepcopy(new_tree)
+                return True
             new_args = []
             num_chk = True
             for arg in node.args:

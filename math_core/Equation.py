@@ -13,6 +13,8 @@ def stringify_node(node: AST) -> str:
             if node.left.type == BINOPNode and node.left.op.tag != EXP:
                 if node.left.type not in (NUMNode, VARNode):
                     temp = ")" + temp
+            elif node.op.tag == EXP and node.left.type == BINOPNode and node.left.op.tag == EXP:
+                temp = ")" + temp
             if node.right.type == BINOPNode and node.right.op.tag != EXP:
                 if node.right.type not in (NUMNode, VARNode):
                     temp += "("
@@ -24,8 +26,13 @@ def stringify_node(node: AST) -> str:
             right += ")"
         return left+temp+right
     elif node.type == UNIOPNode:
+        temp = node.op.value
+        if node.right.type == BINOPNode:
+            temp += "("
         right = stringify_node(node.right)
-        return node.op.value+right
+        if "(" in temp:
+            right += ")"
+        return temp+right
     elif node.type == FUNCNode:
         temp = node.op.value+"("
         for i in range(len(node.args)):
@@ -41,14 +48,20 @@ def stringify_node(node: AST) -> str:
 
 def inference_string(eqn_string: str, var: str) -> str:
     """Method will remove some parts of an equation which are redundant"""
-    regex = r'\([0-9]+(\.[0-9]*)?\*[a-zA-Z_]\)'
+    regex = r'\-?\(\-?[0-9]+(\.[0-9]*)?\*[a-zA-Z_]\)'
     match = re.search(regex, eqn_string)
-    match_wo_br_or_mul = match.group().replace("(", '')
-    match_wo_br_or_mul = match_wo_br_or_mul.replace(")",'')
-    match_wo_br_or_mul = match_wo_br_or_mul.replace("*", '')
-    if match_wo_br_or_mul == "1"+var:
-        match_wo_br_or_mul = match_wo_br_or_mul.replace("1", '')
-    eqn_string = eqn_string.replace(match.group(), match_wo_br_or_mul)
+    if match is not None:
+        match_wo_br_or_mul = match.group().replace("(", '')
+        match_wo_br_or_mul = match_wo_br_or_mul.replace(")",'')
+        match_wo_br_or_mul = match_wo_br_or_mul.replace("*", '')
+        if match_wo_br_or_mul == "1"+var:
+            match_wo_br_or_mul = match_wo_br_or_mul.replace("1", '')
+        elif match_wo_br_or_mul == "-1"+var:
+            match_wo_br_or_mul = match_wo_br_or_mul.replace("-1", '')
+        eqn_string = eqn_string.replace(match.group(), match_wo_br_or_mul)
+        match = re.search(regex, eqn_string)
+    if match is not None:
+        return inference_string(eqn_string, var)
     return eqn_string.replace('(' + var + ')', var)
 
 
