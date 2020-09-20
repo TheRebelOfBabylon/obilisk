@@ -5,7 +5,7 @@ from typing import List, Union
 import re
 
 
-def stringify_node(node: AST) -> str:
+def stringify_node(node: AST, var: str) -> str:
     """Function will take a node and turn it into a string"""
     if node.type == BINOPNode:
         temp = node.op.value
@@ -18,32 +18,32 @@ def stringify_node(node: AST) -> str:
             if node.right.type == BINOPNode and node.right.op.tag != EXP:
                 if node.right.type not in (NUMNode, VARNode):
                     temp += "("
-        left = stringify_node(node.left)
+        left = stringify_node(node.left, var)
         if ")"+node.op.value in temp:
             left = "("+left
-        right = stringify_node(node.right)
+        right = stringify_node(node.right, var)
         if node.op.value+"(" in temp:
             right += ")"
-        return left+temp+right
+        return inference_string(left+temp+right, var)
     elif node.type == UNIOPNode:
         temp = node.op.value
         if node.right.type == BINOPNode:
             temp += "("
-        right = stringify_node(node.right)
+        right = stringify_node(node.right, var)
         if "(" in temp:
             right += ")"
-        return temp+right
+        return inference_string(temp+right, var)
     elif node.type == FUNCNode:
         temp = node.op.value+"("
         for i in range(len(node.args)):
             if i < 1:
-                temp += stringify_node(node.args[i])
+                temp += stringify_node(node.args[i], var)
             else:
-                temp += ","+stringify_node(node.args[i])
+                temp += ","+stringify_node(node.args[i], var)
         temp += ")"
-        return temp
+        return inference_string(temp, var)
     elif node.type in (VARNode, NUMNode):
-        return node.value
+        return inference_string(node.value, var)
 
 
 def inference_string(eqn_string: str, var: str) -> str:
