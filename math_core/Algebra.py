@@ -350,6 +350,10 @@ class Algebra(Equation):
                         new_tree = self.replace_node(self.tree, node, ans_node)
                         self.tree = deepcopy(new_tree)
                         return True
+                    elif node.right.type == NUMNode:
+                        num = visit_NUMNode(node.right)
+                        if round_complex(num) == 0:
+                            raise ZeroDivisionError
                 elif node.op.tag == MUL:
                     if node.left.type == NUMNode:
                         num = visit_NUMNode(node.left)
@@ -394,8 +398,12 @@ class Algebra(Equation):
                     num = visit_NUMNode(node.left)
                     if round_complex(num) == 0:
                         node_string = stringify_node(node.right, self.var)
-                        self.solution.append("0" + node.op.value + node_string + " = " + node_string)
-                        self.update_eqn_string("0" + node.op.value + node_string, node_string)
+                        if "0" + node.op.value + "(" + node_string + ")" in stringify_node(node. self.var):
+                            self.solution.append("0" + node.op.value + "(" + node_string + ") = " + node_string)
+                            self.update_eqn_string("0" + node.op.value + "(" + node_string + ")", node_string)
+                        else:
+                            self.solution.append("0" + node.op.value + node_string + " = " + node_string)
+                            self.update_eqn_string("0" + node.op.value + node_string, node_string)
                         ans_node = node.right
                         new_tree = self.replace_node(self.tree, node, ans_node)
                         self.tree = deepcopy(new_tree)
@@ -404,8 +412,12 @@ class Algebra(Equation):
                     num = visit_NUMNode(node.right)
                     if round_complex(num) == 0:
                         node_string = stringify_node(node.left, self.var)
-                        self.solution.append(node_string + node.op.value + "0 = " + node_string)
-                        self.update_eqn_string(node_string + node.op.value + "0", node_string)
+                        if "(" + node_string + ")" + node.op.value + "0" in stringify_node(node, self.var):
+                            self.solution.append("(" + node_string + ")" + node.op.value + "0 = " + node_string)
+                            self.update_eqn_string("(" + node_string + ")" + node.op.value + "0", node_string)
+                        else:
+                            self.solution.append(node_string + node.op.value + "0 = " + node_string)
+                            self.update_eqn_string(node_string + node.op.value + "0", node_string)
                         ans_node = node.left
                         new_tree = self.replace_node(self.tree, node, ans_node)
                         self.tree = deepcopy(new_tree)
@@ -434,8 +446,12 @@ class Algebra(Equation):
                         return True
                     elif node.left.type == BINOPNode and node.left.op.tag in (MINUS, PLUS) and hash(node.left.right) == hash(node.right) and node.left.right.__repr__() == node.right.__repr__():
                         node_string = stringify_node(node.right, self.var)
-                        self.solution.append(node_string + "-" + node_string + " = 0")
-                        self.update_eqn_string(node_string + "-" + node_string, "0")
+                        if "(" + node_string + ")-(" + node_string + ")" in stringify_node(BinOpNode(node.left.right, Token(("-", MINUS)), node.right)):
+                            self.solution.append("(" + node_string + ")-(" + node_string + ") = 0")
+                            self.update_eqn_string("(" + node_string + ")-(" + node_string + ")", "0")
+                        else:
+                            self.solution.append(node_string + "-" + node_string + " = 0")
+                            self.update_eqn_string(node_string + "-" + node_string, "0")
                         zero_token = Token(("0", NUMBER))
                         zero_node = NumberNode(zero_token)
                         ans_node = deepcopy(node.left)
@@ -479,16 +495,24 @@ class Algebra(Equation):
                     num = visit_NUMNode(node.right)
                     if round_complex(num) == 1:
                         node_string = stringify_node(node.left, self.var)
-                        self.solution.append("(" + node_string + ")^1" + " = " + node_string)
-                        self.update_eqn_string("(" + node_string + ")^1", "(" + node_string + ")")
+                        if "(" + node_string + ")^1" in stringify_node(node, self.var):
+                            self.solution.append("(" + node_string + ")^1" + " = " + node_string)
+                            self.update_eqn_string("(" + node_string + ")^1", "(" + node_string + ")")
+                        else:
+                            self.solution.append(node_string + "^1 = " + node_string)
+                            self.update_eqn_string(node_string + "^1", "(" + node_string + ")")
                         ans_node = node.left
                         new_tree = self.replace_node(self.tree, node, ans_node)
                         self.tree = deepcopy(new_tree)
                         return True
                     elif round_complex(num) == 0:
                         node_string = stringify_node(node.left, self.var)
-                        self.solution.append("(" + node_string + ")^0" + " = 1")
-                        self.update_eqn_string("(" + node_string + ")^0", "1")
+                        if "(" + node_string + ")^0" in stringify_node(node, self.var):
+                            self.solution.append("(" + node_string + ")^0" + " = 1")
+                            self.update_eqn_string("(" + node_string + ")^0", "1")
+                        else:
+                            self.solution.append(node_string + "^0" + " = 1")
+                            self.update_eqn_string(node_string + "^0", "1")
                         ans_token = Token(("1", NUMBER))
                         ans_node = NumberNode(ans_token)
                         new_tree = self.replace_node(self.tree, node, ans_node)
@@ -535,8 +559,12 @@ class Algebra(Equation):
                 num = visit_NUMNode(node.args[0].right)
                 if round_complex(num) == 2:
                     node_string = stringify_node(node.args[0].left, self.var)
-                    self.solution.append("sqrt((" + node_string + ")^2)" + " = abs(" + node_string + ")")
-                    self.update_eqn_string("sqrt((" + node_string + ")^2)", "abs(" + node_string + ")")
+                    if "sqrt((" + node_string + ")^2)" in stringify_node(node, self.var):
+                        self.solution.append("sqrt((" + node_string + ")^2)" + " = abs(" + node_string + ")")
+                        self.update_eqn_string("sqrt((" + node_string + ")^2)", "abs(" + node_string + ")")
+                    else:
+                        self.solution.append("sqrt(" + node_string + "^2)" + " = abs(" + node_string + ")")
+                        self.update_eqn_string("sqrt(" + node_string + "^2)", "abs(" + node_string + ")")
                     ans_node = FuncNode(Token(("abs", FUNC)), [node.args[0].left])
                     new_tree = self.replace_node(self.tree, node, ans_node)
                     self.tree = deepcopy(new_tree)
@@ -553,8 +581,12 @@ class Algebra(Equation):
                 num = visit_NUMNode(node.args[0].left)
                 if round_complex(num) == math.e:
                     node_string = stringify_node(node.args[0].right, self.var)
-                    self.solution.append("ln(#e^(" + node_string + ")) = " + node_string)
-                    self.update_eqn_string("ln(#e^(" + node_string + "))", node_string)
+                    if "ln(#e^(" + node_string + "))" in stringify_node(node, self.var):
+                        self.solution.append("ln(#e^(" + node_string + ")) = " + node_string)
+                        self.update_eqn_string("ln(#e^(" + node_string + "))", node_string)
+                    else:
+                        self.solution.append("ln(#e^" + node_string + ") = " + node_string)
+                        self.update_eqn_string("ln(#e^" + node_string + ")", node_string)
                     ans_node = node.args[0].right
                     new_tree = self.replace_node(self.tree, node, ans_node)
                     self.tree = deepcopy(new_tree)
@@ -563,8 +595,22 @@ class Algebra(Equation):
             hash(node.args[1]) == hash(node.args[0].left) and node.args[1].__repr__() == node.args[0].left.__repr__():
                 node_string = stringify_node(node.args[0].right, self.var)
                 base_string = stringify_node(node.args[1], self.var)
-                self.solution.append("log(" + base_string + "^(" + node_string + ")," + base_string + ") = " + node_string)
-                self.update_eqn_string("log(" + base_string + "^(" + node_string + ")," + base_string + ")", node_string)
+                if "log((" + base_string + ")^(" + node_string + ")," + base_string + ")" in stringify_node(node, self.var):
+                    self.solution.append(
+                        "log((" + base_string + ")^(" + node_string + ")," + base_string + ") = " + node_string)
+                    self.update_eqn_string("log((" + base_string + ")^(" + node_string + ")," + base_string + ")",
+                                           node_string)
+                elif "log(" + base_string + "^(" + node_string + ")," + base_string + ")" in stringify_node(node, self.var):
+                    self.solution.append("log(" + base_string + "^(" + node_string + ")," + base_string + ") = " + node_string)
+                    self.update_eqn_string("log(" + base_string + "^(" + node_string + ")," + base_string + ")", node_string)
+                elif "log((" + base_string + ")^" + node_string + "," + base_string + ")" in stringify_node(node, self.var):
+                    self.solution.append("log((" + base_string + ")^" + node_string + "," + base_string + ") = " + node_string)
+                    self.update_eqn_string("log((" + base_string + ")^" + node_string + "," + base_string + ")", node_string)
+                else:
+                    self.solution.append(
+                        "log(" + base_string + "^" + node_string + "," + base_string + ") = " + node_string)
+                    self.update_eqn_string("log(" + base_string + "^" + node_string + "," + base_string + ")",
+                                           node_string)
                 ans_node = node.args[0].right
                 new_tree = self.replace_node(self.tree, node, ans_node)
                 self.tree = deepcopy(new_tree)
