@@ -800,18 +800,28 @@ class Algebra(Equation):
                     og_eqn_string = self.eqn_string
                     expr_string = stringify_node(self.exprs[i], self.var)
                     if "(" + expr_string + ")" in self.eqn_string:
+                        self.solution.append("(" + expr_string + ") = " + sub_var)
                         self.update_eqn_string("(" + expr_string + ")", sub_var)
                     if expr_string in self.eqn_string:
+                        self.solution.append(expr_string + " = " + sub_var)
                         self.update_eqn_string(expr_string, sub_var)
                     if self.var in self.eqn_string:
-                        print("Multivariable")
+                        k = 0
+                        while k != len(self.solution):
+                            if sub_var in self.solution[k]:
+                                if self.solution[k-1] == "------" and self.solution[k+1] == "------":
+                                    del self.solution[k-1:k+2]
+                                    k -= 2
+                                else:
+                                    del self.solution[k]
+                                    k -= 1
+                            k += 1
                         self.eqn_string = og_eqn_string
                     else:
                         if self.subs is None:
                             self.subs = {sub_var_node: self.exprs[i]}
                         else:
                             self.subs[sub_var_node] = self.exprs[i]
-                        self.solution.append(expr_string + " = " + sub_var)
                         new_tree = self.replace_node(self.tree, self.exprs[i], sub_var_node)
                         self.tree = deepcopy(new_tree)
                         self.var = sub_var
