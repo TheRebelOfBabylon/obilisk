@@ -304,6 +304,8 @@ class Algebra(Equation):
                     ans_token = Token((stringify(ans), NUMBER))
                     ans_node = NumberNode(ans_token)
                     new_tree = self.replace_node(self.tree, node, ans_node)
+                    if new_tree is None:
+                        raise Exception("{} was not replaced by {}.".format(node, ans_node))
                     self.tree = deepcopy(new_tree)
                     return True
             elif node.left.type == BINOPNode and node.left.op.tag in oper_dict[node.op.tag] and node.left.right.type == NUMNode:
@@ -315,6 +317,8 @@ class Algebra(Equation):
                         ans_token = Token((stringify(ans), NUMBER))
                         ans_node = BinOpNode(node.left.left, node.left.op, NumberNode(ans_token))
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
                     else:
@@ -323,6 +327,8 @@ class Algebra(Equation):
                         ans_token = Token((stringify(ans), NUMBER))
                         ans_node = BinOpNode(node.left.left, node.left.op, NumberNode(ans_token))
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
             if node.op.tag in (MUL, DIV):
@@ -338,6 +344,8 @@ class Algebra(Equation):
                     ans_token = Token(("0", NUMBER))
                     ans_node = NumberNode(ans_token)
                     new_tree = self.replace_node(self.tree, node, ans_node)
+                    if new_tree is None:
+                        raise Exception("{} was not replaced by {}.".format(node, ans_node))
                     self.tree = deepcopy(new_tree)
                     return True
                 if node.op.tag == DIV:
@@ -348,6 +356,8 @@ class Algebra(Equation):
                         ans_token = Token(("1", NUMBER))
                         ans_node = NumberNode(ans_token)
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
                     elif node.right.type == NUMNode:
@@ -367,6 +377,8 @@ class Algebra(Equation):
                                 self.update_eqn_string("1*"+node_string, node_string)
                             ans_node = node.right
                             new_tree = self.replace_node(self.tree, node, ans_node)
+                            if new_tree is None:
+                                raise Exception("{} was not replaced by {}.".format(node, ans_node))
                             self.tree = deepcopy(new_tree)
                             return True
                     elif node.right.type == NUMNode:
@@ -381,6 +393,8 @@ class Algebra(Equation):
                                 self.update_eqn_string(node_string+"*1", node_string)
                             ans_node = node.left
                             new_tree = self.replace_node(self.tree, node, ans_node)
+                            if new_tree is None:
+                                raise Exception("{} was not replaced by {}.".format(node, ans_node))
                             self.tree = deepcopy(new_tree)
                             return True
                     elif node.__repr__() == BinOpNode(node.left, Token(("*", MUL)), BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), node.left)).__repr__() \
@@ -391,6 +405,8 @@ class Algebra(Equation):
                         ans_token = Token(("1", NUMBER))
                         ans_node = NumberNode(ans_token)
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
             elif node.op.tag in (PLUS, MINUS):
@@ -406,6 +422,8 @@ class Algebra(Equation):
                             self.update_eqn_string("0" + node.op.value + node_string, node_string)
                         ans_node = node.right
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
                 elif node.right.type == NUMNode:
@@ -420,6 +438,8 @@ class Algebra(Equation):
                             self.update_eqn_string(node_string + node.op.value + "0", node_string)
                         ans_node = node.left
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
                 if node.op.tag == PLUS:
@@ -432,6 +452,8 @@ class Algebra(Equation):
                         ans_token = Token(("0", NUMBER))
                         ans_node = NumberNode(ans_token)
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
                 elif node.op.tag == MINUS:
@@ -442,6 +464,8 @@ class Algebra(Equation):
                         ans_token = Token(("0", NUMBER))
                         ans_node = NumberNode(ans_token)
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
                     elif node.left.type == BINOPNode and node.left.op.tag in (MINUS, PLUS) and hash(node.left.right) == hash(node.right) and node.left.right.__repr__() == node.right.__repr__():
@@ -457,6 +481,8 @@ class Algebra(Equation):
                         ans_node = deepcopy(node.left)
                         ans_node.right = zero_node
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
             elif node.op.tag == EXP:
@@ -469,6 +495,8 @@ class Algebra(Equation):
                         ans_token = Token(("0", NUMBER))
                         ans_node = NumberNode(ans_token)
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
                     elif round_complex(num) == math.e and node.right.type == FUNCNode and node.right.op.value.lower() == "ln":
@@ -477,6 +505,8 @@ class Algebra(Equation):
                         self.update_eqn_string("#e^ln(" + node_string + ")", node_string)
                         ans_node = node.right.args[0]
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
                 elif node.left.type == BINOPNode and node.left.op.tag == EXP and node.left.right.type == NUMNode and node.right.type == BINOPNode and node.right.op.tag == DIV and node.right.left.type == NUMNode and node.right.right.type == NUMNode:
@@ -489,6 +519,8 @@ class Algebra(Equation):
                         self.update_eqn_string("((" + node_string + ")^" + str(round_complex(num)) + ")^(" + str(round_complex(numerator)) + "/" + str(round_complex(denom)) + ")", node_string)
                         ans_node = node.left.left
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
                 elif node.right.type == NUMNode:
@@ -503,6 +535,8 @@ class Algebra(Equation):
                             self.update_eqn_string(node_string + "^1", "(" + node_string + ")")
                         ans_node = node.left
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
                     elif round_complex(num) == 0:
@@ -516,6 +550,8 @@ class Algebra(Equation):
                         ans_token = Token(("1", NUMBER))
                         ans_node = NumberNode(ans_token)
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
                     elif round_complex(num) == 2 and node.left.type == FUNCNode and node.left.op.value.lower() == "sqrt":
@@ -524,6 +560,8 @@ class Algebra(Equation):
                         self.update_eqn_string("sqrt(" + node_string + ")^2", node_string)
                         ans_node = node.left.args[0]
                         new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
                     elif node.left.type == BINOPNode and node.left.op.tag == EXP and node.left.right.type == BINOPNode and node.left.right.op.tag == DIV and node.left.right.left.type == NUMNode and node.left.right.right.type == NUMNode:
@@ -535,6 +573,8 @@ class Algebra(Equation):
                             self.update_eqn_string("((" + node_string + ")^(" + str(round_complex(numerator)) + "/" + str(round_complex(left)) + "))^" + str(round_complex(num)), node_string)
                             ans_node = node.left.left
                             new_tree = self.replace_node(self.tree, node, ans_node)
+                            if new_tree is None:
+                                raise Exception("{} was not replaced by {}.".format(node, ans_node))
                             self.tree = deepcopy(new_tree)
                             return True
                 if node.right.type == FUNCNode and node.right.op.value.lower() in "log" and hash(node.left) == hash(node.right.args[1]) and node.left.__repr__() == node.right.args[1].__repr__():
@@ -548,6 +588,8 @@ class Algebra(Equation):
                         self.update_eqn_string(base_string + "^log(" + node_string + "," + base_string + ")", node_string)
                     ans_node = node.right.args[0]
                     new_tree = self.replace_node(self.tree, node, ans_node)
+                    if new_tree is None:
+                        raise Exception("{} was not replaced by {}.".format(node, ans_node))
                     self.tree = deepcopy(new_tree)
                     return True
             chk = self.find_operator(node.left)
@@ -567,6 +609,8 @@ class Algebra(Equation):
                         self.update_eqn_string("sqrt(" + node_string + "^2)", "abs(" + node_string + ")")
                     ans_node = FuncNode(Token(("abs", FUNC)), [node.args[0].left])
                     new_tree = self.replace_node(self.tree, node, ans_node)
+                    if new_tree is None:
+                        raise Exception("{} was not replaced by {}.".format(node, ans_node))
                     self.tree = deepcopy(new_tree)
                     return True
             elif node.op.value.lower() in trig_op_dict and node.args[0].type == FUNCNode and node.args[0].op.value.lower() == trig_op_dict[node.op.value.lower()]:
@@ -575,6 +619,8 @@ class Algebra(Equation):
                 self.update_eqn_string(node.op.value.lower() + "(" + node.args[0].op.value.lower() + "(" + node_string + "))", node_string)
                 ans_node = node.args[0].args[0]
                 new_tree = self.replace_node(self.tree, node, ans_node)
+                if new_tree is None:
+                    raise Exception("{} was not replaced by {}.".format(node, ans_node))
                 self.tree = deepcopy(new_tree)
                 return True
             elif node.op.value.lower() == "ln" and node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].left.type == NUMNode:
@@ -589,6 +635,8 @@ class Algebra(Equation):
                         self.update_eqn_string("ln(#e^" + node_string + ")", node_string)
                     ans_node = node.args[0].right
                     new_tree = self.replace_node(self.tree, node, ans_node)
+                    if new_tree is None:
+                        raise Exception("{} was not replaced by {}.".format(node, ans_node))
                     self.tree = deepcopy(new_tree)
                     return True
             elif node.op.value.lower() == "log" and node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and \
@@ -613,6 +661,8 @@ class Algebra(Equation):
                                            node_string)
                 ans_node = node.args[0].right
                 new_tree = self.replace_node(self.tree, node, ans_node)
+                if new_tree is None:
+                    raise Exception("{} was not replaced by {}.".format(node, ans_node))
                 self.tree = deepcopy(new_tree)
                 return True
             new_args = []
@@ -635,6 +685,8 @@ class Algebra(Equation):
                 ans_token = Token((stringify(ans), NUMBER))
                 ans_node = NumberNode(ans_token)
                 new_tree = self.replace_node(self.tree, node, ans_node)
+                if new_tree is None:
+                    raise Exception("{} was not replaced by {}.".format(node, ans_node))
                 self.tree = deepcopy(new_tree)
                 return True
             for arg in node.args:
@@ -651,6 +703,8 @@ class Algebra(Equation):
                 ans_token = Token((stringify(ans), NUMBER))
                 ans_node = NumberNode(ans_token)
                 new_tree = self.replace_node(self.tree, node, ans_node)
+                if new_tree is None:
+                    raise Exception("{} was not replaced by {}.".format(node, ans_node))
                 self.tree = deepcopy(new_tree)
                 return True
             return self.find_operator(node.right)
