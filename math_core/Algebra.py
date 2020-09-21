@@ -398,7 +398,7 @@ class Algebra(Equation):
                     num = visit_NUMNode(node.left)
                     if round_complex(num) == 0:
                         node_string = stringify_node(node.right, self.var)
-                        if "0" + node.op.value + "(" + node_string + ")" in stringify_node(node. self.var):
+                        if "0" + node.op.value + "(" + node_string + ")" in stringify_node(node, self.var):
                             self.solution.append("0" + node.op.value + "(" + node_string + ") = " + node_string)
                             self.update_eqn_string("0" + node.op.value + "(" + node_string + ")", node_string)
                         else:
