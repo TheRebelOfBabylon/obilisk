@@ -272,7 +272,7 @@ class Algebra(Equation):
         else:
             if not self.check_for_x_power_x():
                 self.compute_low_hanging_fruit()
-                # next make substitutions if possible and store in a dictionary
+                self.check_for_substitution()
                 # next is to rearrange to standard format
                 # then recall this method
                 if self.tree.type == BINOPNode and self.tree.op.tag == EQUAL:
@@ -857,6 +857,113 @@ class Algebra(Equation):
             return False
         else:
             return False
+
+    def remove_redundant_br(self):
+        """Remove redundant expressions"""
+        while self.redundant_exp_br(self.tree):
+            continue
+
+    def redundant_exp_br(self, node: AST):
+        """Climbs AST and expands exponent expressions if possible"""
+        if node.type == BINOPNode:
+            if node.op.tag == EXP and node.left.type == BINOPNode and node.left.op.tag in (MUL, DIV):
+                if node.right.type == NUMNode:
+                    exponent = str(round_complex(visit_NUMNode(node.right)))
+                else:
+                    exponent = stringify_node(node.right, self.var)
+                numer_string = stringify_node(node.left.left, self.var)
+                denom_string = stringify_node(node.left.right, self.var)
+                if "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^(" + exponent + ")" in stringify_node(node, self.var):
+                    self.solution.append(
+                        "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^(" + exponent + ") = " + "(" + numer_string +
+                        ")^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + ")"
+                    )
+                    self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^(" + exponent + ")",
+                                           "(" + numer_string +
+                                           ")^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + ")")
+                elif "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^" + exponent in stringify_node(node, self.var):
+                    self.solution.append(
+                        "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^" + exponent + " = " + "(" + numer_string +
+                        ")^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent
+                    )
+                    self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^" + exponent + "",
+                                           "(" + numer_string +
+                                           ")^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent)
+                elif "(" + numer_string + node.left.op.value + "(" + denom_string + "))^(" + exponent + ")" in stringify_node(node, self.var):
+                    self.solution.append(
+                        "(" + numer_string + node.left.op.value + "(" + denom_string + "))^(" + exponent + ") = " + numer_string +
+                        "^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + ")"
+                    )
+                    self.update_eqn_string("(" + numer_string + node.left.op.value + "(" + denom_string + "))^(" + exponent + ")",
+                                           numer_string +
+                                           "^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + ")")
+                elif "((" + numer_string + ")" + node.left.op.value + denom_string + ")^(" + exponent + ")" in stringify_node(node, self.var):
+                    self.solution.append(
+                        "((" + numer_string + ")" + node.left.op.value + denom_string + ")^(" + exponent + ") = " + "(" + numer_string +
+                        ")^(" + exponent + ")" + node.left.op.value + denom_string + "^(" + exponent + ")"
+                    )
+                    self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + denom_string + ")^(" + exponent + ")",
+                                           "(" + numer_string +
+                                           ")^(" + exponent + ")" + node.left.op.value + denom_string + "^(" + exponent + ")")
+                elif "(" + numer_string + node.left.op.value + denom_string + ")^(" + exponent + ")" in stringify_node(node, self.var):
+                    self.solution.append(
+                        "(" + numer_string + node.left.op.value + denom_string + ")^(" + exponent + ") = " + numer_string +
+                        "^(" + exponent + ")/" + denom_string + "^(" + exponent + ")"
+                    )
+                    self.update_eqn_string("(" + numer_string + node.left.op.value + denom_string + ")^(" + exponent + ")",
+                                           numer_string +
+                                           "^(" + exponent + ")" + node.left.op.value + denom_string + "^(" + exponent + ")")
+                elif "(" + numer_string + node.left.op.value + "(" + denom_string + "))^" + exponent in stringify_node(node, self.var):
+                    self.solution.append(
+                        "(" + numer_string + node.left.op.value + "(" + denom_string + "))^" + exponent + " = " + numer_string +
+                        "^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent
+                    )
+                    self.update_eqn_string("(" + numer_string + node.left.op.value + "(" + denom_string + "))^" + exponent + "",
+                                           numer_string +
+                                           "^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent)
+                elif "((" + numer_string + ")" + node.left.op.value + denom_string + ")^" + exponent in stringify_node(node, self.var):
+                    self.solution.append(
+                        "((" + numer_string + ")" + node.left.op.value + denom_string + ")^" + exponent + " = " + "(" + numer_string +
+                        ")^" + exponent + node.left.op.value + denom_string + "^" + exponent
+                    )
+                    self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + denom_string + ")^" + exponent + "",
+                                           "(" + numer_string +
+                                           ")^" + exponent + node.left.op.value + denom_string + "^" + exponent)
+                else:
+                    self.solution.append(
+                        "(" + numer_string + node.left.op.value + denom_string + ")^" + exponent + " = " + numer_string +
+                        "^" + exponent + node.left.op.value + denom_string + "^" + exponent
+                    )
+                    self.update_eqn_string("(" + numer_string + node.left.op.value + denom_string + ")^" + exponent + "",
+                                           numer_string +
+                                           "^" + exponent + node.left.op.value + denom_string + "^" + exponent)
+                numer_node = BinOpNode(node.left.left, Token(("^", EXP)), node.right)
+                denom_node = BinOpNode(node.left.right, Token(("^", EXP)), node.right)
+                ans_node = BinOpNode(numer_node, node.left.op, denom_node)
+                new_tree = self.replace_node(self.tree, node, ans_node)
+                if new_tree is None:
+                    raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                self.tree = deepcopy(new_tree)
+                return True
+            chk = self.redundant_exp_br(node.left)
+            if not chk:
+                chk = self.redundant_exp_br(node.right)
+            return chk
+        elif node.type == FUNCNode:
+            for arg in node.args:
+                chk = self.redundant_exp_br(arg)
+                if chk:
+                    break
+            return chk
+        elif node.type == UNIOPNode:
+            return self.redundant_exp_br(node.right)
+        else:
+            return False
+    # def common_denominator(self, node: AST):
+    #     """Goes through tree and put's divisors on common denominator"""
+    #     if node.type == BINOPNode:
+    #         if node.op.tag in (PLUS, MINUS) and node.left.type == BINOPNode and node.left.op.tag == DIV:
+
 
     def quadratic_formula(self) -> List[Union[int, float, complex]]:
         """Method solves a quadratic using the quadratic formula"""
