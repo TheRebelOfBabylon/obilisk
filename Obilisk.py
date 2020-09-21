@@ -14,6 +14,7 @@ class Obilisk:
         self.tokens = None
         self.tree = None
         self.vars = None
+        self.exprs = None
         self.parse()
 
     def parse(self):
@@ -21,8 +22,11 @@ class Obilisk:
         lexer = Lexer(self.eqn_string)
         self.tokens = lexer.obilisk_lex()
         self.vars = deepcopy(lexer.vars)
-        tokens = TreeBuilder(self.tokens)
-        self.tree = tokens.build_tree()
+        if self.vars:
+            tokens = TreeBuilder(self.tokens, has_var=True)
+        else:
+            tokens = TreeBuilder(self.tokens)
+        self.tree, self.exprs = tokens.build_tree()
 
 
 def decode(input_eqn: str) -> Tuple[Union[int, float, complex, None], List[str]]:
@@ -32,7 +36,7 @@ def decode(input_eqn: str) -> Tuple[Union[int, float, complex, None], List[str]]
         arithmetic = Arithmetic(obi.eqn_string, obi.tokens, obi.tree)
         return arithmetic.calculate(), arithmetic.solution
     elif len(obi.vars) == 1:
-        algebra = Algebra(obi.eqn_string, obi.tokens, obi.tree, obi.vars[0])
+        algebra = Algebra(obi.eqn_string, obi.tokens, obi.tree, obi.vars[0], obi.exprs)
         return algebra.isolate(), algebra.solution
     else:
         eqn = Equation()

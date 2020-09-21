@@ -62,6 +62,8 @@ def inference_string(eqn_string: str, var: str) -> str:
         match = re.search(regex, eqn_string)
     if match is not None:
         return inference_string(eqn_string, var)
+    if eqn_string in "1*"+var:
+        eqn_string = eqn_string.replace("1*"+var, var)
     return eqn_string.replace('(' + var + ')', var)
 
 

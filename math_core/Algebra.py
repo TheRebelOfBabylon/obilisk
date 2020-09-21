@@ -7,8 +7,8 @@
 from parser.lexer import Lexer, Token
 from parser.combinator import TreeBuilder
 from math_core.Equation import Equation, stringify_node, inference_string
-from parser.ast import AST, BINOPNode, VARNode, UNIOPNode, FUNCNode, UniOpNode, NumberNode, NUMNode, FuncNode, BinOpNode
-from parser.lexer import Token, EQUAL, EXP, MUL, PLUS, MINUS, NUMBER, CONSTANT, DIV, FUNC
+from parser.ast import AST, BINOPNode, VARNode, UNIOPNode, FUNCNode, UniOpNode, NumberNode, NUMNode, FuncNode, BinOpNode, VariableNode
+from parser.lexer import Token, EQUAL, EXP, MUL, PLUS, MINUS, NUMBER, CONSTANT, DIV, FUNC, VARIABLE
 from math_core.Arithmetic import list_of_func, Arithmetic, visit_NUMNode, stringify
 from math_core.algebra_formats import quadratic_left_full, quadratic_left_no_b, quadratic_left_no_c, \
     quadratic_left_no_bc, \
@@ -130,6 +130,38 @@ trig_op_dict = {
     "acoth" : "coth",
 }
 
+sub_var_dict = {
+
+    "a": "b",
+    "b": "c",
+    "c": "d",
+    "d": "e",
+    "e": "f",
+    "f": "g",
+    "g": "h",
+    "h": "i",
+    "i": "j",
+    "j": "k",
+    "k": "l",
+    "l": "m",
+    "m": "n",
+    "n": "o",
+    "o": "p",
+    "p": "q",
+    "q": "r",
+    "r": "s",
+    "s": "t",
+    "t": "u",
+    "u": "v",
+    "v": "w",
+    "w": "x",
+    "x": "y",
+    "y": "z",
+    "z": "a"
+
+}
+
+
 def round_complex(num: Any) -> Union[complex, float]:
     """Function will take a complex number and round its real and imaginary parts if they're extremely small"""
     if type(num) == complex:
@@ -179,14 +211,26 @@ def is_number(s: str) -> bool:
         return False
 
 
+def check_for_monomial(node: AST):
+    """Method will check if a node is a monomial"""
+    if hash(node) == hash(monomial_x[0]):
+        return True
+    elif hash(node) == hash(monomial_x_power[0]):
+        return True
+    else:
+        return False
+
+
 class Algebra(Equation):
     def __init__(self, eqn_string: str = None, tokens: List[Token] = None, tree: List[Union[AST, Token]] = None,
-                 var: str = None):
+                 var: str = None, exprs: List[AST] = None):
         Equation.__init__(self, eqn_string, tokens, tree)  # should this be super()?
         self.var = var
         self.lhs = None
         self.rhs = None
         self.coeff = []
+        self.exprs = exprs
+        self.subs = None
         self.seperate_lhs_rhs()
 
     def __repr__(self):
@@ -716,7 +760,7 @@ class Algebra(Equation):
         lexer = Lexer(eqn_string)
         tokens = lexer.obilisk_lex()
         combinator = TreeBuilder(tokens)
-        tree = combinator.build_tree()
+        tree,_ = combinator.build_tree()
         arithmetic = Arithmetic(eqn_string, tokens, tree)
         ans = arithmetic.calculate()
         ans = round_complex(ans)
@@ -744,12 +788,63 @@ class Algebra(Equation):
         elif node.type in (NUMNode, VARNode):
             return node
 
-    def check_for_monomial(self, node: AST):
-        """Method will check if a node is a monomial"""
-        if hash(node) == hash(monomial_x[0]):
+    def check_for_substitution(self):
+        """This method checks if it's possible to substitute an expression to simplify the problem"""
+        i = len(self.exprs) - 1
+        while i != -1:
+            if stringify_node(self.exprs[i], self.var) != self.var:
+                if self.expr_on_both_sides(self.tree, self.exprs[i]):
+                    print("{} is on both sides. Look {}".format(stringify_node(self.exprs[i], self.var), self.eqn_string))
+                    sub_var = sub_var_dict[self.var]
+                    sub_var_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("*", MUL)),VariableNode(Token((sub_var, VARIABLE))))
+                    og_eqn_string = self.eqn_string
+                    expr_string = stringify_node(self.exprs[i], self.var)
+                    if "(" + expr_string + ")" in self.eqn_string:
+                        self.update_eqn_string("(" + expr_string + ")", sub_var)
+                    if expr_string in self.eqn_string:
+                        self.update_eqn_string(expr_string, sub_var)
+                    if self.var in self.eqn_string:
+                        print("Multivariable")
+                        self.eqn_string = og_eqn_string
+                    else:
+                        if self.subs is None:
+                            self.subs = {sub_var_node: self.exprs[i]}
+                        else:
+                            self.subs[sub_var_node] = self.exprs[i]
+                        self.solution.append(expr_string + " = " + sub_var)
+                        new_tree = self.replace_node(self.tree, self.exprs[i], sub_var_node)
+                        self.tree = deepcopy(new_tree)
+                        self.var = sub_var
+                        lexer = Lexer(self.eqn_string)
+                        self.eqn_tokens = lexer.obilisk_lex()
+                        combinator = TreeBuilder(self.eqn_tokens, has_var=True)
+                        _, self.exprs = combinator.build_tree()
+                        i = len(self.exprs)
+            i -= 1
+
+
+    def expr_on_both_sides(self, node: AST, expr: AST):
+        """Goes through AST to check if an AST appears consistently on either side of the equation"""
+        if node.__repr__() == expr.__repr__():
             return True
-        elif hash(node) == hash(monomial_x_power[0]):
-            return True
+        elif node.type == BINOPNode:
+            if node.op.tag == EQUAL:
+                chk = self.expr_on_both_sides(node.left, expr)
+                if chk:
+                    return self.expr_on_both_sides(node.right, expr)
+                return chk
+            elif node.op.tag in (PLUS, MINUS):
+                return self.expr_on_both_sides(node.left, expr) and self.expr_on_both_sides(node.right, expr)
+            else:
+                return self.expr_on_both_sides(node.left, expr) or self.expr_on_both_sides(node.right, expr)
+        elif node.type == UNIOPNode:
+            return self.expr_on_both_sides(node.right, expr)
+        elif node.type == FUNCNode:
+            for arg in node.args:
+                chk = self.expr_on_both_sides(arg, expr)
+                if chk:
+                    return True
+            return False
         else:
             return False
 
@@ -943,8 +1038,8 @@ class Algebra(Equation):
 
         lexer = Lexer(resolvent)
         tokens = lexer.obilisk_lex()
-        tree_build = TreeBuilder(tokens)
-        tree = tree_build.build_tree()
+        tree_build = TreeBuilder(tokens, has_var=True)
+        tree, _ = tree_build.build_tree()
         cubic = Algebra(resolvent, tokens, tree, lexer.vars[0])
         cubic_ans = cubic.isolate()
 

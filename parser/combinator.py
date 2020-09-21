@@ -21,15 +21,16 @@ from typing import List
 #Func ::= Trig, Calculus, Log, LN, SQRT, ABS
 
 
-
 class TreeBuilder():
-    def __init__(self, list_of_tokens: List[Token], pos: int = 0):
+    def __init__(self, list_of_tokens: List[Token], pos: int = 0, has_var: bool = False):
         self.tokens = list_of_tokens
         self.pos = pos
+        if has_var:
+            self.exprs = []
 
     def build_tree(self):
         """Begins the tree construction process"""
-        return self.Equation()
+        return self.Equation(), self.exprs
 
     def consume_token(self, tag):
         """Compares current token tag to given tag"""
@@ -60,7 +61,6 @@ class TreeBuilder():
 
     def Expression(self):
         """Expression ::= Term|(Term(PLUS|MINUS)Term)+"""
-        #result = []
         left = self.Term()
         current_token = self.tokens[self.pos]
         while current_token.tag in (PLUS, MINUS):
@@ -72,9 +72,17 @@ class TreeBuilder():
                 bin_op = current_token
                 self.consume_token(MINUS)
                 right = self.Term()
-            #result.append(BinOpNode(left, bin_op, right))
             left = BinOpNode(left, bin_op, right)
             current_token = self.tokens[self.pos]
+        if self.exprs:
+            chk = False
+            for expr in self.exprs:
+                if left.__repr__() == expr.__repr__():
+                    chk = True
+            if not chk:
+                self.exprs.append(left)
+        else:
+            self.exprs.append(left)
         return left
 
     def Term(self):
