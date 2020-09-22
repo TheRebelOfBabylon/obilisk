@@ -412,14 +412,13 @@ class Algebra(Equation):
                     if self.divisors:
                         for div in self.divisors:
                             if stringify_node(div, self.var) in stringify_node(node.left, self.var) and stringify_node(div, self.var) in stringify_node(node.right, self.var):
-                                old_node = node
-                                while stringify_node(div, self.var) in stringify_node(node, self.var):
-                                    node = self.remove_repeating_div(node, div)
-                                node_string = stringify_node(old_node, self.var)
-                                new_node_str = stringify_node(node, self.var)
+                                new_node = self.remove_repeating_div(node, div)
+                                print(new_node)
+                                node_string = stringify_node(node, self.var)
+                                new_node_str = stringify_node(new_node, self.var)
                                 self.solution.append(node_string + " = " + new_node_str)
-                                self.update_eqn_string(node_string, new_node_str)
-                                new_tree = self.replace_node(self.tree, old_node, node)
+                                self.update_eqn_string(node_string, "(" + new_node_str + ")")
+                                new_tree = self.replace_node(self.tree, node, new_node)
                                 self.tree = deepcopy(new_tree)
                 elif node.op.tag == MUL:
                     if node.left.type == NUMNode:
@@ -887,69 +886,76 @@ class Algebra(Equation):
                 numer_string = stringify_node(node.left.left, self.var)
                 denom_string = stringify_node(node.left.right, self.var)
                 if "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^(" + exponent + ")" in stringify_node(node, self.var):
+                    #print("case 1")
                     self.solution.append(
-                        "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^(" + exponent + ") = " + "(" + numer_string +
-                        ")^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + ")"
+                        "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^(" + exponent + ") = ((" + numer_string +
+                        ")^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + "))"
                     )
                     self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^(" + exponent + ")",
-                                           "(" + numer_string +
-                                           ")^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + ")")
+                                           "((" + numer_string +
+                                           ")^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + "))")
                 elif "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^" + exponent in stringify_node(node, self.var):
+                    #print("case 2")
                     self.solution.append(
-                        "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^" + exponent + " = " + "(" + numer_string +
-                        ")^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent
-                    )
-                    self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^" + exponent + "",
-                                           "(" + numer_string +
-                                           ")^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent)
+                        "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^" + exponent + " = ((" + numer_string +
+                        ")^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent + ")")
+                    self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^" + exponent,
+                                           "((" + numer_string +
+                                           ")^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent + ")")
                 elif "(" + numer_string + node.left.op.value + "(" + denom_string + "))^(" + exponent + ")" in stringify_node(node, self.var):
+                    #print("case 3")
                     self.solution.append(
-                        "(" + numer_string + node.left.op.value + "(" + denom_string + "))^(" + exponent + ") = " + numer_string +
-                        "^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + ")"
+                        "(" + numer_string + node.left.op.value + "(" + denom_string + "))^(" + exponent + ") = (" + numer_string +
+                        "^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + "))"
                     )
                     self.update_eqn_string("(" + numer_string + node.left.op.value + "(" + denom_string + "))^(" + exponent + ")",
-                                           numer_string +
-                                           "^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + ")")
+                                           "(" + numer_string +
+                                           "^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + "))")
                 elif "((" + numer_string + ")" + node.left.op.value + denom_string + ")^(" + exponent + ")" in stringify_node(node, self.var):
+                    #print("case 4")
                     self.solution.append(
-                        "((" + numer_string + ")" + node.left.op.value + denom_string + ")^(" + exponent + ") = " + "(" + numer_string +
-                        ")^(" + exponent + ")" + node.left.op.value + denom_string + "^(" + exponent + ")"
+                        "((" + numer_string + ")" + node.left.op.value + denom_string + ")^(" + exponent + ") = ((" + numer_string +
+                        ")^(" + exponent + ")" + node.left.op.value + denom_string + "^(" + exponent + "))"
                     )
                     self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + denom_string + ")^(" + exponent + ")",
-                                           "(" + numer_string +
-                                           ")^(" + exponent + ")" + node.left.op.value + denom_string + "^(" + exponent + ")")
+                                           "((" + numer_string +
+                                           ")^(" + exponent + ")" + node.left.op.value + denom_string + "^(" + exponent + "))")
                 elif "(" + numer_string + node.left.op.value + denom_string + ")^(" + exponent + ")" in stringify_node(node, self.var):
+                    #print("case 5")
                     self.solution.append(
-                        "(" + numer_string + node.left.op.value + denom_string + ")^(" + exponent + ") = " + numer_string +
-                        "^(" + exponent + ")/" + denom_string + "^(" + exponent + ")"
+                        "(" + numer_string + node.left.op.value + denom_string + ")^(" + exponent + ") = (" + numer_string +
+                        "^(" + exponent + ")/" + denom_string + "^(" + exponent + "))"
                     )
                     self.update_eqn_string("(" + numer_string + node.left.op.value + denom_string + ")^(" + exponent + ")",
-                                           numer_string +
-                                           "^(" + exponent + ")" + node.left.op.value + denom_string + "^(" + exponent + ")")
+                                           "(" + numer_string +
+                                           "^(" + exponent + ")" + node.left.op.value + denom_string + "^(" + exponent + "))")
                 elif "(" + numer_string + node.left.op.value + "(" + denom_string + "))^" + exponent in stringify_node(node, self.var):
+                    #print("case 6")
                     self.solution.append(
-                        "(" + numer_string + node.left.op.value + "(" + denom_string + "))^" + exponent + " = " + numer_string +
-                        "^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent
+                        "(" + numer_string + node.left.op.value + "(" + denom_string + "))^" + exponent + " = (" + numer_string +
+                        "^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent + ")"
                     )
                     self.update_eqn_string("(" + numer_string + node.left.op.value + "(" + denom_string + "))^" + exponent + "",
-                                           numer_string +
-                                           "^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent)
-                elif "((" + numer_string + ")" + node.left.op.value + denom_string + ")^" + exponent in stringify_node(node, self.var):
-                    self.solution.append(
-                        "((" + numer_string + ")" + node.left.op.value + denom_string + ")^" + exponent + " = " + "(" + numer_string +
-                        ")^" + exponent + node.left.op.value + denom_string + "^" + exponent
-                    )
-                    self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + denom_string + ")^" + exponent + "",
                                            "(" + numer_string +
-                                           ")^" + exponent + node.left.op.value + denom_string + "^" + exponent)
-                else:
+                                           "^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent + ")")
+                elif "((" + numer_string + ")" + node.left.op.value + denom_string + ")^" + exponent in stringify_node(node, self.var):
+                    #print("case 7")
                     self.solution.append(
-                        "(" + numer_string + node.left.op.value + denom_string + ")^" + exponent + " = " + numer_string +
-                        "^" + exponent + node.left.op.value + denom_string + "^" + exponent
+                        "((" + numer_string + ")" + node.left.op.value + denom_string + ")^" + exponent + " = ((" + numer_string +
+                        ")^" + exponent + node.left.op.value + denom_string + "^" + exponent + ")"
                     )
-                    self.update_eqn_string("(" + numer_string + node.left.op.value + denom_string + ")^" + exponent + "",
-                                           numer_string +
-                                           "^" + exponent + node.left.op.value + denom_string + "^" + exponent)
+                    self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + denom_string + ")^" + exponent,
+                                           "((" + numer_string +
+                                           ")^" + exponent + node.left.op.value + denom_string + "^" + exponent + ")")
+                else:
+                    #print("case 8")
+                    self.solution.append(
+                        "(" + numer_string + node.left.op.value + denom_string + ")^" + exponent + " = (" + numer_string +
+                        "^" + exponent + node.left.op.value + denom_string + "^" + exponent + ")"
+                    )
+                    self.update_eqn_string("(" + numer_string + node.left.op.value + denom_string + ")^" + exponent,
+                                           "(" + numer_string +
+                                           "^" + exponent + node.left.op.value + denom_string + "^" + exponent + ")")
                 numer_node = BinOpNode(node.left.left, Token(("^", EXP)), node.right)
                 denom_node = BinOpNode(node.left.right, Token(("^", EXP)), node.right)
                 ans_node = BinOpNode(numer_node, node.left.op, denom_node)
@@ -1253,14 +1259,24 @@ class Algebra(Equation):
     def remove_repeating_div(self, node: AST, div: AST) -> AST:
         """Method takes a node, removes the div in the numerator and denominator, returns a new node"""
         if node.type == BINOPNode:
-            if node.op.tag != EXP:
-                if node.left.__repr__() == div.__repr__():
-                    return node.right
-                elif node.right.__repr__() == div.__repr__():
-                    return node.left
-            new_left = self.remove_repeating_div(node.left, div)
-            new_right = self.remove_repeating_div(node.right, div)
-            return BINOPNode(new_left, node.op, new_right)
+            if node.left.__repr__() == div.__repr__():
+                left_chk = True
+            else:
+                left_chk = False
+                new_left = self.remove_repeating_div(node.left, div)
+            if node.right.__repr__() == div.__repr__():
+                right_chk = True
+            else:
+                right_chk = False
+                new_right = self.remove_repeating_div(node.right, div)
+            if left_chk and right_chk:
+                return NumberNode(Token(("1", NUMBER)))
+            elif left_chk and not right_chk:
+                return new_right
+            elif not left_chk and right_chk:
+                return new_left
+            else:
+                return BinOpNode(new_left, node.op, new_right)
         elif node.type == FUNCNode:
             new_args = []
             for arg in node.args:
