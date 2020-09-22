@@ -1,5 +1,6 @@
-from parser.ast import MatrixNode, BinOpNode, VariableNode, NumberNode, EquationNode, ExpressionNode, TermNode, FactorNode, ConstantNode, FuncNode, UniOpNode, NUMNode
+from parser.ast import MatrixNode, BinOpNode, VariableNode, NumberNode, EquationNode, ExpressionNode, TermNode, FactorNode, ConstantNode, FuncNode, UniOpNode, NUMNode, VARNode
 from parser.lexer import Token, PLUS, MINUS, ENDL, EQUAL, EXP, MUL, DIV, L_MATRIX_BR, L_BRACKET, NUMBER, FUNC, VARIABLE, R_MATRIX_BR, R_BRACKET, COMMA, CONSTANT, EOF
+from math_core.Equation import stringify_node
 
 from typing import List
 
@@ -116,6 +117,16 @@ class TreeBuilder():
             #result.append(BinOpNode(base, bin_op, exponent))
             base = BinOpNode(base, bin_op, exponent)
             current_token = self.tokens[self.pos]
+        if base.type not in (NUMNode, VARNode):
+            if self.exprs:
+                chk = False
+                for expr in self.exprs:
+                    if base.__repr__() == expr.__repr__():
+                        chk = True
+                if not chk:
+                    self.exprs.append(base)
+            else:
+                self.exprs.append(base)
         return base
 
     def Atom(self):
@@ -153,11 +164,30 @@ class TreeBuilder():
                         current_token = self.tokens[self.pos]
                 if current_token.tag == R_BRACKET:
                     self.consume_token(R_BRACKET)
-                    return FuncNode(funcToken, result)
+                    node = FuncNode(funcToken, result)
+                    if self.exprs:
+                        chk = False
+                        for expr in self.exprs:
+                            if node.__repr__() == expr.__repr__():
+                                chk = True
+                        if not chk:
+                            self.exprs.append(node)
+                    else:
+                        self.exprs.append(node)
+                    return node
         elif current_token.tag == L_BRACKET:
             self.consume_token(L_BRACKET)
             result = self.Expression() # There's the recursion
             self.consume_token(R_BRACKET)
+            if self.exprs:
+                chk = False
+                for expr in self.exprs:
+                    if result.__repr__() == expr.__repr__():
+                        chk = True
+                if not chk:
+                    self.exprs.append(result)
+            else:
+                self.exprs.append(result)
             return result
         elif current_token.tag == L_MATRIX_BR:
             self.consume_token(L_MATRIX_BR)

@@ -231,6 +231,7 @@ class Algebra(Equation):
         self.coeff = []
         self.exprs = exprs
         self.subs = None
+        self.divisors = None
         self.seperate_lhs_rhs()
 
     def __repr__(self):
@@ -408,6 +409,18 @@ class Algebra(Equation):
                         num = visit_NUMNode(node.right)
                         if round_complex(num) == 0:
                             raise ZeroDivisionError
+                    if self.divisors:
+                        for div in self.divisors:
+                            if stringify_node(div, self.var) in stringify_node(node.left, self.var) and stringify_node(div, self.var) in stringify_node(node.right, self.var):
+                                old_node = node
+                                while stringify_node(div, self.var) in stringify_node(node, self.var):
+                                    node = self.remove_repeating_div(node, div)
+                                node_string = stringify_node(old_node, self.var)
+                                new_node_str = stringify_node(node, self.var)
+                                self.solution.append(node_string + " = " + new_node_str)
+                                self.update_eqn_string(node_string, new_node_str)
+                                new_tree = self.replace_node(self.tree, old_node, node)
+                                self.tree = deepcopy(new_tree)
                 elif node.op.tag == MUL:
                     if node.left.type == NUMNode:
                         num = visit_NUMNode(node.left)
@@ -945,6 +958,217 @@ class Algebra(Equation):
                     raise Exception("{} was not replaced by {}.".format(node, ans_node))
                 self.tree = deepcopy(new_tree)
                 return True
+            elif node.op.tag in (PLUS, MINUS) and node.left.type == BINOPNode and node.right.type == BINOPNode and \
+            node.left.op.tag == DIV and node.right.op.tag == DIV:
+                left_numer = stringify_node(node.left.left, self.var)
+                left_denom = stringify_node(node.left.right, self.var)
+                right_numer = stringify_node(node.right.left, self.var)
+                right_denom = stringify_node(node.right.right, self.var)
+                #1 ()/() + ()/()
+                if "((" + left_numer + ")/(" + left_denom + "))" + node.op.value + "((" + right_numer + ")/(" + right_denom + "))" in stringify_node(node, self.var):
+                    #print("case 1: ()/() + ()/()")
+                    self.solution.append("((" + left_numer + ")/(" + left_denom + "))" + node.op.value + "((" + right_numer
+                                         + ")/(" + right_denom + ")) = ((((" + left_numer + ")*(" + right_denom + "))" +
+                                         node.op.value + "((" + right_numer + ")*(" + left_denom + ")))/((" + left_denom
+                                         + ")*(" + right_denom + ")))")
+                    self.update_eqn_string("((" + left_numer + ")/(" + left_denom + "))" + node.op.value + "((" + right_numer
+                                         + ")/(" + right_denom + "))", "((((" + left_numer + ")*(" + right_denom + "))" +
+                                         node.op.value + "((" + right_numer + ")*(" + left_denom + ")))/((" + left_denom
+                                         + ")*(" + right_denom + ")))")
+                #2 /() + ()/()
+                elif "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "((" + right_numer + ")/(" + right_denom + "))" in stringify_node(node, self.var):
+                    #print("case 2: /() + ()/()")
+                    self.solution.append("("+ left_numer + "/(" + left_denom + "))" + node.op.value + "((" + right_numer
+                                         + ")/(" + right_denom + ")) = (((" + left_numer + "*(" + right_denom + "))" +
+                                         node.op.value + "((" + right_numer + ")*(" + left_denom + ")))/((" + left_denom
+                                         + ")*(" + right_denom + ")))")
+                    self.update_eqn_string(
+                        "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "((" + right_numer
+                        + ")/(" + right_denom + "))", "((((" + left_numer + ")*(" + right_denom + "))" +
+                        node.op.value + "((" + right_numer + ")*(" + left_denom + ")))/((" + left_denom
+                        + ")*(" + right_denom + ")))")
+                #3 ()/ + ()/()
+                elif "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "((" + right_numer + ")/(" + right_denom + "))" in stringify_node(node, self.var):
+                    #print("case 3: ()/ + ()/()")
+                    self.solution.append("((" + left_numer + ")/" + left_denom + ")" + node.op.value + "((" + right_numer
+                                         + ")/(" + right_denom + ")) = ((((" + left_numer + ")*(" + right_denom + "))" +
+                                         node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
+                                         + "*(" + right_denom + ")))")
+                    self.update_eqn_string(
+                        "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "((" + right_numer
+                        + ")/(" + right_denom + "))", "((((" + left_numer + ")*(" + right_denom + "))" +
+                        node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
+                        + "*(" + right_denom + ")))")
+                #4 / + ()/()
+                elif "(" + left_numer + "/" + left_denom + ")" + node.op.value + "((" + right_numer + ")/(" + right_denom + "))" in stringify_node(node, self.var):
+                    #print("case 4: / + ()/()")
+                    self.solution.append("(" + left_numer + "/" + left_denom + ")" + node.op.value + "((" + right_numer
+                                         + ")/(" + right_denom + ")) = (((" + left_numer + "*(" + right_denom + "))" +
+                                         node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
+                                         + "*(" + right_denom + ")))")
+                    self.update_eqn_string(
+                        "(" + left_numer + "/" + left_denom + ")" + node.op.value + "((" + right_numer
+                        + ")/(" + right_denom + "))", "(((" + left_numer + "*(" + right_denom + "))" +
+                        node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
+                        + "*(" + right_denom + ")))")
+                #5 / + /()
+                elif "(" + left_numer + "/" + left_denom + ")" + node.op.value + "(" + right_numer + "/(" + right_denom + "))" in stringify_node(node, self.var):
+                    #print("case 5: / + /()")
+                    self.solution.append("(" + left_numer + "/" + left_denom + ")" + node.op.value + "(" + right_numer
+                                         + "/(" + right_denom + ")) = (((" + left_numer + "*(" + right_denom + "))" +
+                                         node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
+                                         + "*(" + right_denom + ")))")
+                    self.update_eqn_string(
+                        "(" + left_numer + "/" + left_denom + ")" + node.op.value + "(" + right_numer
+                        + "/(" + right_denom + "))", "(((" + left_numer + "*(" + right_denom + "))" +
+                        node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
+                        + "*(" + right_denom + ")))")
+                #6 / + ()/
+                elif "(" + left_numer + "/" + left_denom + ")" + node.op.value + "((" + right_numer + ")/" + right_denom + ")" in stringify_node(node, self.var):
+                    #print("case 6: / + ()/")
+                    self.solution.append("(" + left_numer + "/" + left_denom + ")" + node.op.value + "((" + right_numer
+                                         + ")/" + right_denom + ") = (((" + left_numer + "*" + right_denom + ")" +
+                                         node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
+                                         + "*" + right_denom + "))")
+                    self.update_eqn_string(
+                        "(" + left_numer + "/" + left_denom + ")" + node.op.value + "((" + right_numer
+                        + ")/" + right_denom + ")", "(((" + left_numer + "*" + right_denom + ")" +
+                        node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
+                        + "*" + right_denom + "))")
+                #7 / + /
+                elif "(" + left_numer + "/" + left_denom + ")" + node.op.value + "(" + right_numer + "/" + right_denom + ")" in stringify_node(node, self.var):
+                    #print("case 7: / + /")
+                    self.solution.append("(" + left_numer + "/" + left_denom + ")" + node.op.value + "(" + right_numer
+                                         + "/" + right_denom + ") = (((" + left_numer + "*" + right_denom + ")" +
+                                         node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
+                                         + "*" + right_denom + "))")
+                    self.update_eqn_string(
+                        "(" + left_numer + "/" + left_denom + ")" + node.op.value + "(" + right_numer
+                        + "/" + right_denom + ")", "(((" + left_numer + "*" + right_denom + ")" +
+                        node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
+                        + "*" + right_denom + "))")
+                #8 /() + /()
+                elif "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer + "/(" + right_denom + "))" in stringify_node(node, self.var):
+                    #print("case 8: /() + /()")
+                    self.solution.append("(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer
+                                         + "/(" + right_denom + ")) = (((" + left_numer + "*(" + right_denom + "))" +
+                                         node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
+                                         + ")*(" + right_denom + ")))")
+                    self.update_eqn_string(
+                        "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer
+                        + "/(" + right_denom + "))", "(((" + left_numer + "*(" + right_denom + "))" +
+                        node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
+                        + ")*(" + right_denom + ")))")
+                #9 /() + ()/
+                elif "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "((" + right_numer + ")/" + right_denom + ")" in stringify_node(node, self.var):
+                    #print("case 9: /() + ()/")
+                    self.solution.append("(" + left_numer + "/(" + left_denom + "))" + node.op.value + "((" + right_numer
+                                         + ")/" + right_denom + ") = (((" + left_numer + "*" + right_denom + ")" +
+                                         node.op.value + "((" + right_numer + ")*(" + left_denom + ")))/((" + left_denom
+                                         + ")*" + right_denom + "))")
+                    self.update_eqn_string(
+                        "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "((" + right_numer
+                        + ")/" + right_denom + ")", "(((" + left_numer + "*" + right_denom + ")" +
+                        node.op.value + "((" + right_numer + ")*(" + left_denom + ")))/((" + left_denom
+                        + ")*" + right_denom + "))")
+                #10 /() + /
+                elif "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer + "/" + right_denom + ")" in stringify_node(node, self.var):
+                    #print("case 10: /() + /")
+                    self.solution.append("(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer
+                                         + "/" + right_denom + ") = (((" + left_numer + "*" + right_denom + ")" +
+                                         node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
+                                         + ")*" + right_denom + "))")
+                    self.update_eqn_string(
+                        "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer
+                        + "/" + right_denom + ")", "(((" + left_numer + "*" + right_denom + ")" +
+                        node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
+                        + ")*" + right_denom + "))")
+                #11 ()/ + /()
+                elif "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer + "/(" + right_denom + "))" in stringify_node(node, self.var):
+                    #print("case 11: ()/ + /()")
+                    self.solution.append("((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer
+                                         + "/(" + right_denom + ")) = ((((" + left_numer + ")*(" + right_denom + "))" +
+                                         node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
+                                         + "*(" + right_denom + ")))")
+                    self.update_eqn_string(
+                        "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer
+                        + "/(" + right_denom + "))", "((((" + left_numer + ")*(" + right_denom + "))" +
+                        node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
+                        + "*(" + right_denom + ")))")
+                #12 ()/ + ()/
+                elif "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "((" + right_numer + ")/" + right_denom + ")" in stringify_node(node, self.var):
+                    #print("case 12: ()/ + ()/")
+                    self.solution.append("((" + left_numer + ")/" + left_denom + ")" + node.op.value + "((" + right_numer
+                                         + ")/" + right_denom + ") = ((((" + left_numer + ")*" + right_denom + ")" +
+                                         node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
+                                         + "*" + right_denom + "))")
+                    self.update_eqn_string(
+                        "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "((" + right_numer
+                        + ")/" + right_denom + ")", "((((" + left_numer + ")*" + right_denom + ")" +
+                        node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
+                        + "*" + right_denom + "))")
+                #13 ()/ + /
+                elif "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer + "/" + right_denom + ")" in stringify_node(node, self.var):
+                    #print("case 1: ()/ + /")
+                    self.solution.append("((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer
+                                         + "/" + right_denom + ") = ((((" + left_numer + ")*" + right_denom + ")" +
+                                         node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
+                                         + "*" + right_denom + "))")
+                    self.update_eqn_string(
+                        "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer
+                        + "/" + right_denom + ")", "((((" + left_numer + ")*" + right_denom + ")" +
+                        node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
+                        + "*" + right_denom + "))")
+                #14 ()/() + /
+                elif "((" + left_numer + ")/(" + left_denom + "))" + node.op.value + "(" + right_numer + "/" + right_denom + ")" in stringify_node(node, self.var):
+                    #print("case 14: ()/() + /")
+                    self.solution.append("((" + left_numer + ")/(" + left_denom + "))" + node.op.value + "(" + right_numer
+                                         + "/" + right_denom + ") = ((((" + left_numer + ")*" + right_denom + ")" +
+                                         node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
+                                         + ")*" + right_denom + "))")
+                    self.update_eqn_string(
+                        "((" + left_numer + ")/(" + left_denom + "))" + node.op.value + "(" + right_numer
+                        + "/" + right_denom + ")", "((((" + left_numer + ")*" + right_denom + ")" +
+                        node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
+                        + ")*" + right_denom + "))")
+                #15 /() + /
+                elif "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer + "/" + right_denom + ")" in stringify_node(node, self.var):
+                    #print("case 15: /() + /")
+                    self.solution.append("(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer
+                                         + "/" + right_denom + ") = (((" + left_numer + "*" + right_denom + ")" +
+                                         node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
+                                         + ")*" + right_denom + "))")
+                    self.update_eqn_string(
+                        "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer
+                        + "/" + right_denom + ")", "(((" + left_numer + "*" + right_denom + ")" +
+                        node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
+                        + ")*" + right_denom + "))")
+                #16 ()/ + /
+                else:
+                    #print("case 16: ()/ + /")
+                    self.solution.append("((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer
+                                         + "/" + right_denom + ") = ((((" + left_numer + ")*" + right_denom + ")" +
+                                         node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
+                                         + "*" + right_denom + "))")
+                    self.update_eqn_string(
+                        "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer
+                        + "/" + right_denom + ")", "((((" + left_numer + ")*" + right_denom + ")" +
+                        node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
+                        + "*" + right_denom + "))")
+                numer_left_node = BinOpNode(node.left.left, Token(("*", MUL)), node.right.right)
+                numer_right_node = BinOpNode(node.right.left, Token(("*", MUL)), node.left.right)
+                numer_node = BinOpNode(numer_left_node, node.op, numer_right_node)
+                denom_node = BinOpNode(node.left.right, Token(("*", MUL)), node.right.right)
+                ans_node = BinOpNode(numer_node, Token(("/", DIV)), denom_node)
+                new_tree = self.replace_node(self.tree, node, ans_node)
+                if new_tree is None:
+                    raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                self.tree = deepcopy(new_tree)
+                lexer = Lexer(self.eqn_string)
+                self.eqn_tokens = lexer.obilisk_lex()
+                combinator = TreeBuilder(self.eqn_tokens, has_var=True)
+                _, self.exprs = combinator.build_tree()
+                return True
             chk = self.redundant_exp_br(node.left)
             if not chk:
                 chk = self.redundant_exp_br(node.right)
@@ -959,10 +1183,93 @@ class Algebra(Equation):
             return self.redundant_exp_br(node.right)
         else:
             return False
-    # def common_denominator(self, node: AST):
-    #     """Goes through tree and put's divisors on common denominator"""
-    #     if node.type == BINOPNode:
-    #         if node.op.tag in (PLUS, MINUS) and node.left.type == BINOPNode and node.left.op.tag == DIV:
+
+    def find_divisor(self, node: AST):
+        """Method climbs AST and find any divisors. Stores them in asymptotes attribute."""
+        if node.type == BINOPNode:
+            if node.op.tag == DIV:
+                if self.divisors is None:
+                    self.divisors = [node.right]
+                else:
+                    div_chk = False
+                    for div in self.divisors:
+                        if div.__repr__() == node.right.__repr__():
+                            div_chk = True
+                    if not div_chk:
+                        self.divisors.append(node.right)
+            else:
+                self.find_divisor(node.left)
+                self.find_divisor(node.right)
+        elif node.type == FUNCNode:
+            for arg in node.args:
+                self.find_divisor(arg)
+        elif node.type == UNIOPNode:
+            self.find_divisor(node.right)
+
+    def multiply_div(self):
+        """Method finds the divisions in the AST and adds to the numerator the divisor"""
+        for div in self.divisors:
+            self.propogate_div(self.tree, div)
+
+
+    def propogate_div(self, node: AST, div: AST, exponent=NumberNode(Token(("1", NUMBER)))):
+        """Method climbs AST and propogates the given divisor"""
+        if node.type == BINOPNode:
+            if node.op.tag == EXP:
+                self.propogate_div(node.left, div, exponent=self.find_operator(BinOpNode(BinOpNode(NumberNode(Token(("1"
+                                    , NUMBER))), Token(("/", DIV)), exponent), Token(("*", MUL)), node.right)))
+            elif node.op.tag == DIV:
+                numer = stringify_node(node.left, self.var)
+                denom = stringify_node(node.right, self.var)
+                if exponent.type == NUMNode:
+                    exp = round_complex(visit_NUMNode(exponent))
+                    if exp < 1:
+                        raise Exception("exponent is less than 1. Cannot foil out this term.")
+                    elif exp == 1:
+                        div_string = stringify_node(div, self.var)
+                    else:
+                        div = BinOpNode(div, Token(("^", EXP)), exponent)
+                        div_string = stringify_node(div, self.var)
+                else:
+                    div = BinOpNode(div, Token(("^", EXP)), exponent)
+                    div_string = stringify_node(div, self.var)
+                self.solution.append("(((" + div_string + ")*(" + numer + "))/(" + denom + "))")
+                self.update_eqn_string(stringify_node(node, self.var), "(((" + div_string + ")*(" + numer + "))/(" + denom + "))")
+                numer_node = BinOpNode(div, Token(("*", MUL)), node.left)
+                ans_node = BinOpNode(numer_node, Token(("/", DIV)), node.right)
+                new_tree = self.replace_node(self.tree, node, ans_node)
+                if new_tree is None:
+                    raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                self.tree = deepcopy(new_tree)
+            else:
+                self.propogate_div(node.left, div, exponent=exponent)
+                self.propogate_div(node.right, div, exponent=exponent)
+        elif node.type == FUNCNode:
+            for arg in node.args:
+                self.propogate_div(arg, div, exponent=exponent)
+        elif node.type == UNIOPNode:
+            self.propogate_div(node.right, div, exponent=exponent)
+
+    def remove_repeating_div(self, node: AST, div: AST) -> AST:
+        """Method takes a node, removes the div in the numerator and denominator, returns a new node"""
+        if node.type == BINOPNode:
+            if node.op.tag != EXP:
+                if node.left.__repr__() == div.__repr__():
+                    return node.right
+                elif node.right.__repr__() == div.__repr__():
+                    return node.left
+            new_left = self.remove_repeating_div(node.left, div)
+            new_right = self.remove_repeating_div(node.right, div)
+            return BINOPNode(new_left, node.op, new_right)
+        elif node.type == FUNCNode:
+            new_args = []
+            for arg in node.args:
+                new_args.append(self.remove_repeating_div(arg, div))
+            return FuncNode(node.op, new_args)
+        elif node.type == UNIOPNode:
+            return UniOpNode(node.op, self.remove_repeating_div(node.right, div))
+        else:
+            return node
 
 
     def quadratic_formula(self) -> List[Union[int, float, complex]]:
