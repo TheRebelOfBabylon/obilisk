@@ -281,7 +281,7 @@ class Algebra(Equation):
                     if self.tree.left.type == NUMNode and self.tree.left.value in ("0", "0.0"):
                         self.swap_lhs_and_rhs()
                 if self.tree.right.type == NUMNode and self.tree.right.value in ("0", "0.0"):
-                    self.get_coeff()
+                    self.coeff = self.get_coeff(self.tree)
                     if len(self.coeff) >= 7:
                         #Jenkins Traub
                         pass
@@ -298,7 +298,7 @@ class Algebra(Equation):
         """This method climbs through AST and checks for x^x or any variation"""
         return self.check_for_exp(self.tree)
 
-    def check_for_exp(self, node: AST):
+    def check_for_exp(self, node: AST) -> bool:
         """Method checks if there is an EXP node. If so, checks for variables"""
         if node.type == BINOPNode and node.op.tag != EXP:
             chk = self.check_for_exp(node.left)
@@ -320,7 +320,7 @@ class Algebra(Equation):
         elif node.type in (NUMNode, VARNode):
             return False
 
-    def check_for_variable(self, node: AST):
+    def check_for_variable(self, node: AST) -> bool:
         """Returns True for variables, false for numbers"""
         if node.type == VARNode:
             return True
@@ -339,7 +339,7 @@ class Algebra(Equation):
         while self.find_operator(self.tree):
             continue
 
-    def find_operator(self, node: AST):
+    def find_operator(self, node: AST) -> bool:
         """Method climbs through AST and finds operators"""
         if node.type == BINOPNode:
             if node.left.type == NUMNode and node.op.tag != DIV:
@@ -768,7 +768,7 @@ class Algebra(Equation):
         else:
             return False
 
-    def compute(self, eqn_string: str):
+    def compute(self, eqn_string: str) -> Union[int, complex, float]:
         """Method computes values using Arithmetic class and returns answer"""
         lexer = Lexer(eqn_string)
         tokens = lexer.obilisk_lex()
@@ -782,7 +782,7 @@ class Algebra(Equation):
             self.update_eqn_string(eqn_string, stringify(ans))
         return ans
 
-    def replace_node(self, node: AST, old_node: AST, new_node: AST):
+    def replace_node(self, node: AST, old_node: AST, new_node: AST) -> AST:
         """Replaces old node from the self.tree with new node"""
         if hash(node) == hash(old_node) and node.__repr__() == old_node.__repr__():
             return new_node
@@ -846,7 +846,7 @@ class Algebra(Equation):
             i -= 1
 
 
-    def expr_on_both_sides(self, node: AST, expr: AST):
+    def expr_on_both_sides(self, node: AST, expr: AST) -> bool:
         """Goes through AST to check if an AST appears consistently on either side of the equation"""
         if node.__repr__() == expr.__repr__():
             return True
@@ -876,7 +876,7 @@ class Algebra(Equation):
         while self.redundant_exp_br(self.tree):
             continue
 
-    def redundant_exp_br(self, node: AST):
+    def redundant_exp_br(self, node: AST) -> bool:
         """Climbs AST and expands exponent expressions if possible"""
         if node.type == BINOPNode:
             if node.op.tag == EXP and node.left.type == BINOPNode and node.left.op.tag in (MUL, DIV):
@@ -1195,7 +1195,7 @@ class Algebra(Equation):
         while self.find_divisor(self.tree):
             continue
 
-    def find_divisor(self, node: AST):
+    def find_divisor(self, node: AST) -> bool:
         """Method climbs AST and find any divisors. Stores them in asymptotes attribute."""
         if node.type == BINOPNode:
             if node.op.tag == DIV:
@@ -1233,10 +1233,8 @@ class Algebra(Equation):
             self.compute_low_hanging_fruit()
 
 
-    def propogate_div(self, node: AST, div: AST, exponent=NumberNode(Token(("1", NUMBER)))):
+    def propogate_div(self, node: AST, div: AST, exponent=NumberNode(Token(("1", NUMBER)))) -> AST:
         """Method climbs AST and propogates the given divisor"""
-        print(node.op.tag) if node.type == BINOPNode else print(node.type)
-        print(self.push_div_deeper(node, div), "\n", stringify_node(node, self.var), "\n", stringify_node(div, self.var), "\n")
         if self.push_div_deeper(node, div):
             if node.type == BINOPNode:
                 if node.op.tag == EXP:
@@ -1273,26 +1271,11 @@ class Algebra(Equation):
             elif node.op.tag == DIV and stringify_node(div, self.var) not in stringify_node(node.left, self.var):
                 numer_node = BinOpNode(div, Token(("*", MUL)), node.left)
                 ans_node = BinOpNode(numer_node, Token(("/", DIV)), node.right)
-                # self.solution.append(stringify_node(ans_node, self.var))
-                # self.update_eqn_string(stringify_node(node, self.var), stringify_node(ans_node, self.var))
-                # new_tree = self.replace_node(self.tree, node, ans_node)
-                # if new_tree is None:
-                #     raise Exception("{} was not replaced by {}.".format(node, ans_node))
-                # self.tree = deepcopy(new_tree)
                 return ans_node
         ans_node = BinOpNode(div, Token(("*", MUL)), node)
-        # self.solution.append(stringify_node(ans_node, self.var))
-        # self.update_eqn_string(stringify_node(node, self.var), stringify_node(ans_node, self.var))
-        # new_tree = self.replace_node(self.tree, node, ans_node)
-        # if new_tree is None:
-        #     raise Exception("{} was not replaced by {}.".format(node, ans_node))
-        # self.tree = deepcopy(new_tree)
-        # self.solution.append("------")
-        # self.solution.append(stringify_node(self.tree, self.var))
-        # self.solution.append("------")
         return ans_node
 
-    def push_div_deeper(self, node: AST, div: AST):
+    def push_div_deeper(self, node: AST, div: AST) -> bool:
         """Method checks if divisor should be multiplied at this top level node or deeper"""
         if node.type == BINOPNode:
             if node.op.tag == DIV and stringify_node(div, self.var) in stringify_node(node.right, self.var):
@@ -1346,10 +1329,99 @@ class Algebra(Equation):
         else:
             return node
 
+    def foil_monomials(self):
+        """Method will foil out all monomial terms."""
+        while self.compute_monomial_ops(self, self.tree):
+            continue
+
+    def compute_monomial_ops(self, node: AST):
+        """Method defining specific monomial operations"""
+        if node.type == BINOPNode:
+            if node.op.tag == EQUAL:
+                return self.compute_monomial_ops(node.left) or self.compute_monomial_ops(node.right)
+            elif node.op.tag == EXP:
+                if node.right.type == NUMNode:
+                    match = re.search(poly_regex, stringify_node(node, self.var))
+                    if match is not None:
+                        new_node = self.exp_foiling(node)
+
+    def exp_foiling(self, node: AST) -> AST:
+        """Method foils out monomials with exponents"""
+        exponent = round_complex(visit_NUMNode(node.right))
+        if exponent%2 == 0 and exponent > 2:
+            # it's even
+            new_exp = exponent/2
+            inter_node = BinOpNode(self.foiling(node.left, node.left), node.op, NumberNode(Token((str(new_exp), NUMBER))))
+            return self.exp_foiling(inter_node)
+        elif exponent == 2:
+            return self.foiling(node.left, node.left)
+        else:
+            #it's odd
+            left_node = node.left
+            right_node = BinOpNode(node.left, node.op, NumberNode(Token((str(exponent-1), NUMBER))))
+            inter = self.exp_foiling(right_node)
+            return self.foiling(left_node, inter)
+
+    def foiling(self, left_node: AST, right_node: AST) -> AST:
+        """Method multiplies two polynomials"""
+        left_coeff = self.get_coeff(left_node)
+        right_coeff = self.get_coeff(right_node)
+        ans_coeff = []
+        for coeff_l, deg_l in left_coeff:
+            for coeff_r, deg_r in right_coeff:
+                new_coeff = coeff_l*coeff_r
+                if new_coeff != 0:
+                    ans_coeff.append((new_coeff, deg_l+deg_r))
+        highest_deg = ans_coeff[0][1]
+        new_ans = []
+        for i in range(highest_deg, -1, -1):
+            temp = 0
+            for c, d in ans_coeff:
+                if i == d:
+                    temp += c
+            if temp != 0:
+                new_ans.append((temp, i))
+        ans_node = None
+        for coeff, deg in new_ans:
+            if deg == 0:
+                if ans_node is None:
+                    ans_node = NumberNode(Token((str(coeff), NUMBER)))
+                else:
+                    right_term = NumberNode(Token((str(abs(coeff)), NUMBER)))
+                    if coeff < 0:
+                        ans_node = BinOpNode(ans_node, Token(("-", MINUS)), right_term)
+                    else:
+                        ans_node = BinOpNode(ans_node, Token(("+", PLUS)), right_term)
+            elif deg == 1:
+                if ans_node is None:
+                    ans_node = BinOpNode(NumberNode(Token((str(coeff), NUMBER))), Token(("*", MUL)), VariableNode(Token((self.var, VARIABLE))))
+                else:
+                    right_term = BinOpNode(NumberNode(Token((str(abs(coeff)), NUMBER))), Token(("*", MUL)),
+                                           VariableNode(Token((self.var, VARIABLE))))
+                    if coeff < 0:
+                        ans_node = BinOpNode(ans_node, Token(("-", MINUS)), right_term)
+                    else:
+                        ans_node = BinOpNode(ans_node, Token(("+", PLUS)), right_term)
+            else:
+                if ans_node is None:
+                    base = BinOpNode(NumberNode(Token((str(coeff), NUMBER))), Token(("*", MUL)), VariableNode(Token((self.var, VARIABLE))))
+                    exponent = NumberNode(Token((str(deg), NUMBER)))
+                    ans_node = BinOpNode(base, Token(("^", EXP)), exponent)
+                else:
+                    base = BinOpNode(NumberNode(Token((str(abs(coeff)), NUMBER))), Token(("*", MUL)),
+                                     VariableNode(Token((self.var, VARIABLE))))
+                    exponent = NumberNode(Token((str(deg), NUMBER)))
+                    right_term = BinOpNode(base, Token(("^", EXP)), exponent)
+                    if coeff < 0:
+                        ans_node = BinOpNode(ans_node, Token(("-", MINUS)), right_term)
+                    else:
+                        ans_node = BinOpNode(ans_node, Token(("+", PLUS)), right_term)
+        print(stringify_node(ans_node, self.var))
+        return ans_node
 
     def quadratic_formula(self) -> List[Union[int, float, complex]]:
         """Method solves a quadratic using the quadratic formula"""
-        self.get_coeff()
+        self.coeff = self.get_coeff(self.tree)
         if len(self.coeff) != 4:
             raise ValueError("Quadratics must have 3 terms.")
         if self.coeff[-1] != 0.0:
@@ -1388,7 +1460,7 @@ class Algebra(Equation):
 
     def cardano(self) -> List[Union[int, float, complex]]:
         """Root finding formula for cubic polynomials."""
-        self.get_coeff()
+        self.coeff = self.get_coeff(self.tree)
         if len(self.coeff) != 5:
             raise ValueError("Cubics must have 4 terms.")
         if self.coeff[-1] != 0.0:
@@ -1459,7 +1531,7 @@ class Algebra(Equation):
 
     def ferrari(self) -> List[Union[int, float, complex]]:
         """Root finding formula for quartic polynomials."""
-        self.get_coeff()
+        self.coeff = self.get_coeff(self.tree)
         if len(self.coeff) != 6:
             raise ValueError("Quartics must have 5 terms.")
         if self.coeff[-1] != 0.0:
@@ -1619,47 +1691,55 @@ class Algebra(Equation):
 
         return ans
 
-    def get_coeff(self):
+    def get_coeff(self, node: AST) -> List[Tuple[int, int]]:
         """This method will get all coefficients from a polynomial in standard form"""
-        self.goto_next_node(self.tree)
-        highest_deg = self.coeff[0][1]
+        coeff = []
+        coeff = self.goto_next_node(node, coeff)
+        highest_deg = coeff[0][1]
         k = 0
         for i in range(highest_deg, -1, -1):
-            if i != self.coeff[k][1]:
-                self.coeff.insert(k, (0, i))
+            if i != coeff[k][1]:
+                coeff.insert(k, (0, i))
             if i == 0:
-                if self.coeff[-1][1] == 0 and self.coeff[-2][1] != 0:
-                    self.coeff.append((0, 0))
+                if coeff[-1][1] == 0 and coeff[-2][1] != 0:
+                    coeff.append((0, 0))
             k += 1
+        return coeff
 
-    def goto_next_node(self, node: AST, multiplier=1, exponent=0):
+    def goto_next_node(self, node: AST, coeff: List[Tuple[int, int]], multiplier=1, exponent=0):
         """Method to go through the AST of a standard polynomial"""
         num = None
         if node.type == BINOPNode:
             if node.op.tag in (PLUS, EQUAL):
-                self.goto_next_node(node.left, multiplier=multiplier, exponent=exponent)
-                self.goto_next_node(node.right, multiplier=multiplier, exponent=exponent)
+                coeff = self.goto_next_node(node.left, coeff, multiplier=multiplier, exponent=exponent)
+                #print(coeff, stringify_node(node, self.var))
+                return self.goto_next_node(node.right, coeff, multiplier=multiplier, exponent=exponent)
             elif node.op.tag == MINUS:
-                self.goto_next_node(node.left, multiplier=multiplier, exponent=exponent)
-                self.goto_next_node(node.right, multiplier=multiplier * -1, exponent=exponent)
+                coeff = self.goto_next_node(node.left, coeff, multiplier=multiplier, exponent=exponent)
+                return self.goto_next_node(node.right, coeff, multiplier=multiplier * -1, exponent=exponent)
             elif node.op.tag == MUL and node.left.type in (NUMNode, UNIOPNode):
                 if node.right.type == VARNode:
-                    self.goto_next_node(node.left, multiplier=multiplier, exponent=1)
+                    return self.goto_next_node(node.left, coeff, multiplier=multiplier, exponent=1)
                 elif node.right.type == BINOPNode and node.right.op.tag == EXP:
                     if node.right.right.type == NUMNode:
-                        self.goto_next_node(node.left, multiplier=multiplier,
+                        return self.goto_next_node(node.left, coeff, multiplier=multiplier,
                                             exponent=self.goto_NUMNode(node.right.right))
+            elif node.op.tag == EXP:
+                if node.left.type == BINOPNode and node.left.op.tag == MUL and node.left.left.type == NUMNode and node.left.right.type == VARNode:
+                    return self.goto_next_node(node.left.left, coeff, multiplier=multiplier,
+                                               exponent=self.goto_NUMNode(node.right))
         elif node.type == NUMNode:
             num = self.goto_NUMNode(node)
         elif node.type == UNIOPNode:
             if node.op.tag == PLUS:
-                self.goto_next_node(node.right, multiplier=multiplier * 1, exponent=exponent)
+                return self.goto_next_node(node.right, coeff, multiplier=multiplier * 1, exponent=exponent)
             elif node.op.tag == MINUS:
-                self.goto_next_node(node.right, multiplier=multiplier * -1, exponent=exponent)
+                return self.goto_next_node(node.right, coeff, multiplier=multiplier * -1, exponent=exponent)
         if num is not None:
-            self.coeff.append((num * multiplier, exponent))
+            coeff.append((num * multiplier, exponent))
+            return coeff
 
-    def goto_NUMNode(self, node: NumberNode):
+    def goto_NUMNode(self, node: NumberNode) -> Union[int, float, complex]:
         """Extract coefficients"""
         num = 0.0
         if node.tag == NUMBER:
