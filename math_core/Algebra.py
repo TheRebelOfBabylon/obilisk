@@ -1227,13 +1227,16 @@ class Algebra(Equation):
                 new_tree = self.propogate_div(self.tree, div)
                 if stringify_node(new_tree, self.var) == stringify_node(self.tree, self.var):
                     break
-                self.update_eqn_string(self.eqn_string, stringify_node(new_tree, self.var))
                 self.tree = deepcopy(new_tree)
+            self.solution.append("Multiply the equation by " + stringify_node(div, self.var))
+            self.update_eqn_string(self.eqn_string, stringify_node(new_tree, self.var))
             self.compute_low_hanging_fruit()
 
 
     def propogate_div(self, node: AST, div: AST, exponent=NumberNode(Token(("1", NUMBER)))):
         """Method climbs AST and propogates the given divisor"""
+        print(node.op.tag) if node.type == BINOPNode else print(node.type)
+        print(self.push_div_deeper(node, div), "\n", stringify_node(node, self.var), "\n", stringify_node(div, self.var), "\n")
         if self.push_div_deeper(node, div):
             if node.type == BINOPNode:
                 if node.op.tag == EXP:
@@ -1242,7 +1245,18 @@ class Algebra(Equation):
                         return BinOpNode(self.propogate_div(node.left, div, exponent=self.find_operator(BinOpNode(BinOpNode(NumberNode(Token(("1"
                                             , NUMBER))), Token(("/", DIV)), exponent), Token(("*", MUL)), node.right))), node.op, node.right)
                     return node
+                elif node.op.tag in (MUL, DIV):
+                    if "/"+stringify_node(div, self.var) in stringify_node(node, self.var) and stringify_node(div, self.var)+"*" not in stringify_node(node, self.var):
+                        if "/"+stringify_node(div, self.var) in stringify_node(node.left, self.var):
+                            return BinOpNode(self.propogate_div(node.left, div, exponent=exponent), node.op, node.right)
+                        return BinOpNode(node.left, node.op, self.propogate_div(node.right, div, exponent=exponent))
+                    elif "/("+stringify_node(div, self.var) in stringify_node(node, self.var) and stringify_node(div, self.var)+")*" not in stringify_node(node, self.var):
+                        if "/("+stringify_node(div, self.var) in stringify_node(node.left, self.var):
+                            return BinOpNode(self.propogate_div(node.left, div, exponent=exponent), node.op, node.right)
+                        return BinOpNode(node.left, node.op, self.propogate_div(node.right, div, exponent=exponent))
             return BinOpNode(self.propogate_div(node.left, div, exponent=exponent), node.op, self.propogate_div(node.right, div, exponent=exponent))
+        if stringify_node(div, self.var)+"*" in stringify_node(node, self.var) or stringify_node(div, self.var)+")*" in stringify_node(node, self.var):
+            return node
         if exponent.type == NUMNode:
             exp = round_complex(visit_NUMNode(exponent))
             if exp < 1:
@@ -1259,7 +1273,7 @@ class Algebra(Equation):
             elif node.op.tag == DIV and stringify_node(div, self.var) not in stringify_node(node.left, self.var):
                 numer_node = BinOpNode(div, Token(("*", MUL)), node.left)
                 ans_node = BinOpNode(numer_node, Token(("/", DIV)), node.right)
-                self.solution.append(stringify_node(ans_node, self.var))
+                # self.solution.append(stringify_node(ans_node, self.var))
                 # self.update_eqn_string(stringify_node(node, self.var), stringify_node(ans_node, self.var))
                 # new_tree = self.replace_node(self.tree, node, ans_node)
                 # if new_tree is None:
@@ -1267,7 +1281,7 @@ class Algebra(Equation):
                 # self.tree = deepcopy(new_tree)
                 return ans_node
         ans_node = BinOpNode(div, Token(("*", MUL)), node)
-        self.solution.append(stringify_node(ans_node, self.var))
+        # self.solution.append(stringify_node(ans_node, self.var))
         # self.update_eqn_string(stringify_node(node, self.var), stringify_node(ans_node, self.var))
         # new_tree = self.replace_node(self.tree, node, ans_node)
         # if new_tree is None:
@@ -1281,16 +1295,24 @@ class Algebra(Equation):
     def push_div_deeper(self, node: AST, div: AST):
         """Method checks if divisor should be multiplied at this top level node or deeper"""
         if node.type == BINOPNode:
-            if node.op.tag in (PLUS, MINUS, EQUAL):
-                return True
+            if node.op.tag == DIV and stringify_node(div, self.var) in stringify_node(node.right, self.var):
+                return False
+            elif node.op.tag == MUL and stringify_node(div, self.var) in stringify_node(node, self.var):
+                if "/"+stringify_node(div, self.var) in stringify_node(node, self.var) and stringify_node(div, self.var)+"*" not in stringify_node(node, self.var):
+                    return True
+                elif "/("+stringify_node(div, self.var) in stringify_node(node, self.var) and stringify_node(div, self.var)+")*" not in stringify_node(node, self.var):
+                    return True
+                return False
+            elif node.op.tag in (MUL, DIV):
+                match = re.search(poly_regex, stringify_node(node, self.var))
+                if match is not None:
+                    return False
+                return self.push_div_deeper(node.left, div) or self.push_div_deeper(node.right, div)
             elif node.op.tag == EXP:
                 match = re.search(poly_regex, stringify_node(node, self.var))
                 if match is not None:
                     return False
-                return self.push_div_deeper(node.left, div)
-            elif node.op.tag == DIV and stringify_node(div, self.var) in stringify_node(node, self.var):
-                return False
-            return self.push_div_deeper(node.left, div) or self.push_div_deeper(node.right, div)
+            return True
         return False
 
     def remove_repeating_div(self, node: AST, div: AST) -> AST:
