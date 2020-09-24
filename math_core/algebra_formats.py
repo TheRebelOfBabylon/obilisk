@@ -1,4 +1,3 @@
-# TODO - I wonder if the all the right templates can be deleted since method to rearrange must be called anyway
 from parser.ast import BinOpNode, NumberNode, VariableNode
 from parser.lexer import Token, VARIABLE, EXP, NUMBER, MUL, EQUAL, PLUS, MINUS
 
@@ -13,6 +12,8 @@ some_var = VariableNode(Token(("x", VARIABLE)))
 
 monomial_x = (BinOpNode(create_num_node('a'), Token(("*", MUL)), some_var), "monomial_x")
 monomial_x_power = (BinOpNode(create_num_node('a'), Token(("*", MUL)), BinOpNode(some_var, Token(("^", EXP)), create_num_node('2'))), "monomial_x_power")
+
+poly_regex = r'(\(?[-\+]?([0-9]+(\.[0-9]*)?)?[a-zA-Z_](\^[0-9]+)?(\)(\^[0-9]+)?)?){0,}(\(?[-\+]?[0-9]+(\.[0-9]*)?(\)(\^[0-9]+)?)?){0,}'
 
 a = BinOpNode(create_num_node('a'), Token(("*", MUL)), BinOpNode(some_var, Token(("^", EXP)), NumberNode(Token(("2", NUMBER)))))
 b = BinOpNode(create_num_node('b'), Token(("*", MUL)), some_var)

@@ -26,8 +26,11 @@ class TreeBuilder():
     def __init__(self, list_of_tokens: List[Token], pos: int = 0, has_var: bool = False):
         self.tokens = list_of_tokens
         self.pos = pos
+        self.has_var = has_var
+        self.exprs = None
         if has_var:
             self.exprs = []
+
 
     def build_tree(self):
         """Begins the tree construction process"""
@@ -75,15 +78,16 @@ class TreeBuilder():
                 right = self.Term()
             left = BinOpNode(left, bin_op, right)
             current_token = self.tokens[self.pos]
-        if self.exprs:
-            chk = False
-            for expr in self.exprs:
-                if left.__repr__() == expr.__repr__():
-                    chk = True
-            if not chk:
+        if self.has_var:
+            if self.exprs:
+                chk = False
+                for expr in self.exprs:
+                    if left.__repr__() == expr.__repr__():
+                        chk = True
+                if not chk:
+                    self.exprs.append(left)
+            else:
                 self.exprs.append(left)
-        else:
-            self.exprs.append(left)
         return left
 
     def Term(self):
@@ -117,16 +121,17 @@ class TreeBuilder():
             #result.append(BinOpNode(base, bin_op, exponent))
             base = BinOpNode(base, bin_op, exponent)
             current_token = self.tokens[self.pos]
-        if base.type not in (NUMNode, VARNode):
-            if self.exprs:
-                chk = False
-                for expr in self.exprs:
-                    if base.__repr__() == expr.__repr__():
-                        chk = True
-                if not chk:
+        if self.has_var:
+            if base.type not in (NUMNode, VARNode):
+                if self.exprs:
+                    chk = False
+                    for expr in self.exprs:
+                        if base.__repr__() == expr.__repr__():
+                            chk = True
+                    if not chk:
+                        self.exprs.append(base)
+                else:
                     self.exprs.append(base)
-            else:
-                self.exprs.append(base)
         return base
 
     def Atom(self):
@@ -165,29 +170,31 @@ class TreeBuilder():
                 if current_token.tag == R_BRACKET:
                     self.consume_token(R_BRACKET)
                     node = FuncNode(funcToken, result)
-                    if self.exprs:
-                        chk = False
-                        for expr in self.exprs:
-                            if node.__repr__() == expr.__repr__():
-                                chk = True
-                        if not chk:
+                    if self.has_var:
+                        if self.exprs:
+                            chk = False
+                            for expr in self.exprs:
+                                if node.__repr__() == expr.__repr__():
+                                    chk = True
+                            if not chk:
+                                self.exprs.append(node)
+                        else:
                             self.exprs.append(node)
-                    else:
-                        self.exprs.append(node)
                     return node
         elif current_token.tag == L_BRACKET:
             self.consume_token(L_BRACKET)
             result = self.Expression() # There's the recursion
             self.consume_token(R_BRACKET)
-            if self.exprs:
-                chk = False
-                for expr in self.exprs:
-                    if result.__repr__() == expr.__repr__():
-                        chk = True
-                if not chk:
+            if self.has_var:
+                if self.exprs:
+                    chk = False
+                    for expr in self.exprs:
+                        if result.__repr__() == expr.__repr__():
+                            chk = True
+                    if not chk:
+                        self.exprs.append(result)
+                else:
                     self.exprs.append(result)
-            else:
-                self.exprs.append(result)
             return result
         elif current_token.tag == L_MATRIX_BR:
             self.consume_token(L_MATRIX_BR)
