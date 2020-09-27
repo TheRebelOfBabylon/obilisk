@@ -14,6 +14,8 @@ monomial_x = (BinOpNode(create_num_node('a'), Token(("*", MUL)), some_var), "mon
 monomial_x_power = (BinOpNode(create_num_node('a'), Token(("*", MUL)), BinOpNode(some_var, Token(("^", EXP)), create_num_node('2'))), "monomial_x_power")
 
 poly_regex = r'(\(?[-\+]?([0-9]+(\.[0-9]*)?)?[a-zA-Z_](\^[0-9]+)?(\)(\^[0-9]+)?)?){0,}(\(?[-\+]?[0-9]+(\.[0-9]*)?(\)(\^[0-9]+)?)?){0,}'
+poly_power_regex = r'\(([-\+]?([0-9]+(\.[0-9]*)?)?[a-zA-Z_](\^[0-9]+)?){0,}([-\+][0-9]+(\.[0-9]*)?){0,}\)(\^[0-9]+)'
+poly_regex_2 = r'\(?([-\+]?([0-9]+(\.[0-9]*)?)?([a-zA-Z_](\^[0-9]+)?)?)+\)?$'
 
 a = BinOpNode(create_num_node('a'), Token(("*", MUL)), BinOpNode(some_var, Token(("^", EXP)), NumberNode(Token(("2", NUMBER)))))
 b = BinOpNode(create_num_node('b'), Token(("*", MUL)), some_var)

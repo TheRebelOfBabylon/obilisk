@@ -5,6 +5,16 @@ from typing import List, Union
 import re
 
 
+class Colors:
+    RED = "\033[1;31m"
+    BLUE = "\033[1;34m"
+    CYAN = "\033[1;36m"
+    GREEN = "\033[0;32m"
+    RESET = "\033[0;0m"
+    BOLD = "\033[;1m"
+    REVERSE = "\033[;7m"
+
+
 def stringify_node(node: AST, var: str) -> str:
     """Function will take a node and turn it into a string"""
     if node.type == BINOPNode:
