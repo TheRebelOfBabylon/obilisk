@@ -1,4 +1,4 @@
-from parser.lexer import Token, EXP, EQUAL
+from parser.lexer import Token, EXP, EQUAL, PLUS, MINUS
 from parser.ast import AST, BINOPNode, FUNCNode, UNIOPNode, VARNode, NUMNode
 
 from typing import List, Union
@@ -21,12 +21,12 @@ def stringify_node(node: AST, var: str) -> str:
         temp = node.op.value
         if node.op.tag != EQUAL:
             if node.left.type == BINOPNode and node.left.op.tag != EXP:
-                if node.left.type not in (NUMNode, VARNode):
+                if node.op.tag not in (PLUS, MINUS) or node.left.op.tag not in (PLUS, MINUS):
                     temp = ")" + temp
             elif node.op.tag == EXP and node.left.type == BINOPNode and node.left.op.tag == EXP:
                 temp = ")" + temp
             if node.right.type == BINOPNode and node.right.op.tag != EXP:
-                if node.right.type not in (NUMNode, VARNode):
+                if node.op.tag not in (PLUS, MINUS) or node.right.op.tag not in (PLUS, MINUS):
                     temp += "("
         left = stringify_node(node.left, var)
         if ")"+node.op.value in temp:
