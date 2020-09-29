@@ -7,14 +7,24 @@ obi = Obilisk("69*(((x-1)^8/(x+2)^8)-((x-1)^6/(x+2)^6))=(x-1)/(x+3)")
 algebra = Algebra(stringify_node(obi.tree, obi.vars[0]), obi.tokens, obi.tree, obi.vars[0], obi.exprs)
 algebra.remove_redundant_br()
 algebra.find_divisors()
-for i in algebra.divisors:
-    print(stringify_node(i, algebra.var))
-print("\n")
 algebra.multiply_div()
+#print(stringify_node(algebra.tree, algebra.var), "\n")
 algebra.foil_monomials()
 for i in algebra.solution:
     print(i)
-# print(stringify_node(algebra.tree, algebra.var), "\n")
+print(stringify_node(algebra.tree, algebra.var), "\n")
+
+print("\n", "Begin")
+obi = Obilisk("(((3x-5)*((x-1)/(x+2)))/(x+3))^8-(((x-1)/(x+2))/(x+3))^6 = 3")
+algebra = Algebra(stringify_node(obi.tree, obi.vars[0]), obi.tokens, obi.tree, obi.vars[0], obi.exprs)
+algebra.remove_redundant_br()
+algebra.find_divisors()
+algebra.multiply_div()
+#print(stringify_node(algebra.tree, algebra.var), "\n")
+algebra.foil_monomials()
+for i in algebra.solution:
+    print(i)
+print(stringify_node(algebra.tree, algebra.var), "\n")
 
 # print("\n", "Begin")
 # obi = Obilisk("(((3x-5)*((x-1)/(x+2)))/(x+3))^8-(((x-1)/(x+2))/(x+3))^6 = 3")

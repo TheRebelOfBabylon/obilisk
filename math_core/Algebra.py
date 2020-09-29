@@ -1334,7 +1334,19 @@ class Algebra(Equation):
     def foil_monomials(self):
         """Method will foil out all monomial terms."""
         while self.compute_monomial_ops(self.tree):
-            print(stringify_node(self.tree, self.var),"\n")
+            # print(stringify_node(self.tree, self.var),"\n")
+            continue
+        new_rhs = NumberNode(Token(("0", NUMBER)))
+        new_lhs = BinOpNode(self.tree.left, Token(("-", MINUS)), self.tree.right)
+        new_tree = BinOpNode(new_lhs, Token(("=", EQUAL)), new_rhs)
+        self.solution.append("Moving right hand side of the equation to the left hand side...")
+        self.solution.append("------")
+        self.eqn_string = "("+stringify_node(self.tree.left, self.var)+")-("+stringify_node(self.tree.right, self.var)+")=0"
+        self.solution.append(self.eqn_string)
+        self.solution.append("------")
+        self.tree = deepcopy(new_tree)
+        while self.compute_monomial_ops(self.tree):
+            # print(stringify_node(self.tree, self.var),"\n")
             continue
 
     def compute_monomial_ops(self, node: AST):
@@ -1345,6 +1357,7 @@ class Algebra(Equation):
                     if re.match(poly_power_regex, stringify_node(node, self.var)) is not None:
                         node_string = stringify_node(node, self.var)
                         new_node = self.exp_foiling(node)
+                        self.exprs.append(new_node)
                         new_string = stringify_node(new_node, self.var)
                         # new_string = new_string.replace("(", '')
                         # new_string = new_string.replace(")", '')
@@ -1353,26 +1366,29 @@ class Algebra(Equation):
                         new_tree = self.replace_node(self.tree, node, new_node)
                         self.tree = deepcopy(new_tree)
                         return True
+            # TODO - Fix this if statement to exclude cases where there's large poly subtraction or addition
             elif node.op.tag == MUL and hash(node) != hash(monomial_x[0]) and hash(node) != hash(monomial_x_power[0]):
-                left_string = stringify_node(node.left, self.var)
-                if re.search(poly_power_regex, left_string) is None and "*" not in left_string:
-                    left_string = "(" + left_string + ")"
-                    right_string = stringify_node(node.right, self.var)
-                    if re.search(poly_power_regex, right_string) is None and "*" not in right_string:
-                        right_string = "(" + right_string + ")"
-                        left_match = re.match(poly_regex_2, left_string)
-                        right_match = re.match(poly_regex_2, right_string)
-                        if left_match is not None and right_match is not None:
-                            node_string = stringify_node(node, self.var)
-                            new_node = self.foiling(node.left, node.right)
-                            new_string = stringify_node(new_node, self.var)
-                            new_string = new_string.replace("(", '')
-                            new_string = new_string.replace(")", '')
-                            new_string = "(" + new_string + ")"
-                            self.update_eqn_string(node_string, new_string)
-                            new_tree = self.replace_node(self.tree, node, new_node)
-                            self.tree = deepcopy(new_tree)
-                            return True
+                if not self.lg_poly_add(node):
+                    left_string = stringify_node(node.left, self.var)
+                    if re.search(poly_power_regex, left_string) is None and "*" not in left_string:
+                        left_string = "(" + left_string + ")"
+                        right_string = stringify_node(node.right, self.var)
+                        if re.search(poly_power_regex, right_string) is None and "*" not in right_string:
+                            right_string = "(" + right_string + ")"
+                            left_match = re.match(poly_regex_2, left_string)
+                            right_match = re.match(poly_regex_2, right_string)
+                            if left_match is not None and right_match is not None:
+                                node_string = stringify_node(node, self.var)
+                                new_node = self.foiling(node.left, node.right)
+                                self.exprs.append(new_node)
+                                new_string = stringify_node(new_node, self.var)
+                                new_string = new_string.replace("(", '')
+                                new_string = new_string.replace(")", '')
+                                new_string = "(" + new_string + ")"
+                                self.update_eqn_string(node_string, new_string)
+                                new_tree = self.replace_node(self.tree, node, new_node)
+                                self.tree = deepcopy(new_tree)
+                                return True
             elif node.op.tag in (PLUS, MINUS):
                 if node.left.type != NUMNode and node.right.type != NUMNode and not self.check_mono(node.left) and not self.check_mono(node.right):
                     left_string = stringify_node(node.left, self.var)
@@ -1386,8 +1402,10 @@ class Algebra(Equation):
                             if left_match is not None and right_match is not None:
                                 #print(left_string, node.op.value, right_string)
                                 new_node = self.poly_add(node.left, node.right, node.op.value)
+                                self.exprs.append(new_node)
                                 new_string = stringify_node(new_node, self.var)
                                 new_string = "(" + new_string + ")"
+                                #print("HERE", left_string+node.op.value+right_string)
                                 self.update_eqn_string(left_string+node.op.value+right_string, new_string)
                                 new_tree = self.replace_node(self.tree, node, new_node)
                                 self.tree = deepcopy(new_tree)
@@ -1409,6 +1427,31 @@ class Algebra(Equation):
                 if hash(node) == hash(mono_template[0]):
                     return True
         return False
+
+    def lg_poly_add(self, node: AST) -> bool:
+        """Method checks if a node contains the addition of two large polynomials"""
+        lg_poly_chk = False
+        if node.left.type == BINOPNode and node.left.op.tag in (PLUS, MINUS):
+            l_c = False
+            r_c = False
+            for e in self.exprs:
+                if stringify_node(e, self.var) == stringify_node(node.left.left, self.var):
+                    l_c = True
+                elif stringify_node(e, self.var) == stringify_node(node.left.right, self.var):
+                    r_c = True
+            if l_c and r_c:
+                lg_poly_chk = True
+        if node.right.type == BINOPNode and node.right.op.tag in (PLUS, MINUS):
+            l_c = False
+            r_c = False
+            for e in self.exprs:
+                if stringify_node(e, self.var) == stringify_node(node.right.left, self.var):
+                    l_c = True
+                elif stringify_node(e, self.var) == stringify_node(node.right.right, self.var):
+                    r_c = True
+            if l_c and r_c:
+                lg_poly_chk = True
+        return lg_poly_chk
 
     def exp_foiling(self, node: AST) -> AST:
         """Method foils out monomials with exponents"""
@@ -1565,31 +1608,45 @@ class Algebra(Equation):
         right_string = "(" + right_string + ")"
         left_coeff = self.get_coeff(left_node)
         right_coeff = self.get_coeff(right_node)
+        highest_deg_l = self.get_highest_deg(left_coeff)
+        highest_deg_r = self.get_highest_deg(right_coeff)
         ans_coeff = []
         indexes_to_skip = []
-        for k in range(len(left_coeff)):
-            if indexes_to_skip and k in indexes_to_skip:
-                pass
-            else:
-                temp = 0
-                if k > 0:
+        if highest_deg_l >= highest_deg_r:
+            for k in range(len(left_coeff)):
+                if indexes_to_skip and k in indexes_to_skip:
+                    pass
+                else:
+                    temp = left_coeff[k][0]
                     for i in range(len(left_coeff)):
                         if left_coeff[k][1] == left_coeff[i][1] and i != k:
-                            temp += self.add_coeff(temp, "+", left_coeff[i][0])
+                            temp = self.add_coeff(temp, "+", left_coeff[i][0])
                             indexes_to_skip.append(i)
-                for coeff_r, deg_r in right_coeff:
-                    if left_coeff[k][1] == deg_r:
-                        if temp == 0:
-                            temp += self.add_coeff(left_coeff[k][0], op, coeff_r)
-                        else:
+                    for coeff_r, deg_r in right_coeff:
+                        if left_coeff[k][1] == deg_r:
                             temp = self.add_coeff(temp, op, coeff_r)
-                if temp != 0:
-                    ans_coeff.append((temp, left_coeff[k][1]))
+                    if temp != 0:
+                        ans_coeff.append((temp, left_coeff[k][1]))
+        else:
+            for k in range(len(right_coeff)):
+                if indexes_to_skip and k in indexes_to_skip:
+                    pass
+                else:
+                    temp = right_coeff[k][0]
+                    for i in range(len(right_coeff)):
+                        if right_coeff[k][1] == right_coeff[i][1] and i != k:
+                            temp = self.add_coeff(temp, "+", right_coeff[i][0])
+                            indexes_to_skip.append(i)
+                    for coeff_l, deg_l in left_coeff:
+                        if right_coeff[k][1] == deg_l:
+                            temp = self.add_coeff(temp, op, coeff_l)
+                    if temp != 0:
+                        ans_coeff.append((temp, right_coeff[k][1]))
         ans_node = self.build_node_from_coeff(ans_coeff)
         ans_string = stringify_node(ans_node, self.var)
         ans_string = ans_string.replace("(", '')
         ans_string = ans_string.replace(")", '')
-        self.solution.append(left_string + "*" + right_string + " = " + ans_string)
+        self.solution.append(left_string + op + right_string + " = " + ans_string)
         return ans_node
 
     def add_coeff(self, left: Union[int, complex, float], op: str, right: Union[int, complex, float]):
@@ -1598,6 +1655,13 @@ class Algebra(Equation):
             return left+right
         elif op == "-":
             return left-right
+
+    def get_highest_deg(self, coeff: List[Tuple[Union[int, float, complex], int]]) -> int:
+        highest_deg = coeff[0][1]
+        for _, deg in coeff:
+            if deg > highest_deg:
+                highest_deg = deg
+        return highest_deg
 
     def quadratic_formula(self) -> List[Union[int, float, complex]]:
         """Method solves a quadratic using the quadratic formula"""
