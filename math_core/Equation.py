@@ -1,8 +1,11 @@
-from parser.lexer import Token, EXP, EQUAL, PLUS, MINUS
-from parser.ast import AST, BINOPNode, FUNCNode, UNIOPNode, VARNode, NUMNode
+from parser.lexer import Token, EXP, EQUAL, PLUS, MINUS, NUMBER, CONSTANT, MUL
+from parser.ast import AST, BINOPNode, FUNCNode, UNIOPNode, VARNode, NUMNode, NumberNode
+from math_core.algebra_formats import monomial_x_power, monomial_x, build_monomial_template
 
-from typing import List, Union
+from typing import List, Union, Any
 import re
+import pytest
+import math
 
 
 class Colors:
@@ -58,15 +61,15 @@ def stringify_node(node: AST, var: str) -> str:
 
 def inference_string(eqn_string: str, var: str) -> str:
     """Method will remove some parts of an equation which are redundant"""
-    regex = r'\-?\(\-?[0-9]+(\.[0-9]*)?\*[a-zA-Z_]\)'
+    regex = r'\-?\(\-?[0-9]+(\.[0-9]*)?\*[a-zA-Z_](\^[0-9]+)?\)'
     match = re.search(regex, eqn_string)
     if match is not None:
         match_wo_br_or_mul = match.group().replace("(", '')
         match_wo_br_or_mul = match_wo_br_or_mul.replace(")",'')
         match_wo_br_or_mul = match_wo_br_or_mul.replace("*", '')
-        if match_wo_br_or_mul == "1"+var:
+        if "1"+var in match_wo_br_or_mul:
             match_wo_br_or_mul = match_wo_br_or_mul.replace("1", '')
-        elif match_wo_br_or_mul == "-1"+var:
+        elif "-1"+var in match_wo_br_or_mul:
             match_wo_br_or_mul = match_wo_br_or_mul.replace("-1", '-')
         eqn_string = eqn_string.replace(match.group(), match_wo_br_or_mul)
         match = re.search(regex, eqn_string)
@@ -75,6 +78,64 @@ def inference_string(eqn_string: str, var: str) -> str:
     if eqn_string in "1*"+var:
         eqn_string = eqn_string.replace("1*"+var, var)
     return eqn_string.replace('(' + var + ')', var)
+
+
+def round_complex(num: Any) -> Union[complex, float]:
+    """Function will take a complex number and round its real and imaginary parts if they're extremely small"""
+    if type(num) == complex:
+        if num.real == -0.0 or num.real == 0 or pytest.approx(num.real) == 0.0:
+            if num.imag == -0.0 or num.imag == 0 or pytest.approx(num.imag) == 0.0:
+                return 0.0
+            num = num.imag * 1j
+            if num.real == -0 or num.real == -0.0:
+                num = 0 + num.imag * 1j
+            return num
+        elif num.imag == -0.0 or num.imag == 0 or pytest.approx(num.imag) == 0.0:
+            num = num.real
+            if num == -0 or num == -0.0:
+                num = 0
+            return num
+    if type(num) == float:
+        if num == -0.0:
+            num = 0.0
+        if num.is_integer():
+            num = int(num)
+    return num
+
+
+def visit_NUMNode(node: NumberNode):
+    """This method takes a CONSTNode and returns the constant if it exits"""
+    if node.tag == NUMBER:
+        try:
+            num = float(node.value)
+        except ValueError:
+            num = complex(node.value)
+        return num
+    elif node.tag == CONSTANT:
+        if node.value in ("#pi", "#PI"):
+            return math.pi
+        elif node.value in ("#e", "#E"):
+            return math.e
+        else:
+            raise ValueError("Constant {} is not recognized".format(node.value))
+
+
+def check_mono(node: AST):
+    """This method checks if a node is a monomial that isn't part of the standard templates"""
+    if hash(node) == hash(monomial_x[0]) or hash(node) == hash(monomial_x_power[0]):
+        return True
+    if node.type == BINOPNode:
+        mono_template = None
+        if node.op.tag == EXP and node.right.type == NUMNode:
+            exponent = round_complex(visit_NUMNode(node.right))
+            mono_template = build_monomial_template(exponent, EXP)
+        elif node.op.tag == MUL and node.right.type == BINOPNode and node.right.op.tag == EXP and node.right.right.type == NUMNode:
+            exponent = round_complex(visit_NUMNode(node.right.right))
+            mono_template = build_monomial_template(exponent, MUL)
+        if mono_template is not None:
+            if hash(node) == hash(mono_template[0]):
+                return True
+    return False
 
 
 class Equation:
@@ -96,3 +157,4 @@ class Equation:
             self.eqn_string = self.eqn_string.replace(section_to_replace, new_section)
         self.solution.append(self.eqn_string)
         self.solution.append("------")
+

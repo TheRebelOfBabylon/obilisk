@@ -6,10 +6,10 @@
 """
 from parser.lexer import Lexer, Token
 from parser.combinator import TreeBuilder
-from math_core.Equation import Equation, stringify_node, Colors
+from math_core.Equation import Equation, stringify_node, Colors, round_complex, visit_NUMNode, check_mono
 from parser.ast import AST, BINOPNode, VARNode, UNIOPNode, FUNCNode, UniOpNode, NumberNode, NUMNode, FuncNode, BinOpNode, VariableNode
 from parser.lexer import Token, EQUAL, EXP, MUL, PLUS, MINUS, NUMBER, CONSTANT, DIV, FUNC, VARIABLE
-from math_core.Arithmetic import list_of_func, Arithmetic, visit_NUMNode, stringify
+from math_core.Arithmetic import list_of_func, Arithmetic, stringify
 from math_core.algebra_formats import quadratic_left_full, quadratic_left_no_b, quadratic_left_no_c, \
     quadratic_left_no_bc, \
     quadratic_right_full, quadratic_right_no_b, quadratic_right_no_c, quadratic_right_no_bc, cubic_left_full, \
@@ -28,15 +28,12 @@ from math_core.algebra_formats import quadratic_left_full, quadratic_left_no_b, 
     quartic_right_no_bde, \
     quartic_right_no_be, quartic_right_no_c, quartic_right_no_cd, quartic_right_no_cde, quartic_right_no_ce, \
     quartic_right_no_d, \
-    quartic_right_no_de, quartic_right_no_e, monomial_x, monomial_x_power, poly_regex, poly_power_regex, poly_regex_2, \
-    build_monomial_template
+    quartic_right_no_de, quartic_right_no_e, monomial_x, monomial_x_power, poly_regex, poly_power_regex, poly_regex_2
 
-from typing import List, Union, Tuple, Any
+from typing import List, Union, Tuple
 from copy import deepcopy
 import math
-import pytest
 import re
-from timeit import default_timer as timer
 
 list_of_templates = [
     quadratic_left_full,
@@ -165,29 +162,6 @@ sub_var_dict = {
 }
 
 
-def round_complex(num: Any) -> Union[complex, float]:
-    """Function will take a complex number and round its real and imaginary parts if they're extremely small"""
-    if type(num) == complex:
-        if num.real == -0.0 or num.real == 0 or pytest.approx(num.real) == 0.0:
-            if num.imag == -0.0 or num.imag == 0 or pytest.approx(num.imag) == 0.0:
-                return 0.0
-            num = num.imag * 1j
-            if num.real == -0 or num.real == -0.0:
-                num = 0 + num.imag * 1j
-            return num
-        elif num.imag == -0.0 or num.imag == 0 or pytest.approx(num.imag) == 0.0:
-            num = num.real
-            if num == -0 or num == -0.0:
-                num = 0
-            return num
-    if type(num) == float:
-        if num == -0.0:
-            num = 0.0
-        if num.is_integer():
-            num = int(num)
-    return num
-
-
 def cube_root(x: Union[int, float, complex]) -> Union[int, float, complex]:
     """Function takes the cubic root of a number. Created to ensure proper sign of answer is given."""
     if isinstance(x, complex):
@@ -277,8 +251,10 @@ class Algebra(Equation):
             if not self.check_for_x_power_x():
                 self.compute_low_hanging_fruit()
                 self.check_for_substitution()
-                # next is to rearrange to standard format
-                # then recall this method
+                self.remove_redundant_br()
+                self.find_divisors()
+                self.multiply_div()
+                self.foil_monomials()
                 if self.tree.type == BINOPNode and self.tree.op.tag == EQUAL:
                     if self.tree.left.type == NUMNode and self.tree.left.value in ("0", "0.0"):
                         self.swap_lhs_and_rhs()
@@ -883,294 +859,27 @@ class Algebra(Equation):
         """Climbs AST and expands exponent expressions if possible"""
         if node.type == BINOPNode:
             if node.op.tag == EXP and node.left.type == BINOPNode and node.left.op.tag in (MUL, DIV):
-                if node.right.type == NUMNode:
-                    exponent = str(round_complex(visit_NUMNode(node.right)))
-                else:
-                    exponent = stringify_node(node.right, self.var)
-                numer_string = stringify_node(node.left.left, self.var)
-                denom_string = stringify_node(node.left.right, self.var)
-                # if "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^(" + exponent + ")" in stringify_node(node, self.var):
-                #     #print("case 1")
-                #     self.solution.append(
-                #         "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^(" + exponent + ") = ((" + numer_string +
-                #         ")^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + "))"
-                #     )
-                #     self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^(" + exponent + ")",
-                #                            "((" + numer_string +
-                #                            ")^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + "))")
-                # elif "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^" + exponent in stringify_node(node, self.var):
-                #     #print("case 2")
-                #     self.solution.append(
-                #         "((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^" + exponent + " = ((" + numer_string +
-                #         ")^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent + ")")
-                #     self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + "(" + denom_string + "))^" + exponent,
-                #                            "((" + numer_string +
-                #                            ")^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent + ")")
-                # elif "(" + numer_string + node.left.op.value + "(" + denom_string + "))^(" + exponent + ")" in stringify_node(node, self.var):
-                #     #print("case 3")
-                #     self.solution.append(
-                #         "(" + numer_string + node.left.op.value + "(" + denom_string + "))^(" + exponent + ") = (" + numer_string +
-                #         "^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + "))"
-                #     )
-                #     self.update_eqn_string("(" + numer_string + node.left.op.value + "(" + denom_string + "))^(" + exponent + ")",
-                #                            "(" + numer_string +
-                #                            "^(" + exponent + ")" + node.left.op.value + "(" + denom_string + ")^(" + exponent + "))")
-                # elif "((" + numer_string + ")" + node.left.op.value + denom_string + ")^(" + exponent + ")" in stringify_node(node, self.var):
-                #     #print("case 4")
-                #     self.solution.append(
-                #         "((" + numer_string + ")" + node.left.op.value + denom_string + ")^(" + exponent + ") = ((" + numer_string +
-                #         ")^(" + exponent + ")" + node.left.op.value + denom_string + "^(" + exponent + "))"
-                #     )
-                #     self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + denom_string + ")^(" + exponent + ")",
-                #                            "((" + numer_string +
-                #                            ")^(" + exponent + ")" + node.left.op.value + denom_string + "^(" + exponent + "))")
-                # elif "(" + numer_string + node.left.op.value + denom_string + ")^(" + exponent + ")" in stringify_node(node, self.var):
-                #     #print("case 5")
-                #     self.solution.append(
-                #         "(" + numer_string + node.left.op.value + denom_string + ")^(" + exponent + ") = (" + numer_string +
-                #         "^(" + exponent + ")/" + denom_string + "^(" + exponent + "))"
-                #     )
-                #     self.update_eqn_string("(" + numer_string + node.left.op.value + denom_string + ")^(" + exponent + ")",
-                #                            "(" + numer_string +
-                #                            "^(" + exponent + ")" + node.left.op.value + denom_string + "^(" + exponent + "))")
-                # elif "(" + numer_string + node.left.op.value + "(" + denom_string + "))^" + exponent in stringify_node(node, self.var):
-                #     #print("case 6")
-                #     self.solution.append(
-                #         "(" + numer_string + node.left.op.value + "(" + denom_string + "))^" + exponent + " = (" + numer_string +
-                #         "^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent + ")"
-                #     )
-                #     self.update_eqn_string("(" + numer_string + node.left.op.value + "(" + denom_string + "))^" + exponent + "",
-                #                            "(" + numer_string +
-                #                            "^" + exponent + node.left.op.value + "(" + denom_string + ")^" + exponent + ")")
-                # elif "((" + numer_string + ")" + node.left.op.value + denom_string + ")^" + exponent in stringify_node(node, self.var):
-                #     #print("case 7")
-                #     self.solution.append(
-                #         "((" + numer_string + ")" + node.left.op.value + denom_string + ")^" + exponent + " = ((" + numer_string +
-                #         ")^" + exponent + node.left.op.value + denom_string + "^" + exponent + ")"
-                #     )
-                #     self.update_eqn_string("((" + numer_string + ")" + node.left.op.value + denom_string + ")^" + exponent,
-                #                            "((" + numer_string +
-                #                            ")^" + exponent + node.left.op.value + denom_string + "^" + exponent + ")")
-                # else:
-                #     #print("case 8")
-                #     if node.left.left.type == BINOPNode and node.left.left.op.tag == EXP:
-                #         numer_string = "("+numer_string+")"
-                #     if node.left.right.type == BINOPNode and node.left.right.op.tag == EXP:
-                #         denom_string = "("+denom_string+")"
-                #     self.solution.append(
-                #         "(" + numer_string + node.left.op.value + denom_string + ")^" + exponent + " = (" + numer_string +
-                #         "^" + exponent + node.left.op.value + denom_string + "^" + exponent + ")"
-                #     )
-                #     self.update_eqn_string("(" + numer_string + node.left.op.value + denom_string + ")^" + exponent,
-                #                            "(" + numer_string +
-                #                            "^" + exponent + node.left.op.value + denom_string + "^" + exponent + ")")
-                numer_node = BinOpNode(node.left.left, Token(("^", EXP)), node.right)
-                denom_node = BinOpNode(node.left.right, Token(("^", EXP)), node.right)
-                ans_node = BinOpNode(numer_node, node.left.op, denom_node)
-                self.solution.append("("+stringify_node(node.left, self.var) + ")^" + exponent + " = (" + stringify_node(ans_node, self.var) + ")")
-                self.update_eqn_string("("+stringify_node(node.left, self.var) + ")^" + exponent, "(" + stringify_node(ans_node, self.var) + ")")
-                new_tree = self.replace_node(self.tree, node, ans_node)
-                if new_tree is None:
-                    raise Exception("{} was not replaced by {}.".format(node, ans_node))
-                self.tree = deepcopy(new_tree)
-                return True
+                if not check_mono(node):
+                    if node.right.type == NUMNode:
+                        exponent = str(round_complex(visit_NUMNode(node.right)))
+                    else:
+                        exponent = stringify_node(node.right, self.var)
+                    numer_node = BinOpNode(node.left.left, Token(("^", EXP)), node.right)
+                    denom_node = BinOpNode(node.left.right, Token(("^", EXP)), node.right)
+                    ans_node = BinOpNode(numer_node, node.left.op, denom_node)
+                    self.solution.append("("+stringify_node(node.left, self.var) + ")^" + exponent + " = (" + stringify_node(ans_node, self.var) + ")")
+                    self.update_eqn_string("("+stringify_node(node.left, self.var) + ")^" + exponent, "(" + stringify_node(ans_node, self.var) + ")")
+                    new_tree = self.replace_node(self.tree, node, ans_node)
+                    if new_tree is None:
+                        raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                    self.tree = deepcopy(new_tree)
+                    return True
             elif node.op.tag in (PLUS, MINUS) and node.left.type == BINOPNode and node.right.type == BINOPNode and \
             node.left.op.tag == DIV and node.right.op.tag == DIV:
                 left_numer = stringify_node(node.left.left, self.var)
                 left_denom = stringify_node(node.left.right, self.var)
                 right_numer = stringify_node(node.right.left, self.var)
                 right_denom = stringify_node(node.right.right, self.var)
-                #1 ()/() + ()/()
-                # if "((" + left_numer + ")/(" + left_denom + "))" + node.op.value + "((" + right_numer + ")/(" + right_denom + "))" in stringify_node(node, self.var):
-                #     #print("case 1: ()/() + ()/()")
-                #     self.solution.append("((" + left_numer + ")/(" + left_denom + "))" + node.op.value + "((" + right_numer
-                #                          + ")/(" + right_denom + ")) = ((((" + left_numer + ")*(" + right_denom + "))" +
-                #                          node.op.value + "((" + right_numer + ")*(" + left_denom + ")))/((" + left_denom
-                #                          + ")*(" + right_denom + ")))")
-                #     self.update_eqn_string("((" + left_numer + ")/(" + left_denom + "))" + node.op.value + "((" + right_numer
-                #                          + ")/(" + right_denom + "))", "((((" + left_numer + ")*(" + right_denom + "))" +
-                #                          node.op.value + "((" + right_numer + ")*(" + left_denom + ")))/((" + left_denom
-                #                          + ")*(" + right_denom + ")))")
-                # #2 /() + ()/()
-                # elif "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "((" + right_numer + ")/(" + right_denom + "))" in stringify_node(node, self.var):
-                #     #print("case 2: /() + ()/()")
-                #     self.solution.append("("+ left_numer + "/(" + left_denom + "))" + node.op.value + "((" + right_numer
-                #                          + ")/(" + right_denom + ")) = (((" + left_numer + "*(" + right_denom + "))" +
-                #                          node.op.value + "((" + right_numer + ")*(" + left_denom + ")))/((" + left_denom
-                #                          + ")*(" + right_denom + ")))")
-                #     self.update_eqn_string(
-                #         "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "((" + right_numer
-                #         + ")/(" + right_denom + "))", "((((" + left_numer + ")*(" + right_denom + "))" +
-                #         node.op.value + "((" + right_numer + ")*(" + left_denom + ")))/((" + left_denom
-                #         + ")*(" + right_denom + ")))")
-                # #3 ()/ + ()/()
-                # elif "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "((" + right_numer + ")/(" + right_denom + "))" in stringify_node(node, self.var):
-                #     #print("case 3: ()/ + ()/()")
-                #     self.solution.append("((" + left_numer + ")/" + left_denom + ")" + node.op.value + "((" + right_numer
-                #                          + ")/(" + right_denom + ")) = ((((" + left_numer + ")*(" + right_denom + "))" +
-                #                          node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
-                #                          + "*(" + right_denom + ")))")
-                #     self.update_eqn_string(
-                #         "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "((" + right_numer
-                #         + ")/(" + right_denom + "))", "((((" + left_numer + ")*(" + right_denom + "))" +
-                #         node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
-                #         + "*(" + right_denom + ")))")
-                # #4 / + ()/()
-                # elif "(" + left_numer + "/" + left_denom + ")" + node.op.value + "((" + right_numer + ")/(" + right_denom + "))" in stringify_node(node, self.var):
-                #     #print("case 4: / + ()/()")
-                #     self.solution.append("(" + left_numer + "/" + left_denom + ")" + node.op.value + "((" + right_numer
-                #                          + ")/(" + right_denom + ")) = (((" + left_numer + "*(" + right_denom + "))" +
-                #                          node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
-                #                          + "*(" + right_denom + ")))")
-                #     self.update_eqn_string(
-                #         "(" + left_numer + "/" + left_denom + ")" + node.op.value + "((" + right_numer
-                #         + ")/(" + right_denom + "))", "(((" + left_numer + "*(" + right_denom + "))" +
-                #         node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
-                #         + "*(" + right_denom + ")))")
-                # #5 / + /()
-                # elif "(" + left_numer + "/" + left_denom + ")" + node.op.value + "(" + right_numer + "/(" + right_denom + "))" in stringify_node(node, self.var):
-                #     #print("case 5: / + /()")
-                #     self.solution.append("(" + left_numer + "/" + left_denom + ")" + node.op.value + "(" + right_numer
-                #                          + "/(" + right_denom + ")) = (((" + left_numer + "*(" + right_denom + "))" +
-                #                          node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
-                #                          + "*(" + right_denom + ")))")
-                #     self.update_eqn_string(
-                #         "(" + left_numer + "/" + left_denom + ")" + node.op.value + "(" + right_numer
-                #         + "/(" + right_denom + "))", "(((" + left_numer + "*(" + right_denom + "))" +
-                #         node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
-                #         + "*(" + right_denom + ")))")
-                # #6 / + ()/
-                # elif "(" + left_numer + "/" + left_denom + ")" + node.op.value + "((" + right_numer + ")/" + right_denom + ")" in stringify_node(node, self.var):
-                #     #print("case 6: / + ()/")
-                #     self.solution.append("(" + left_numer + "/" + left_denom + ")" + node.op.value + "((" + right_numer
-                #                          + ")/" + right_denom + ") = (((" + left_numer + "*" + right_denom + ")" +
-                #                          node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
-                #                          + "*" + right_denom + "))")
-                #     self.update_eqn_string(
-                #         "(" + left_numer + "/" + left_denom + ")" + node.op.value + "((" + right_numer
-                #         + ")/" + right_denom + ")", "(((" + left_numer + "*" + right_denom + ")" +
-                #         node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
-                #         + "*" + right_denom + "))")
-                # #7 / + /
-                # elif "(" + left_numer + "/" + left_denom + ")" + node.op.value + "(" + right_numer + "/" + right_denom + ")" in stringify_node(node, self.var):
-                #     #print("case 7: / + /")
-                #     self.solution.append("(" + left_numer + "/" + left_denom + ")" + node.op.value + "(" + right_numer
-                #                          + "/" + right_denom + ") = (((" + left_numer + "*" + right_denom + ")" +
-                #                          node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
-                #                          + "*" + right_denom + "))")
-                #     self.update_eqn_string(
-                #         "(" + left_numer + "/" + left_denom + ")" + node.op.value + "(" + right_numer
-                #         + "/" + right_denom + ")", "(((" + left_numer + "*" + right_denom + ")" +
-                #         node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
-                #         + "*" + right_denom + "))")
-                # #8 /() + /()
-                # elif "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer + "/(" + right_denom + "))" in stringify_node(node, self.var):
-                #     #print("case 8: /() + /()")
-                #     self.solution.append("(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer
-                #                          + "/(" + right_denom + ")) = (((" + left_numer + "*(" + right_denom + "))" +
-                #                          node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
-                #                          + ")*(" + right_denom + ")))")
-                #     self.update_eqn_string(
-                #         "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer
-                #         + "/(" + right_denom + "))", "(((" + left_numer + "*(" + right_denom + "))" +
-                #         node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
-                #         + ")*(" + right_denom + ")))")
-                # #9 /() + ()/
-                # elif "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "((" + right_numer + ")/" + right_denom + ")" in stringify_node(node, self.var):
-                #     #print("case 9: /() + ()/")
-                #     self.solution.append("(" + left_numer + "/(" + left_denom + "))" + node.op.value + "((" + right_numer
-                #                          + ")/" + right_denom + ") = (((" + left_numer + "*" + right_denom + ")" +
-                #                          node.op.value + "((" + right_numer + ")*(" + left_denom + ")))/((" + left_denom
-                #                          + ")*" + right_denom + "))")
-                #     self.update_eqn_string(
-                #         "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "((" + right_numer
-                #         + ")/" + right_denom + ")", "(((" + left_numer + "*" + right_denom + ")" +
-                #         node.op.value + "((" + right_numer + ")*(" + left_denom + ")))/((" + left_denom
-                #         + ")*" + right_denom + "))")
-                # #10 /() + /
-                # elif "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer + "/" + right_denom + ")" in stringify_node(node, self.var):
-                #     #print("case 10: /() + /")
-                #     self.solution.append("(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer
-                #                          + "/" + right_denom + ") = (((" + left_numer + "*" + right_denom + ")" +
-                #                          node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
-                #                          + ")*" + right_denom + "))")
-                #     self.update_eqn_string(
-                #         "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer
-                #         + "/" + right_denom + ")", "(((" + left_numer + "*" + right_denom + ")" +
-                #         node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
-                #         + ")*" + right_denom + "))")
-                # #11 ()/ + /()
-                # elif "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer + "/(" + right_denom + "))" in stringify_node(node, self.var):
-                #     #print("case 11: ()/ + /()")
-                #     self.solution.append("((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer
-                #                          + "/(" + right_denom + ")) = ((((" + left_numer + ")*(" + right_denom + "))" +
-                #                          node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
-                #                          + "*(" + right_denom + ")))")
-                #     self.update_eqn_string(
-                #         "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer
-                #         + "/(" + right_denom + "))", "((((" + left_numer + ")*(" + right_denom + "))" +
-                #         node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
-                #         + "*(" + right_denom + ")))")
-                # #12 ()/ + ()/
-                # elif "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "((" + right_numer + ")/" + right_denom + ")" in stringify_node(node, self.var):
-                #     #print("case 12: ()/ + ()/")
-                #     self.solution.append("((" + left_numer + ")/" + left_denom + ")" + node.op.value + "((" + right_numer
-                #                          + ")/" + right_denom + ") = ((((" + left_numer + ")*" + right_denom + ")" +
-                #                          node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
-                #                          + "*" + right_denom + "))")
-                #     self.update_eqn_string(
-                #         "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "((" + right_numer
-                #         + ")/" + right_denom + ")", "((((" + left_numer + ")*" + right_denom + ")" +
-                #         node.op.value + "((" + right_numer + ")*" + left_denom + "))/(" + left_denom
-                #         + "*" + right_denom + "))")
-                # #13 ()/ + /
-                # elif "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer + "/" + right_denom + ")" in stringify_node(node, self.var):
-                #     #print("case 1: ()/ + /")
-                #     self.solution.append("((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer
-                #                          + "/" + right_denom + ") = ((((" + left_numer + ")*" + right_denom + ")" +
-                #                          node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
-                #                          + "*" + right_denom + "))")
-                #     self.update_eqn_string(
-                #         "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer
-                #         + "/" + right_denom + ")", "((((" + left_numer + ")*" + right_denom + ")" +
-                #         node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
-                #         + "*" + right_denom + "))")
-                # #14 ()/() + /
-                # elif "((" + left_numer + ")/(" + left_denom + "))" + node.op.value + "(" + right_numer + "/" + right_denom + ")" in stringify_node(node, self.var):
-                #     #print("case 14: ()/() + /")
-                #     self.solution.append("((" + left_numer + ")/(" + left_denom + "))" + node.op.value + "(" + right_numer
-                #                          + "/" + right_denom + ") = ((((" + left_numer + ")*" + right_denom + ")" +
-                #                          node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
-                #                          + ")*" + right_denom + "))")
-                #     self.update_eqn_string(
-                #         "((" + left_numer + ")/(" + left_denom + "))" + node.op.value + "(" + right_numer
-                #         + "/" + right_denom + ")", "((((" + left_numer + ")*" + right_denom + ")" +
-                #         node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
-                #         + ")*" + right_denom + "))")
-                # #15 /() + /
-                # elif "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer + "/" + right_denom + ")" in stringify_node(node, self.var):
-                #     #print("case 15: /() + /")
-                #     self.solution.append("(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer
-                #                          + "/" + right_denom + ") = (((" + left_numer + "*" + right_denom + ")" +
-                #                          node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
-                #                          + ")*" + right_denom + "))")
-                #     self.update_eqn_string(
-                #         "(" + left_numer + "/(" + left_denom + "))" + node.op.value + "(" + right_numer
-                #         + "/" + right_denom + ")", "(((" + left_numer + "*" + right_denom + ")" +
-                #         node.op.value + "(" + right_numer + "*(" + left_denom + ")))/((" + left_denom
-                #         + ")*" + right_denom + "))")
-                # #16 ()/ + /
-                # else:
-                #     #print("case 16: ()/ + /")
-                #     self.solution.append("((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer
-                #                          + "/" + right_denom + ") = ((((" + left_numer + ")*" + right_denom + ")" +
-                #                          node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
-                #                          + "*" + right_denom + "))")
-                #     self.update_eqn_string(
-                #         "((" + left_numer + ")/" + left_denom + ")" + node.op.value + "(" + right_numer
-                #         + "/" + right_denom + ")", "((((" + left_numer + ")*" + right_denom + ")" +
-                #         node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
-                #         + "*" + right_denom + "))")
                 self.solution.append("(" + left_numer + "/" + left_denom + ")" + node.op.value + "(" + right_numer
                                          + "/" + right_denom + ") = ((" + left_numer + "*" + right_denom + ")" +
                                          node.op.value + "(" + right_numer + "*" + left_denom + "))/(" + left_denom
@@ -1250,7 +959,7 @@ class Algebra(Equation):
             self.update_eqn_string(self.eqn_string, stringify_node(new_tree, self.var))
             self.compute_low_hanging_fruit()
 
-
+    # TODO - Deal with cases where divisor was in a function.
     def propogate_div(self, node: AST, div: AST, exponent=NumberNode(Token(("1", NUMBER)))) -> AST:
         """Method climbs AST and propogates the given divisor"""
         if self.push_div_deeper(node, div):
@@ -1382,7 +1091,7 @@ class Algebra(Equation):
                         new_tree = self.replace_node(self.tree, node, new_node)
                         self.tree = deepcopy(new_tree)
                         return True
-            elif node.op.tag == MUL and hash(node) != hash(monomial_x[0]) and hash(node) != hash(monomial_x_power[0]):
+            elif node.op.tag == MUL and not check_mono(node):
                 if not self.lg_poly_add(node):
                     left_string = stringify_node(node.left, self.var)
                     if re.search(poly_power_regex, left_string) is None and "*" not in left_string:
@@ -1403,7 +1112,7 @@ class Algebra(Equation):
                                 self.tree = deepcopy(new_tree)
                                 return True
             elif node.op.tag in (PLUS, MINUS):
-                if node.left.type != NUMNode and node.right.type != NUMNode and not self.check_mono(node.left) and not self.check_mono(node.right):
+                if node.left.type != NUMNode and node.right.type != NUMNode and not check_mono(node.left) and not check_mono(node.right):
                     left_string = stringify_node(node.left, self.var)
                     if re.search(poly_power_regex, left_string) is None and "*" not in left_string:
                         left_string = "(" + left_string + ")"
@@ -1424,21 +1133,6 @@ class Algebra(Equation):
                                 self.tree = deepcopy(new_tree)
                                 return True
             return self.compute_monomial_ops(node.left) or self.compute_monomial_ops(node.right)
-        return False
-
-    def check_mono(self, node: AST):
-        """This method checks if a node is a monomial that isn't part of the standard templates"""
-        if hash(node) == hash(monomial_x) or hash(node) == hash(monomial_x_power):
-            return True
-        if node.type == BINOPNode:
-            mono_template = None
-            if node.op.tag == EXP and node.right.type == NUMNode:
-                mono_template = build_monomial_template(round_complex(visit_NUMNode(node.right)), EXP)
-            elif node.op.tag == MUL and node.right.type == BINOPNode and node.right.op.tag == EXP and node.right.right.type == NUMNode:
-                mono_template = build_monomial_template(visit_NUMNode(round_complex(node.right.right)), MUL)
-            if mono_template is not None:
-                if hash(node) == hash(mono_template[0]):
-                    return True
         return False
 
     def lg_poly_add(self, node: AST) -> bool:
@@ -1512,50 +1206,15 @@ class Algebra(Equation):
     def foiling(self, left_node: AST, right_node: AST) -> AST:
         """Method multiplies two polynomials"""
         left_string = stringify_node(left_node, self.var)
-        # left_string = left_string.replace("(", '')
-        # left_string = left_string.replace(")", '')
         left_string = "(" + left_string + ")"
         right_string = stringify_node(right_node, self.var)
-        # right_string = right_string.replace("(", '')
-        # right_string = right_string.replace(")", '')
         right_string = "(" + right_string + ")"
-        # self.solution.append(left_string + "*" + right_string + " -> ")
         left_coeff = self.get_coeff(left_node)
         right_coeff = self.get_coeff(right_node)
         ans_coeff = []
         for coeff_l, deg_l in left_coeff:
             for coeff_r, deg_r in right_coeff:
                 new_coeff = coeff_l*coeff_r
-                # if deg_l > 1:
-                #     if deg_r > 1:
-                #         self.solution.append(str(coeff_l)+self.var+"^"+str(deg_l)+"*"+str(coeff_r)+self.var+"^"+str(deg_r)+" = "+str(new_coeff)+self.var+"^"+str(deg_l+deg_r))
-                #     elif deg_r == 1:
-                #         self.solution.append(
-                #             str(coeff_l) + self.var + "^" + str(deg_l) + "*" + str(coeff_r) + self.var + " = " + str(new_coeff) + self.var + "^" + str(deg_l + deg_r))
-                #     else:
-                #         self.solution.append(
-                #             str(coeff_l) + self.var + "^" + str(deg_l) + "*" + str(coeff_r) + " = " + str(
-                #                 new_coeff) + self.var + "^" + str(deg_l + deg_r))
-                # elif deg_l == 1:
-                #     if deg_r > 1:
-                #         self.solution.append(str(coeff_l)+self.var+"*"+str(coeff_r)+self.var+"^"+str(deg_r)+" = "+str(new_coeff)+self.var+"^"+str(deg_l+deg_r))
-                #     elif deg_r == 1:
-                #         self.solution.append(
-                #             str(coeff_l) + self.var + "*" + str(coeff_r) + self.var + " = " + str(new_coeff) + self.var + "^" + str(deg_l + deg_r))
-                #     else:
-                #         self.solution.append(
-                #             str(coeff_l) + self.var + "*" + str(coeff_r) + " = " + str(
-                #                 new_coeff) + self.var)
-                # else:
-                #     if deg_r > 1:
-                #         self.solution.append(str(coeff_l)+"*"+str(coeff_r)+self.var+"^"+str(deg_r)+" = "+str(new_coeff)+self.var+"^"+str(deg_l+deg_r))
-                #     elif deg_r == 1:
-                #         self.solution.append(
-                #             str(coeff_l) + "*" + str(coeff_r) + self.var + " = " + str(new_coeff) + self.var)
-                #     else:
-                #         self.solution.append(
-                #             str(coeff_l) + "*" + str(coeff_r) + " = " + str(
-                #                 new_coeff))
                 if new_coeff != 0:
                     ans_coeff.append((new_coeff, deg_l+deg_r))
         highest_deg = ans_coeff[0][1]
@@ -1661,6 +1320,7 @@ class Algebra(Equation):
                             temp = self.add_coeff(coeff_l, "+", temp)
                     if temp != 0:
                         ans_coeff.append((temp, right_coeff[k][1]))
+        ans_coeff = self.reorder_terms(ans_coeff)
         ans_node = self.build_node_from_coeff(ans_coeff)
         ans_string = stringify_node(ans_node, self.var)
         ans_string = ans_string.replace("(", '')
@@ -1681,6 +1341,20 @@ class Algebra(Equation):
             if deg > highest_deg:
                 highest_deg = deg
         return highest_deg
+
+    def reorder_terms(self, coeff: List[Tuple[Union[int, float, complex], int]]) -> List[Tuple[Union[int, float, complex], int]]:
+        """Method will reorder terms in descending order from largest power to constants"""
+        highest_deg = 0
+        for _, deg in coeff:
+            if deg > highest_deg:
+                highest_deg = deg
+        new_coeff = []
+        for i in range(highest_deg, -1, -1):
+            for k in range(len(coeff)):
+                if coeff[k][1] == i:
+                    new_coeff.append((coeff[k][0], coeff[k][1]))
+        return new_coeff
+
 
     def quadratic_formula(self) -> List[Union[int, float, complex]]:
         """Method solves a quadratic using the quadratic formula"""
@@ -1953,6 +1627,127 @@ class Algebra(Equation):
             self.solution.append(str(ans[i]))
 
         return ans
+
+    # def real_poly(eqn: Calculus) -> List[Union[int, float, complex]]:
+    #     """Top level function which calls the rpoly, Jenkins-Traub algorithm."""
+    #     num_roots = eqn.deg[0]
+    #     ans = []
+    #     var = eqn.var_type[0]
+    #     # Fundamental theorem of algebra says number of highest exponent is the number of roots
+    #     i = 0
+    #     while i != num_roots:
+    #         root = rpoly(eqn)
+    #         ans.append(root)
+    #         i += 1
+    #         last_run = (num_roots - 1 == i)
+    #         # if not last_run:
+    #         divisor = [1, -1 * root]
+    #         # print("x+"+str(divisor[1]))
+    #         new_eqn = eqn.lin_divide(divisor)
+    #         del new_eqn[-1]
+    #         # print(new_eqn.eqn)
+    #         eqn.reset_params()
+    #         eqn.coeff = copy.deepcopy(new_eqn)
+    #         eqn.var_type = [var]
+    #         eqn.update_params_from_coeff()
+    #     return ans
+    #
+    # def rpoly(eqn: Calculus) -> Union[int, float, complex]:
+    #     """RPOLY Jenkins-Traub algorithm for polynomial root finding."""
+    #     # print("\n", eqn.eqn_string, eqn.deg)
+    #     coeff = Calculus()
+    #     coeff.coeff = eqn.normalize()
+    #     coeff.var_type = eqn.var_type
+    #     coeff.update_params_from_coeff()
+    #     # Stage 1: No-shift process. Assuming M = 5
+    #     K = Calculus()
+    #     K.coeff = coeff.coeff_derivative()
+    #     K.var_type = coeff.var_type
+    #     K.update_params_from_coeff()
+    #     for i in range(0, 5):
+    #         constant = -1 * K.evaluate(0) / coeff.evaluate(0)
+    #         P_z = Calculus()
+    #         P_z.coeff = coeff.poly_multiply(constant)
+    #         K_prime = Calculus()
+    #         K_prime.coeff = poly_add(K.coeff, P_z.coeff)
+    #         divisor = [1, 0]
+    #         new_K = Calculus()
+    #         new_K.coeff = K_prime.lin_divide(divisor)
+    #         del new_K.coeff[-1]
+    #         K.reset_params()
+    #         K.coeff = copy.deepcopy(new_K.coeff)
+    #         K.var_type = coeff.var_type
+    #         K.update_params_from_coeff()
+    #     # Stage 2: Fixed-shift Process
+    #     t_curr = t_old = t_new = None
+    #     stage_two_success = False
+    #     root_found = False
+    #     while not root_found:
+    #         while not stage_two_success:
+    #             s = get_random_root(coeff)
+    #             # print("s",s)
+    #             for i in range(0, 100):
+    #                 constant = -1 * K.evaluate(s) / coeff.evaluate(s)
+    #                 P_z.coeff = coeff.poly_multiply(constant)
+    #                 K_prime.coeff = poly_add(K.coeff, P_z.coeff)
+    #                 divisor = [1, -1 * s]
+    #                 new_K.coeff = K_prime.lin_divide(divisor)
+    #                 del new_K.coeff[-1]
+    #                 K_bar = Calculus()
+    #                 K_bar.coeff = K.normalize()
+    #                 new_K_bar = Calculus()
+    #                 new_K_bar.coeff = new_K.normalize()
+    #                 t_curr = s - (coeff.evaluate(s) / K_bar.evaluate(s))
+    #                 t_new = s - (coeff.evaluate(s) / new_K_bar.evaluate(s))
+    #                 if i > 0 and abs(t_curr - t_old) <= 0.5 * abs(t_old) and abs(t_new - t_curr) <= 0.5 * abs(t_curr):
+    #                     stage_two_success = True
+    #                     # print("break",stage_two_success,root_found)
+    #                     break
+    #                 t_old = t_curr
+    #                 K = new_K
+    #             if not stage_two_success:
+    #                 print("Retrying Stage 2")
+    #         # Stage 3: Variable-shift process
+    #         old_err = coeff.evaluate(s)
+    #         curr_err = 1
+    #         K_bar.coeff = K.normalize()
+    #         s = s - (coeff.evaluate(s) / K_bar.evaluate(s))
+    #         old_s = 0
+    #         stage_three_success = False
+    #         for i in range(0, 10000):
+    #             if abs(coeff.evaluate(s)) < abs(10 ** (-5)):
+    #                 stage_three_success = True
+    #                 break
+    #             constant = -1 * K.evaluate(s) / coeff.evaluate(s)
+    #             P_z.coeff = coeff.poly_multiply(constant)
+    #             K_prime.coeff = poly_add(K.coeff, P_z.coeff)
+    #             divisor = [1, -1 * s]
+    #             new_K.coeff = K_prime.lin_divide(divisor)
+    #             del new_K.coeff[-1]
+    #             new_K_bar.coeff = new_K.normalize()
+    #             s = s - (coeff.evaluate(s) / new_K_bar.evaluate(s))
+    #             curr_err = coeff.evaluate(s)
+    #             K = new_K
+    #             if math.isnan(s.imag) and math.isnan(s.real):
+    #                 stage_three_success = False
+    #                 break
+    #         if stage_three_success:
+    #             # print("Root is",s)
+    #             root_found = True
+    #         else:
+    #             stage_two_success = False
+    #     return s
+    #
+    # def get_random_root(eqn: Calculus) -> Union[int, float, complex]:
+    #     """Function for finding random roots."""
+    #     cauchy_eqn = Calculus()
+    #     cauchy_eqn.coeff = eqn.cauchy_poly()
+    #     # print("Cauchy", cauchy_eqn.coeff)
+    #     beta = cauchy_eqn.newton_raphson()
+    #     # print("beta",beta)
+    #     rand = random.uniform(0, 1) * 2 * math.pi
+    #     root = abs(beta) * cmath.exp(1j * rand)
+    #     return root
 
     def get_coeff(self, node: AST) -> List[Tuple[int, int]]:
         """This method will get all coefficients from a polynomial in standard form"""

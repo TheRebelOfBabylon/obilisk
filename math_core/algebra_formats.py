@@ -13,9 +13,9 @@ def create_num_node(var: str) -> NumberNode:
 def build_monomial_template(exponent: Union[int, float, complex], type: str) -> Tuple[AST, str]:
     if type == EXP:
         return (BinOpNode(BinOpNode(create_num_node('a'), Token(("*", MUL)), some_var), Token(("^", EXP)), create_num_node(str(exponent))),
-     "monomial_x_power_two")
+     "monomial_x_power_exp")
     elif type == MUL:
-        return (BinOpNode(create_num_node('a'), Token(("*", MUL)), BinOpNode(some_var, Token(("^", EXP)), create_num_node(str(exponent)))), "monomial_x_power_two")
+        return (BinOpNode(create_num_node('a'), Token(("*", MUL)), BinOpNode(some_var, Token(("^", EXP)), create_num_node(str(exponent)))), "monomial_x_power_mul")
 
 
 some_var = VariableNode(Token(("x", VARIABLE)))

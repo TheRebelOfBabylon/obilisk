@@ -1,4 +1,4 @@
-from math_core.Equation import Equation
+from math_core.Equation import Equation, visit_NUMNode
 from parser.ast import FuncNode, BinOpNode, AST, UniOpNode, NumberNode
 from parser.ast import FUNCNode, BINOPNode, NUMNode, VARNode, UNIOPNode
 from parser.lexer import MUL, MINUS, PLUS, EXP, DIV, NUMBER, CONSTANT
@@ -45,23 +45,6 @@ def stringify(num: Union[int, float, complex]) -> str:
         if num.is_integer():
             return str(int(num))
     return str(num)
-
-
-def visit_NUMNode(node: NumberNode):
-    """This method takes a CONSTNode and returns the constant if it exits"""
-    if node.tag == NUMBER:
-        try:
-            num = float(node.value)
-        except ValueError:
-            num = complex(node.value)
-        return num
-    elif node.tag == CONSTANT:
-        if node.value in ("#pi", "#PI"):
-            return math.pi
-        elif node.value in ("#e", "#E"):
-            return math.e
-        else:
-            raise ValueError("Constant {} is not recognized".format(node.value))
 
 
 class Arithmetic(Equation):
