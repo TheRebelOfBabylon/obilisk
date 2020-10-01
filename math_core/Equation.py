@@ -67,7 +67,7 @@ def inference_string(eqn_string: str, var: str) -> str:
         if match_wo_br_or_mul == "1"+var:
             match_wo_br_or_mul = match_wo_br_or_mul.replace("1", '')
         elif match_wo_br_or_mul == "-1"+var:
-            match_wo_br_or_mul = match_wo_br_or_mul.replace("-1", '')
+            match_wo_br_or_mul = match_wo_br_or_mul.replace("-1", '-')
         eqn_string = eqn_string.replace(match.group(), match_wo_br_or_mul)
         match = re.search(regex, eqn_string)
     if match is not None:
@@ -84,11 +84,14 @@ class Equation:
         self.tree = tree
         self.solution = ["The inputted equation is "+self.eqn_string]
 
-    def update_eqn_string(self, section_to_replace: str, new_section: str):
+    def update_eqn_string(self, section_to_replace: str, new_section: str, br_override: bool = False):
         """Method which updates the eqn string based on recent ops"""
         self.solution.append("------")
-        if "("+section_to_replace+")" in self.eqn_string and "("+section_to_replace+")^" not in self.eqn_string:
-            self.eqn_string = self.eqn_string.replace("("+section_to_replace+")", new_section)
+        if not br_override:
+            if "("+section_to_replace+")" in self.eqn_string and "("+section_to_replace+")^" not in self.eqn_string:
+                self.eqn_string = self.eqn_string.replace("("+section_to_replace+")", new_section)
+            else:
+                self.eqn_string = self.eqn_string.replace(section_to_replace, new_section)
         else:
             self.eqn_string = self.eqn_string.replace(section_to_replace, new_section)
         self.solution.append(self.eqn_string)
