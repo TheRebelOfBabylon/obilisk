@@ -4271,181 +4271,122 @@ class Algebra(Equation):
         self.update_attr()
         print(self.deg)
         if self.deg[0] == 1.0:
-
             # print("yeet", l ,r)
             s = 0
             while s != len(self.lhs):
-
                 if self.var_type[0] in self.lhs[s]:
-
                     value = self.lhs[s]
                     value = value.replace(self.var_type[0], '')
                     if value == '':
-
                         value = 1 + 0j
-
                     else:
-
                         value = complex(value)
-
                     if round(value.imag, 6) == 0:
                         value = value.real
-
                     other_value = complex(self.rhs[1])
-
                     if round(other_value.imag, 6) == 0:
                         other_value = other_value.real
-
                     self.rhs[1] = str(other_value / value)
                     self.lhs[s] = self.var_type[0]
                     l_string = stringify(self.lhs)
                     r_string = stringify(self.rhs)
                     print(l_string + " = " + r_string)
-
                 s += 1
-
             if (len(self.lhs) == 3) and (self.lhs[1] == self.var_type[0]):
-
                 ans = []
                 temp = complex(self.rhs[1])
-
                 if round(temp.imag, 6) == 0:
                     temp = temp.real
-
                 ans.append(temp)
-
         elif self.deg[0] == 2.0:
-
             if "-" in self.rhs[1]:
-
                 self.rhs[1] = self.rhs[1].replace('-', '')
                 self.lhs.insert(-1, "+")
                 self.lhs.insert(-1, self.rhs[1])
                 self.rhs[1] = "0"
-
             else:
-
                 self.lhs.insert(-1, "-")
                 self.lhs.insert(-1, self.rhs[1])
                 self.rhs[1] = "0"
-
             # Quadratic Formula
-
             ans = self.quadratic()
-
             for s in range(0, len(ans)):
-
                 if round(ans[s].imag, 6) == 0:
                     ans[s] = ans[s].real
-
         # 3rd or polynomial
-
         elif self.deg[0] == 3.0:
-
             if "-" in self.rhs[1]:
-
                 self.rhs[1] = self.rhs[1].replace('-', '')
                 self.lhs.insert(-1, "+")
                 self.lhs.insert(-1, self.rhs[1])
                 self.rhs[1] = "0"
-
             else:
-
                 self.lhs.insert(-1, "-")
                 self.lhs.insert(-1, self.rhs[1])
                 self.rhs[1] = "0"
-
             # Cubic Function Formula
             ans = self.cardano()
-
             for s in range(0, len(ans)):
-
                 if round(ans[s].imag, 6) == 0:
                     ans[s] = ans[s].real
-
         # Ferrari's Method
         elif self.deg[0] == 4.0:
-
             if "-" in self.rhs[1]:
-
                 self.rhs[1] = self.rhs[1].replace('-', '')
                 self.lhs.insert(-1, "+")
                 self.lhs.insert(-1, self.rhs[1])
                 self.rhs[1] = "0"
-
             else:
-
                 self.lhs.insert(-1, "-")
                 self.lhs.insert(-1, self.rhs[1])
                 self.rhs[1] = "0"
-
             ans = self.ferrari()
-
             for s in range(0, len(ans)):
-
                 if round(ans[s].imag, 6) == 0:
                     ans[s] = ans[s].real
-
         # For any polynomial of nth degree where n>=5
         else:
             from math_core.jenkins_traub import real_poly
-
             if (self.rhs[1] != "0") and (self.rhs[1] != "0.0"):
-
                 print("we in here", self.rhs)
                 if "-" in self.rhs[1]:
-
                     self.rhs[1] = self.rhs[1].replace('-', '')
                     self.lhs.insert(-1, "+")
                     self.lhs.insert(-1, self.rhs[1])
                     self.rhs[1] = "0"
-
                 else:
-
                     self.lhs.insert(-1, "-")
                     self.lhs.insert(-1, self.rhs[1])
                     self.rhs[1] = "0"
-
             # print("coeff before JT",coeff)
             print("Checking if 0 is a root via synthetic division...\n")
             self.solution.append("Checking if 0 is a root via synthetic division...")
             self.solution.append("")
             self.solution.append("")
-
             test = self.lin_divide([1, 0])
             test_two = self.lin_divide([1, 0])
             remainder = test[-1]
-
             del test_two[-1]
             test_obj = Algebra()
             test_obj.coeff = copy.deepcopy(test_two)
             test_obj.var_type = copy.deepcopy(self.var_type)
             test_obj.update_params_from_coeff()
             #print(test_obj.eqn_string)
-
             test_temp = test_obj.eqn_string
-
             if remainder < 0:
-
                 test_temp += str(remainder) + "/" + self.var_type[0]
-
             elif remainder > 0:
-
                 test_temp += "+" + str(remainder) + "/" + self.var_type[0]
-
             print("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp + "\n")
             self.solution.append("(" + stringify(self.lhs) + ")/" + self.var_type[0] + " = " + test_temp)
             self.solution.append("")
             self.solution.append("")
-
             if remainder == 0.0:
-
                 success_attempt = False
                 ans = []
                 i = 1
                 while not success_attempt:
-
-                    if len(test) - 2 >= 5:
+                    if len(test) - 2 >= 5
 
                         try:
                             del test[-1]

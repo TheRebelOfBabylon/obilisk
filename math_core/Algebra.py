@@ -32,7 +32,9 @@ from math_core.algebra_formats import quadratic_left_full, quadratic_left_no_b, 
 
 from typing import List, Union, Tuple
 from copy import deepcopy
+import cmath
 import math
+import random
 import re
 
 list_of_templates = [
@@ -235,18 +237,18 @@ class Algebra(Equation):
                 return True, name
         return False, None
 
-    def isolate(self):
+    def isolate(self, verbose: bool = True):
         """Method will take the equation in standard polynomial form and solve it"""
         _, template_name = self.check_solvability()
         if template_name is not None:
             if "right" in template_name:
                 self.swap_lhs_and_rhs()
             if "quadratic" in template_name:
-                return self.quadratic_formula()
+                return self.quadratic_formula(verbose=verbose)
             elif "cubic" in template_name:
-                return self.cardano()
+                return self.cardano(verbose=verbose)
             elif "quartic" in template_name:
-                return self.ferrari()
+                return self.ferrari(verbose=verbose)
         else:
             if not self.check_for_x_power_x():
                 self.compute_low_hanging_fruit()
@@ -261,8 +263,7 @@ class Algebra(Equation):
                 if self.tree.right.type == NUMNode and self.tree.right.value in ("0", "0.0"):
                     self.coeff = self.get_coeff(self.tree)
                     if len(self.coeff) >= 7:
-                        #Jenkins Traub
-                        pass
+                        self.real_poly(self.coeff)
 
     def swap_lhs_and_rhs(self):
         """This method takes the LHS and RHS of AST and swaps them"""
@@ -403,7 +404,7 @@ class Algebra(Equation):
                 elif node.op.tag == MUL:
                     if node.left.type == NUMNode:
                         num = visit_NUMNode(node.left)
-                        if round_complex(num) == 1 and node.right.type != VARNode:
+                        if round_complex(num) == 1 and not check_mono(node):
                             node_string = stringify_node(node.right, self.var)
                             if "1*("+node_string+")" in self.eqn_string:
                                 self.solution.append("1*("+node_string+") = "+node_string)
@@ -419,7 +420,7 @@ class Algebra(Equation):
                             return True
                     elif node.right.type == NUMNode:
                         num = visit_NUMNode(node.right)
-                        if round_complex(num) == 1 and node.left.type != VARNode:
+                        if round_complex(num) == 1 and not check_mono(node):
                             node_string = stringify_node(node.left, self.var)
                             if "(" + node_string + ")*1" in self.eqn_string:
                                 self.solution.append("(" + node_string + ")*1 = " + node_string)
@@ -949,15 +950,16 @@ class Algebra(Equation):
 
     def multiply_div(self):
         """Method finds the divisions in the AST and adds to the numerator the divisor"""
-        for div in self.divisors:
-            while True:
-                new_tree = self.propogate_div(self.tree, div)
-                if stringify_node(new_tree, self.var) == stringify_node(self.tree, self.var):
-                    break
-                self.tree = deepcopy(new_tree)
-            self.solution.append("Multiply the equation by " + stringify_node(div, self.var))
-            self.update_eqn_string(self.eqn_string, stringify_node(new_tree, self.var))
-            self.compute_low_hanging_fruit()
+        if self.divisors:
+            for div in self.divisors:
+                while True:
+                    new_tree = self.propogate_div(self.tree, div)
+                    if stringify_node(new_tree, self.var) == stringify_node(self.tree, self.var):
+                        break
+                    self.tree = deepcopy(new_tree)
+                self.solution.append("Multiply the equation by " + stringify_node(div, self.var))
+                self.update_eqn_string(self.eqn_string, stringify_node(new_tree, self.var))
+                self.compute_low_hanging_fruit()
 
     # TODO - Deal with cases where divisor was in a function.
     def propogate_div(self, node: AST, div: AST, exponent=NumberNode(Token(("1", NUMBER)))) -> AST:
@@ -1062,14 +1064,18 @@ class Algebra(Equation):
             # print(stringify_node(self.tree, self.var),"\n")
             continue
         new_rhs = NumberNode(Token(("0", NUMBER)))
-        new_lhs = BinOpNode(self.tree.left, Token(("-", MINUS)), self.tree.right)
-        new_tree = BinOpNode(new_lhs, Token(("=", EQUAL)), new_rhs)
-        self.solution.append("Moving right hand side of the equation to the left hand side...")
-        self.solution.append("------")
-        self.eqn_string = "("+stringify_node(self.tree.left, self.var)+")-("+stringify_node(self.tree.right, self.var)+")=0"
-        self.solution.append(self.eqn_string)
-        self.solution.append("------")
-        self.tree = deepcopy(new_tree)
+        if new_rhs.__repr__() != self.tree.right.__repr__():
+            new_lhs = BinOpNode(self.tree.left, Token(("-", MINUS)), self.tree.right)
+            new_tree = BinOpNode(new_lhs, Token(("=", EQUAL)), new_rhs)
+            self.solution.append("Moving right hand side of the equation to the left hand side...")
+            self.solution.append("------")
+            self.eqn_string = "("+stringify_node(self.tree.left, self.var)+")-("+stringify_node(self.tree.right, self.var)+")=0"
+            self.solution.append(self.eqn_string)
+            self.solution.append("------")
+            self.tree = deepcopy(new_tree)
+            for i in self.solution:
+                print(i)
+            self.compute_low_hanging_fruit()
         while self.compute_monomial_ops(self.tree):
             # print(stringify_node(self.tree, self.var),"\n")
             continue
@@ -1203,12 +1209,13 @@ class Algebra(Equation):
             inter = self.exp_foiling(right_node)
             return self.foiling(left_node, inter)
 
-    def foiling(self, left_node: AST, right_node: AST) -> AST:
+    def foiling(self, left_node: AST, right_node: AST, verbose: bool = True) -> AST:
         """Method multiplies two polynomials"""
         left_string = stringify_node(left_node, self.var)
         left_string = "(" + left_string + ")"
         right_string = stringify_node(right_node, self.var)
         right_string = "(" + right_string + ")"
+        print(f"{left_string}*{right_string}")
         left_coeff = self.get_coeff(left_node)
         right_coeff = self.get_coeff(right_node)
         ans_coeff = []
@@ -1217,6 +1224,8 @@ class Algebra(Equation):
                 new_coeff = coeff_l*coeff_r
                 if new_coeff != 0:
                     ans_coeff.append((new_coeff, deg_l+deg_r))
+        # if not ans_coeff:
+        #     ans_coeff == [(0, 0)]
         highest_deg = ans_coeff[0][1]
         new_ans = []
         for i in range(highest_deg, -1, -1):
@@ -1228,7 +1237,8 @@ class Algebra(Equation):
                 new_ans.append((temp, i))
         ans_node = self.build_node_from_coeff(new_ans)
         ans_string = stringify_node(ans_node, self.var)
-        self.solution.append(left_string + "*" + right_string + " = " + ans_string)
+        if verbose:
+            self.solution.append(left_string + "*" + right_string + " = " + ans_string)
         return ans_node
 
     def build_node_from_coeff(self, new_ans: List[Tuple[Union[int, complex, float], int]]) -> AST:
@@ -1239,22 +1249,31 @@ class Algebra(Equation):
                 if ans_node is None:
                     ans_node = NumberNode(Token((str(coeff), NUMBER)))
                 else:
-                    right_term = NumberNode(Token((str(abs(coeff)), NUMBER)))
-                    if coeff < 0:
-                        ans_node = BinOpNode(ans_node, Token(("-", MINUS)), right_term)
-                    else:
+                    if type(coeff) is complex:
+                        right_term = NumberNode(Token((str(coeff), NUMBER)))
                         ans_node = BinOpNode(ans_node, Token(("+", PLUS)), right_term)
+                    else:
+                        right_term = NumberNode(Token((str(abs(coeff)), NUMBER)))
+                        if coeff < 0:
+                            ans_node = BinOpNode(ans_node, Token(("-", MINUS)), right_term)
+                        else:
+                            ans_node = BinOpNode(ans_node, Token(("+", PLUS)), right_term)
             elif deg == 1:
                 if ans_node is None:
                     ans_node = BinOpNode(NumberNode(Token((str(coeff), NUMBER))), Token(("*", MUL)),
                                          VariableNode(Token((self.var, VARIABLE))))
                 else:
-                    right_term = BinOpNode(NumberNode(Token((str(abs(coeff)), NUMBER))), Token(("*", MUL)),
-                                           VariableNode(Token((self.var, VARIABLE))))
-                    if coeff < 0:
-                        ans_node = BinOpNode(ans_node, Token(("-", MINUS)), right_term)
-                    else:
+                    if type(coeff) is complex:
+                        right_term = BinOpNode(NumberNode(Token((str(coeff), NUMBER))), Token(("*", MUL)),
+                                               VariableNode(Token((self.var, VARIABLE))))
                         ans_node = BinOpNode(ans_node, Token(("+", PLUS)), right_term)
+                    else:
+                        right_term = BinOpNode(NumberNode(Token((str(abs(coeff)), NUMBER))), Token(("*", MUL)),
+                                               VariableNode(Token((self.var, VARIABLE))))
+                        if coeff < 0:
+                            ans_node = BinOpNode(ans_node, Token(("-", MINUS)), right_term)
+                        else:
+                            ans_node = BinOpNode(ans_node, Token(("+", PLUS)), right_term)
             else:
                 if ans_node is None:
                     base = BinOpNode(NumberNode(Token((str(coeff), NUMBER))), Token(("*", MUL)),
@@ -1262,17 +1281,23 @@ class Algebra(Equation):
                     exponent = NumberNode(Token((str(deg), NUMBER)))
                     ans_node = BinOpNode(base, Token(("^", EXP)), exponent)
                 else:
-                    base = BinOpNode(NumberNode(Token((str(abs(coeff)), NUMBER))), Token(("*", MUL)),
-                                     VariableNode(Token((self.var, VARIABLE))))
                     exponent = NumberNode(Token((str(deg), NUMBER)))
-                    right_term = BinOpNode(base, Token(("^", EXP)), exponent)
-                    if coeff < 0:
-                        ans_node = BinOpNode(ans_node, Token(("-", MINUS)), right_term)
-                    else:
+                    if type(coeff) is complex:
+                        base = BinOpNode(NumberNode(Token((str(coeff), NUMBER))), Token(("*", MUL)),
+                                         VariableNode(Token((self.var, VARIABLE))))
+                        right_term = BinOpNode(base, Token(("^", EXP)), exponent)
                         ans_node = BinOpNode(ans_node, Token(("+", PLUS)), right_term)
+                    else:
+                        base = BinOpNode(NumberNode(Token((str(abs(coeff)), NUMBER))), Token(("*", MUL)),
+                                         VariableNode(Token((self.var, VARIABLE))))
+                        right_term = BinOpNode(base, Token(("^", EXP)), exponent)
+                        if coeff < 0:
+                            ans_node = BinOpNode(ans_node, Token(("-", MINUS)), right_term)
+                        else:
+                            ans_node = BinOpNode(ans_node, Token(("+", PLUS)), right_term)
         return ans_node
 
-    def poly_add(self, left_node: AST, right_node: AST, op: str):
+    def poly_add(self, left_node: AST, right_node: AST, op: str, verbose: bool = True):
         """This method performs polynomial addition"""
         left_string = stringify_node(left_node, self.var)
         left_string = "(" + left_string + ")"
@@ -1325,7 +1350,8 @@ class Algebra(Equation):
         ans_string = stringify_node(ans_node, self.var)
         ans_string = ans_string.replace("(", '')
         ans_string = ans_string.replace(")", '')
-        self.solution.append(left_string + op + right_string + " = " + ans_string)
+        if verbose:
+            self.solution.append(left_string + op + right_string + " = " + ans_string)
         return ans_node
 
     def add_coeff(self, left: Union[int, complex, float], op: str, right: Union[int, complex, float]):
@@ -1355,223 +1381,232 @@ class Algebra(Equation):
                     new_coeff.append((coeff[k][0], coeff[k][1]))
         return new_coeff
 
+    def basic_algebraic_solving(self, node: AST = None) -> List[Union[int, float, complex]]:
+        """Method solves equations where the highest degree in the polynomial is one"""
+        if node is None:
+            coeff = self.get_coeff(self.tree)
+        else:
+            coeff = self.get_coeff(node)
+        #ax + b = 0
+        if coeff[0][1] == 1:
+            a = coeff[0][0]
+        else:
+            raise ValueError("Polynomial must be linear")
+        if coeff[1][1] == 0:
+            b = -coeff[1][0]
+        else:
+            raise ValueError("Polynomial must be linear")
+        return [round_complex(b/a)]
 
-    def quadratic_formula(self) -> List[Union[int, float, complex]]:
+    def quadratic_formula(self, node: AST = None, verbose: bool = True) -> List[Union[int, float, complex]]:
         """Method solves a quadratic using the quadratic formula"""
-        self.coeff = self.get_coeff(self.tree)
-        if len(self.coeff) != 4:
+        if node is None:
+            coeff = self.get_coeff(self.tree)
+        else:
+            coeff = self.get_coeff(node)
+        if len(coeff) != 4:
             raise ValueError("Quadratics must have 3 terms.")
-        if self.coeff[-1] != 0.0:
+        if coeff[-1] != 0.0:
             # TODO - We need to move all numerical values from RHS to LHS. RHS must be equal to 0
             pass
-        self.solution.append("")
-        print("\n-- Using the quadratic formula --")
-        self.solution.append("-- Using the quadratic formula --")
-        print("ax^2 + bx + c = 0")
-        self.solution.append("ax^2 + bx + c = 0")
-        print("x = (-b +/- √(b^2 - 4ac))/2a\n")
-        self.solution.append("x = (-b +/- √(b^2 - 4ac))/2a")
+        if verbose:
+            self.solution.append("")
+            print("\n-- Using the quadratic formula --")
+            self.solution.append("-- Using the quadratic formula --")
+            print("ax^2 + bx + c = 0")
+            self.solution.append("ax^2 + bx + c = 0")
+            print("x = (-b +/- √(b^2 - 4ac))/2a\n")
+            self.solution.append("x = (-b +/- √(b^2 - 4ac))/2a")
 
-        self.solution.append("")
-        a = self.coeff[0][0]
-        print("a = " + str(a))
-        self.solution.append("a = " + str(a))
-        b = self.coeff[1][0]
-        print("b = " + str(b))
-        self.solution.append("b = " + str(b))
-        c = self.coeff[2][0]
-        print("c = " + str(c))
-        self.solution.append("c = " + str(c))
-        print("")
+        a = coeff[0][0]
+        b = coeff[1][0]
+        c = coeff[2][0]
+        if verbose:
+            self.solution.append("")
+            print("a = " + str(a))
+            self.solution.append("a = " + str(a))
+            print("b = " + str(b))
+            self.solution.append("b = " + str(b))
+            print("c = " + str(c))
+            self.solution.append("c = " + str(c))
+            print("")
 
         ans = [0, 0]
         ans[0] = ((-1 * b) + ((b ** 2) - (4 * a * c)) ** 0.5) / (2 * a)
         ans[-1] = ((-1 * b) - ((b ** 2) - (4 * a * c)) ** 0.5) / (2 * a)
 
-        self.solution.append("\nThe final answers are:")
+        if verbose:
+            self.solution.append("\nThe final answers are:")
         for i in range(len(ans)):
             ans[i] = round_complex(ans[i])
-            self.solution.append(str(ans[i]))
+            if verbose:
+                self.solution.append(str(ans[i]))
 
         return ans
 
-    def cardano(self) -> List[Union[int, float, complex]]:
+    def cardano(self, node: AST = None, verbose: bool = True) -> List[Union[int, float, complex]]:
         """Root finding formula for cubic polynomials."""
-        self.coeff = self.get_coeff(self.tree)
-        if len(self.coeff) != 5:
+        if node is None:
+            coeff = self.get_coeff(self.tree)
+        else:
+            coeff = self.get_coeff(node)
+        if len(coeff) != 5:
             raise ValueError("Cubics must have 4 terms.")
-        if self.coeff[-1] != 0.0:
+        if coeff[-1] != 0.0:
             # TODO - We need to move all numerical values from RHS to LHS. RHS must be equal to 0
             pass
-        self.solution.append("")
-        print("\n-- Using Cardano's Formula: --")
-        self.solution.append("-- Using Cardano's Formula: --")
-        print("ax^3 + bx^2 + cx + d = 0\n")
-        self.solution.append("ax^3 + bx^2 + cx + d = 0")
-        print("x1 = s+t-(b/3a)")
-        self.solution.append("x1 = s+t-(b/3a)")
-        print("x2 = -(s+t)/2 - (b/3a) + (i*√3/2)*(s-t)")
-        self.solution.append("x2 = -(s+t)/2 - (b/3a) + (i*√3/2)*(s-t)")
-        print("x3 = -(s+t)/2 - (b/3a) - (i*√3/2)*(s-t)\n")
-        self.solution.append("x3 = -(s+t)/2 - (b/3a) - (i*√3/2)*(s-t)")
-
-        self.solution.append("")
-        a = self.coeff[0][0]
-        print("a = " + str(a))
-        self.solution.append("a = " + str(a))
-        b = self.coeff[1][0]
-        print("b = " + str(b))
-        self.solution.append("b = " + str(b))
-        c = self.coeff[2][0]
-        print("c = " + str(c))
-        self.solution.append("c = " + str(c))
-        d = self.coeff[3][0]
-        print("d = " + str(d))
-        self.solution.append("d = " + str(d))
-        print("")
-
+        a = coeff[0][0]
+        b = coeff[1][0]
+        c = coeff[2][0]
+        d = coeff[3][0]
         # depressed cubic
         p = ((3 * a * c) - (b ** 2)) / (9 * (a ** 2))
         q = ((9 * a * b * c) - (27 * (a ** 2) * d) - (2 * (b ** 3))) / (54 * (a ** 3))
-
-        self.solution.append("")
-        print("Depressed cubic: y^3 + 3py - 2q = 0\n")
-        self.solution.append("Depressed cubic: y^3 + 3py - 2q = 0")
-        print("y^3+" + str(3 * p) + "y+" + str(-2 * q) + "=0")
-        self.solution.append("y^3+" + str(3 * p) + "y+" + str(-2 * q) + "=0")
-        self.solution.append("")
-        print("p = (3ac - b^2)/9a^2 = " + str(p))
-        self.solution.append("p = (3ac - b^2)/9a^2 = " + str(p))
-        print("q = (9abc - 27a^2d - 2b^3)/54a^3 = " + str(q) + "\n")
-        self.solution.append("q = (9abc - 27a^2d - 2b^3)/54a^3 = " + str(q))
-
         s = cube_root((q) + (((p) ** 3) + ((q) ** 2)) ** (1 / 2))
         t = cube_root((q) - (((p) ** 3) + ((q) ** 2)) ** (1 / 2))
-
-        self.solution.append("")
-        print("s = (q + √(p^3 + q^2))^(1/3) = " + str(s))
-        self.solution.append("s = (q + √(p^3 + q^2))^(1/3) = " + str(s))
-        print("t = (q - √(p^3 + q^2))^(1/3) = " + str(t) + "\n")
-        self.solution.append("t = (q - √(p^3 + q^2))^(1/3) = " + str(t))
-
+        if verbose:
+            self.solution.append("")
+            print("\n-- Using Cardano's Formula: --")
+            self.solution.append("-- Using Cardano's Formula: --")
+            print("ax^3 + bx^2 + cx + d = 0\n")
+            self.solution.append("ax^3 + bx^2 + cx + d = 0")
+            print("x1 = s+t-(b/3a)")
+            self.solution.append("x1 = s+t-(b/3a)")
+            print("x2 = -(s+t)/2 - (b/3a) + (i*√3/2)*(s-t)")
+            self.solution.append("x2 = -(s+t)/2 - (b/3a) + (i*√3/2)*(s-t)")
+            print("x3 = -(s+t)/2 - (b/3a) - (i*√3/2)*(s-t)\n")
+            self.solution.append("x3 = -(s+t)/2 - (b/3a) - (i*√3/2)*(s-t)")
+            self.solution.append("")
+            print("a = " + str(a))
+            self.solution.append("a = " + str(a))
+            print("b = " + str(b))
+            self.solution.append("b = " + str(b))
+            print("c = " + str(c))
+            self.solution.append("c = " + str(c))
+            print("d = " + str(d))
+            self.solution.append("d = " + str(d))
+            print("")
+            self.solution.append("")
+            print("Depressed cubic: y^3 + 3py - 2q = 0\n")
+            self.solution.append("Depressed cubic: y^3 + 3py - 2q = 0")
+            print("y^3+" + str(3 * p) + "y+" + str(-2 * q) + "=0")
+            self.solution.append("y^3+" + str(3 * p) + "y+" + str(-2 * q) + "=0")
+            self.solution.append("")
+            print("p = (3ac - b^2)/9a^2 = " + str(p))
+            self.solution.append("p = (3ac - b^2)/9a^2 = " + str(p))
+            print("q = (9abc - 27a^2d - 2b^3)/54a^3 = " + str(q) + "\n")
+            self.solution.append("q = (9abc - 27a^2d - 2b^3)/54a^3 = " + str(q))
+            self.solution.append("")
+            print("s = (q + √(p^3 + q^2))^(1/3) = " + str(s))
+            self.solution.append("s = (q + √(p^3 + q^2))^(1/3) = " + str(s))
+            print("t = (q - √(p^3 + q^2))^(1/3) = " + str(t) + "\n")
+            self.solution.append("t = (q - √(p^3 + q^2))^(1/3) = " + str(t))
         ans = [0] * 3
         ans[0] = s + t - (b / (3 * a))
         ans[1] = (-1 * ((s + t) / 2)) - (b / (3 * a)) + (((1j * (3 ** 0.5)) / 2) * (s - t))
         ans[-1] = (-1 * ((s + t) / 2)) - (b / (3 * a)) - (((1j * (3 ** 0.5)) / 2) * (s - t))
-
-        self.solution.append("\nThe final answers are:")
+        if verbose:
+            self.solution.append("\nThe final answers are:")
         for i in range(len(ans)):
             ans[i] = round_complex(ans[i])
-            self.solution.append(str(ans[i]))
-
+            if verbose:
+                self.solution.append(str(ans[i]))
         return ans
 
-    def ferrari(self) -> List[Union[int, float, complex]]:
+    def ferrari(self, node: AST = None, verbose: bool = True) -> List[Union[int, float, complex]]:
         """Root finding formula for quartic polynomials."""
-        self.coeff = self.get_coeff(self.tree)
-        if len(self.coeff) != 6:
+        if node is None:
+            coeff = self.get_coeff(self.tree)
+        else:
+            coeff = self.get_coeff(node)
+        if len(coeff) != 6:
             raise ValueError("Quartics must have 5 terms.")
-        if self.coeff[-1] != 0.0:
+        if coeff[-1] != 0.0:
             # TODO - We need to move all numerical values from RHS to LHS. RHS must be equal to 0
             pass
-        self.solution.append("")
-        print("\n-- Using Ferrari's Method: --")
-        self.solution.append("-- Using Ferrari's Method: --")
-        print("ax^4 + bx^3 + cx^2 + dx + e = 0\n")
-        self.solution.append("ax^4 + bx^3 + cx^2 + dx + e = 0")
-
-        self.solution.append("")
-        a = self.coeff[0][0]
-        print("a = " + str(a))
-        self.solution.append("a = " + str(a))
-        b = self.coeff[1][0]
-        print("b = " + str(b))
-        self.solution.append("b = " + str(b))
-        c = self.coeff[2][0]
-        print("c = " + str(c))
-        self.solution.append("c = " + str(c))
-        d = self.coeff[3][0]
-        print("d = " + str(d))
-        self.solution.append("d = " + str(d))
-        e = self.coeff[4][0]
-        print("e = " + str(e))
-        self.solution.append("e = " + str(e))
-        print("")
-
+        a = coeff[0][0]
+        b = coeff[1][0]
+        c = coeff[2][0]
+        d = coeff[3][0]
+        e = coeff[4][0]
         # depressed quartic
-
-        self.solution.append("")
-        print("Substitution: x = y-(b/4a)\n")
-        self.solution.append("Substitution: x = y-(b/4a)")
-        print("Depressed quartic: y^4 + py^2 + qy + r = 0")
-        self.solution.append("Depressed quartic: y^4 + py^2 + qy + r = 0")
-
-        self.solution.append("")
-        print("y1 = √((-1/2)*(2z - p)) + √((1/2)*(-2z - p + 2q/√(2z - p)))")
-        self.solution.append("y1 = √((-1/2)*(2z - p)) + √((1/2)*(-2z - p + 2q/√(2z - p)))")
-
-        print("y2 = √((-1/2)*(2z - p)) - √((1/2)*(-2z - p + 2q/√(2z - p)))")
-        self.solution.append("y2 = √((-1/2)*(2z - p)) - √((1/2)*(-2z - p + 2q/√(2z - p)))")
-
-        print("y3 = √((1/2)*(2z - p)) + √((1/2)*(-2z - p - 2q/√(2z - p)))")
-        self.solution.append("y3 = √((1/2)*(2z - p)) + √((1/2)*(-2z - p - 2q/√(2z - p)))")
-
-        print("y4 = √((1/2)*(2z - p)) - √((1/2)*(-2z - p - 2q/√(2z - p)))\n")
-        self.solution.append("y4 = √((1/2)*(2z - p)) - √((1/2)*(-2z - p - 2q/√(2z - p)))")
-
         p = (c / a) - ((3 * b ** 2) / (8 * a ** 2))
         q = (d / a) - ((b * c) / (2 * a ** 2)) + (b ** 3 / (8 * a ** 3))
         r = (e / a) - ((b * d) / (4 * a ** 2)) + (((b ** 2) * c) / (16 * a ** 3)) - ((3 * b ** 4) / (256 * a ** 4))
-
-        self.solution.append("")
-        print("p = ((c/a) - 3b^2)/8a^2 = " + str(p))
-        self.solution.append("p = ((c/a) - 3b^2)/8a^2 = " + str(p))
-        print("q = ((d/a) - bc/(2a^2) + b^3)/8a^3 = " + str(q))
-        self.solution.append("q = ((d/a) - bc/(2a^2) + b^3)/8a^3 = " + str(q))
-        print("r = ((e/a) - bd/(4a^2) + b^2c/16a^3 - 3b^4)/256a^4 = " + str(q) + "\n")
-        self.solution.append("r = ((e/a) - bd/(4a^2) + b^2c/16a^3 - 3b^4)/256a^4 = " + str(q))
-
-        self.solution.append("")
         depressed = "y^4+" + str(p) + "y^2+" + str(q) + "y+" + str(r) + "=0"
-        print("Depressed quartic is " + depressed + "\n")
-        self.solution.append("Depressed quartic is " + depressed)
-
-        self.solution.append("")
-        # resolvent cubic
-        print("Resolvent cubic: 8z^3 - 4pz^2 - 8rz + (4pr - q^2) = 0")
-        self.solution.append("Resolvent cubic: 8z^3 - 4pz^2 - 8rz + (4pr - q^2) = 0")
+        #resolvent cubic
         resolvent = "8z^3+" + str(-4 * p) + "z^2+" + str(-8 * r) + "z+" + str((4 * p * r) - (q ** 2)) + "=0"
-        print(resolvent)
-        self.solution.append(resolvent)
+        if verbose:
+            self.solution.append("")
+            print("\n-- Using Ferrari's Method: --")
+            self.solution.append("-- Using Ferrari's Method: --")
+            print("ax^4 + bx^3 + cx^2 + dx + e = 0\n")
+            self.solution.append("ax^4 + bx^3 + cx^2 + dx + e = 0")
+            self.solution.append("")
+            print("a = " + str(a))
+            self.solution.append("a = " + str(a))
+            print("b = " + str(b))
+            self.solution.append("b = " + str(b))
+            print("c = " + str(c))
+            self.solution.append("c = " + str(c))
+            print("d = " + str(d))
+            self.solution.append("d = " + str(d))
+            print("e = " + str(e))
+            self.solution.append("e = " + str(e))
+            print("")
+            self.solution.append("")
+            print("Substitution: x = y-(b/4a)\n")
+            self.solution.append("Substitution: x = y-(b/4a)")
+            print("Depressed quartic: y^4 + py^2 + qy + r = 0")
+            self.solution.append("Depressed quartic: y^4 + py^2 + qy + r = 0")
+            self.solution.append("")
+            print("y1 = √((-1/2)*(2z - p)) + √((1/2)*(-2z - p + 2q/√(2z - p)))")
+            self.solution.append("y1 = √((-1/2)*(2z - p)) + √((1/2)*(-2z - p + 2q/√(2z - p)))")
+            print("y2 = √((-1/2)*(2z - p)) - √((1/2)*(-2z - p + 2q/√(2z - p)))")
+            self.solution.append("y2 = √((-1/2)*(2z - p)) - √((1/2)*(-2z - p + 2q/√(2z - p)))")
+            print("y3 = √((1/2)*(2z - p)) + √((1/2)*(-2z - p - 2q/√(2z - p)))")
+            self.solution.append("y3 = √((1/2)*(2z - p)) + √((1/2)*(-2z - p - 2q/√(2z - p)))")
+            print("y4 = √((1/2)*(2z - p)) - √((1/2)*(-2z - p - 2q/√(2z - p)))\n")
+            self.solution.append("y4 = √((1/2)*(2z - p)) - √((1/2)*(-2z - p - 2q/√(2z - p)))")
+            self.solution.append("")
+            print("p = ((c/a) - 3b^2)/8a^2 = " + str(p))
+            self.solution.append("p = ((c/a) - 3b^2)/8a^2 = " + str(p))
+            print("q = ((d/a) - bc/(2a^2) + b^3)/8a^3 = " + str(q))
+            self.solution.append("q = ((d/a) - bc/(2a^2) + b^3)/8a^3 = " + str(q))
+            print("r = ((e/a) - bd/(4a^2) + b^2c/16a^3 - 3b^4)/256a^4 = " + str(q) + "\n")
+            self.solution.append("r = ((e/a) - bd/(4a^2) + b^2c/16a^3 - 3b^4)/256a^4 = " + str(q))
+            self.solution.append("")
+            print("Depressed quartic is " + depressed + "\n")
+            self.solution.append("Depressed quartic is " + depressed)
+            self.solution.append("")
+            # resolvent cubic
+            print("Resolvent cubic: 8z^3 - 4pz^2 - 8rz + (4pr - q^2) = 0")
+            self.solution.append("Resolvent cubic: 8z^3 - 4pz^2 - 8rz + (4pr - q^2) = 0")
+            print(resolvent)
+            self.solution.append(resolvent)
+            self.solution.append("")
+            print("the values of z of " + resolvent + " are")
+            self.solution.append("the values of z of " + resolvent + " are")
 
         lexer = Lexer(resolvent)
         tokens = lexer.obilisk_lex()
         tree_build = TreeBuilder(tokens, has_var=True)
         tree, _ = tree_build.build_tree()
         cubic = Algebra(resolvent, tokens, tree, lexer.vars[0])
-        cubic_ans = cubic.isolate()
-
-        for i in cubic.solution:
-            self.solution.append(i)
-
-        self.solution.append("")
-        print("the values of z of " + resolvent + " are")
-        self.solution.append("the values of z of " + resolvent + " are")
-
+        cubic_ans = cubic.isolate(verbose=verbose)
+        if verbose:
+            for i in cubic.solution:
+                self.solution.append(i)
+            for i in cubic_ans:
+                print(i)
+                self.solution.append(str(i))
         for i in cubic_ans:
-            print(i)
-            self.solution.append(str(i))
-
-        for i in cubic_ans:
-
             try:
-
-                self.solution.append("")
-                print("\nTrying " + str(i) + " to find roots of depressed quartic " + depressed + " ...\n")
-                self.solution.append("Trying " + str(i) + " to find roots of depressed quartic " + depressed + " ...")
-
+                if verbose:
+                    self.solution.append("")
+                    print("\nTrying " + str(i) + " to find roots of depressed quartic " + depressed + " ...\n")
+                    self.solution.append("Trying " + str(i) + " to find roots of depressed quartic " + depressed + " ...")
                 s = i
-
                 y_one = ((-1 / 2) * ((2 * s) - p) ** (1 / 2)) + (
                         (1 / 2) * ((-2 * s) - p + (2 * q / ((2 * s) - p) ** (1 / 2))) ** (1 / 2))
                 y_two = ((-1 / 2) * ((2 * s) - p) ** (1 / 2)) - (
@@ -1580,174 +1615,314 @@ class Algebra(Equation):
                         (1 / 2) * ((-2 * s) - p - (2 * q / ((2 * s) - p) ** (1 / 2))) ** (1 / 2))
                 y_four = ((1 / 2) * ((2 * s) - p) ** (1 / 2)) - (
                         (1 / 2) * ((-2 * s) - p - (2 * q / ((2 * s) - p) ** (1 / 2))) ** (1 / 2))
-
             except ZeroDivisionError:
-
-                print("attempt failed...")
-                self.solution.append("attempt failed...")
-
+                if verbose:
+                    print("attempt failed...")
+                    self.solution.append("attempt failed...")
             else:
-
                 break
-
-        print("Success!\n")
-        self.solution.append("Success!")
-        self.solution.append("")
-
-        print("The values of y are")
-        self.solution.append("The values of y are")
-        print(y_one)
-        self.solution.append(str(y_one))
-        print(y_two)
-        self.solution.append(str(y_two))
-        print(y_three)
-        self.solution.append(str(y_three))
-        print(y_four, "\n")
-        self.solution.append(str(y_four))
-        self.solution.append("\n")
-
-        print("Recall x = y-(b/4a)\n")
-        self.solution.append("Recall x = y-(b/4a)")
-        self.solution.append("")
-
+        if verbose:
+            print("Success!\n")
+            self.solution.append("Success!")
+            self.solution.append("")
+            print("The values of y are")
+            self.solution.append("The values of y are")
+            print(y_one)
+            self.solution.append(str(y_one))
+            print(y_two)
+            self.solution.append(str(y_two))
+            print(y_three)
+            self.solution.append(str(y_three))
+            print(y_four, "\n")
+            self.solution.append(str(y_four))
+            self.solution.append("\n")
+            print("Recall x = y-(b/4a)\n")
+            self.solution.append("Recall x = y-(b/4a)")
+            self.solution.append("")
         ans = [0, 0, 0, 0]
-
         ans[0] = y_one - (b / (4 * a))
-        self.solution.append("x = " + str(y_one) + "-(" + str(b) + "/(4*" + str(a) + "))")
         ans[1] = y_two - (b / (4 * a))
-        self.solution.append("x = " + str(y_two) + "-(" + str(b) + "/(4*" + str(a) + "))")
         ans[2] = y_three - (b / (4 * a))
-        self.solution.append("x = " + str(y_three) + "-(" + str(b) + "/(4*" + str(a) + "))")
         ans[-1] = y_four - (b / (4 * a))
-        self.solution.append("x = " + str(y_four) + "-(" + str(b) + "/(4*" + str(a) + "))")
-
-        self.solution.append("\nThe final answers are:")
+        if verbose:
+            self.solution.append("x = " + str(y_one) + "-(" + str(b) + "/(4*" + str(a) + "))")
+            self.solution.append("x = " + str(y_two) + "-(" + str(b) + "/(4*" + str(a) + "))")
+            self.solution.append("x = " + str(y_three) + "-(" + str(b) + "/(4*" + str(a) + "))")
+            self.solution.append("x = " + str(y_four) + "-(" + str(b) + "/(4*" + str(a) + "))")
+            self.solution.append("\nThe final answers are:")
         for i in range(len(ans)):
             ans[i] = round_complex(ans[i])
-            self.solution.append(str(ans[i]))
-
+            if verbose:
+                self.solution.append(str(ans[i]))
         return ans
 
-    # def real_poly(eqn: Calculus) -> List[Union[int, float, complex]]:
-    #     """Top level function which calls the rpoly, Jenkins-Traub algorithm."""
-    #     num_roots = eqn.deg[0]
-    #     ans = []
-    #     var = eqn.var_type[0]
-    #     # Fundamental theorem of algebra says number of highest exponent is the number of roots
-    #     i = 0
-    #     while i != num_roots:
-    #         root = rpoly(eqn)
-    #         ans.append(root)
-    #         i += 1
-    #         last_run = (num_roots - 1 == i)
-    #         # if not last_run:
-    #         divisor = [1, -1 * root]
-    #         # print("x+"+str(divisor[1]))
-    #         new_eqn = eqn.lin_divide(divisor)
-    #         del new_eqn[-1]
-    #         # print(new_eqn.eqn)
-    #         eqn.reset_params()
-    #         eqn.coeff = copy.deepcopy(new_eqn)
-    #         eqn.var_type = [var]
-    #         eqn.update_params_from_coeff()
-    #     return ans
-    #
-    # def rpoly(eqn: Calculus) -> Union[int, float, complex]:
-    #     """RPOLY Jenkins-Traub algorithm for polynomial root finding."""
-    #     # print("\n", eqn.eqn_string, eqn.deg)
-    #     coeff = Calculus()
-    #     coeff.coeff = eqn.normalize()
-    #     coeff.var_type = eqn.var_type
-    #     coeff.update_params_from_coeff()
-    #     # Stage 1: No-shift process. Assuming M = 5
-    #     K = Calculus()
-    #     K.coeff = coeff.coeff_derivative()
-    #     K.var_type = coeff.var_type
-    #     K.update_params_from_coeff()
-    #     for i in range(0, 5):
-    #         constant = -1 * K.evaluate(0) / coeff.evaluate(0)
-    #         P_z = Calculus()
-    #         P_z.coeff = coeff.poly_multiply(constant)
-    #         K_prime = Calculus()
-    #         K_prime.coeff = poly_add(K.coeff, P_z.coeff)
-    #         divisor = [1, 0]
-    #         new_K = Calculus()
-    #         new_K.coeff = K_prime.lin_divide(divisor)
-    #         del new_K.coeff[-1]
-    #         K.reset_params()
-    #         K.coeff = copy.deepcopy(new_K.coeff)
-    #         K.var_type = coeff.var_type
-    #         K.update_params_from_coeff()
-    #     # Stage 2: Fixed-shift Process
-    #     t_curr = t_old = t_new = None
-    #     stage_two_success = False
-    #     root_found = False
-    #     while not root_found:
-    #         while not stage_two_success:
-    #             s = get_random_root(coeff)
-    #             # print("s",s)
-    #             for i in range(0, 100):
-    #                 constant = -1 * K.evaluate(s) / coeff.evaluate(s)
-    #                 P_z.coeff = coeff.poly_multiply(constant)
-    #                 K_prime.coeff = poly_add(K.coeff, P_z.coeff)
-    #                 divisor = [1, -1 * s]
-    #                 new_K.coeff = K_prime.lin_divide(divisor)
-    #                 del new_K.coeff[-1]
-    #                 K_bar = Calculus()
-    #                 K_bar.coeff = K.normalize()
-    #                 new_K_bar = Calculus()
-    #                 new_K_bar.coeff = new_K.normalize()
-    #                 t_curr = s - (coeff.evaluate(s) / K_bar.evaluate(s))
-    #                 t_new = s - (coeff.evaluate(s) / new_K_bar.evaluate(s))
-    #                 if i > 0 and abs(t_curr - t_old) <= 0.5 * abs(t_old) and abs(t_new - t_curr) <= 0.5 * abs(t_curr):
-    #                     stage_two_success = True
-    #                     # print("break",stage_two_success,root_found)
-    #                     break
-    #                 t_old = t_curr
-    #                 K = new_K
-    #             if not stage_two_success:
-    #                 print("Retrying Stage 2")
-    #         # Stage 3: Variable-shift process
-    #         old_err = coeff.evaluate(s)
-    #         curr_err = 1
-    #         K_bar.coeff = K.normalize()
-    #         s = s - (coeff.evaluate(s) / K_bar.evaluate(s))
-    #         old_s = 0
-    #         stage_three_success = False
-    #         for i in range(0, 10000):
-    #             if abs(coeff.evaluate(s)) < abs(10 ** (-5)):
-    #                 stage_three_success = True
-    #                 break
-    #             constant = -1 * K.evaluate(s) / coeff.evaluate(s)
-    #             P_z.coeff = coeff.poly_multiply(constant)
-    #             K_prime.coeff = poly_add(K.coeff, P_z.coeff)
-    #             divisor = [1, -1 * s]
-    #             new_K.coeff = K_prime.lin_divide(divisor)
-    #             del new_K.coeff[-1]
-    #             new_K_bar.coeff = new_K.normalize()
-    #             s = s - (coeff.evaluate(s) / new_K_bar.evaluate(s))
-    #             curr_err = coeff.evaluate(s)
-    #             K = new_K
-    #             if math.isnan(s.imag) and math.isnan(s.real):
-    #                 stage_three_success = False
-    #                 break
-    #         if stage_three_success:
-    #             # print("Root is",s)
-    #             root_found = True
-    #         else:
-    #             stage_two_success = False
-    #     return s
-    #
-    # def get_random_root(eqn: Calculus) -> Union[int, float, complex]:
-    #     """Function for finding random roots."""
-    #     cauchy_eqn = Calculus()
-    #     cauchy_eqn.coeff = eqn.cauchy_poly()
-    #     # print("Cauchy", cauchy_eqn.coeff)
-    #     beta = cauchy_eqn.newton_raphson()
-    #     # print("beta",beta)
-    #     rand = random.uniform(0, 1) * 2 * math.pi
-    #     root = abs(beta) * cmath.exp(1j * rand)
-    #     return root
+    def lg_poly_root_finding(self):
+        """This method solves polynomials of power 5 or greater using the Jenkins-Traub algorithm"""
+        self.solution.append("Checking if 0 is a root via synthetic division...")
+        coeff = self.get_coeff(self.tree)
+        test = self.lin_divide(coeff, [(1, 1), (0, 0)])
+        test_node = self.build_node_from_coeff(test[:-1])
+        test_node_string = stringify_node(test_node, self.var)
+        if test[-1][1] == -1:
+            remainder = test[-1][0]
+        else:
+            raise ValueError(f"Linear division returned a polynomial with last term not power of -1 {test}")
+        if remainder < 0:
+            test_node_string += "-" + str(abs(remainder)) + "/" + self.var
+        elif remainder > 0:
+            test_node_string += "+" + str(remainder) + "/" + self.var
+        print("(" + stringify_node(self.tree.lhs, self.var) + ")/" + self.var + " = " + test_node_string + "\n")
+        self.solution.append("(" + stringify_node(self.tree.lhs, self.var) + ")/" + self.var + " = " + test_node_string)
+        if remainder == 0:
+            success_attempt = False
+            ans = []
+            i = 1
+            while not success_attempt:
+                if len(test) - 2 >= 5:
+                    try:
+                        del test[-1]
+                        ans = self.real_poly(test)
+                    except ZeroDivisionError:
+                        string = self.var
+                        test = self.lin_divide(test, [(1, 1), (0, 0)])
+                        print("0 might be a repeated root, trying again...\n")
+                        self.solution.append("0 might be a repeated root, trying again...")
+                        self.solution.append("")
+                        self.solution.append("")
+
+                        remainder = test[-1][0]
+                        test_node = self.build_node_from_coeff(test[:-1])
+                        test_node_string = stringify_node(test_node, self.var)
+                        if test[-1][1] == -1:
+                            remainder = test[-1][0]
+                        else:
+                            raise ValueError(
+                                f"Linear division returned a polynomial with last term not power of -1 {test}")
+                        if remainder < 0:
+                            test_node_string += "-" + str(abs(remainder)) + "/" + self.var
+                        elif remainder > 0:
+                            test_node_string += "+" + str(remainder) + "/" + self.var
+                        print("(" + stringify_node(self.tree.lhs,
+                                                   self.var) + ")/" + self.var + " = " + test_node_string + "\n")
+                        self.solution.append(
+                            "(" + stringify_node(self.tree.lhs, self.var) + ")/" + self.var + " = " + test_node_string)
+                        i += 1
+                    else:
+                        success_attempt = True
+                        print("Success! 0 is a root\n")
+                        self.solution.append("Success! 0 is a root")
+                        self.solution.append("")
+                        self.solution.append("")
+                elif len(test) - 2 == 4:
+                    del test[-1]
+                    from math_core.Calculus import Calculus
+                    ans = self.ferrari(test_node)
+                    success_attempt = True
+                else:
+                    break
+            for s in range(1, i + 1):
+                ans.insert(0, 0)
+        else:
+            print("0 is not a root\n")
+            self.solution.append("0 is not a root")
+            ans = self.real_poly(coeff)
+        print(ans)
+        for i in range(0, len(ans)):
+            if round(ans[i].imag, 5) == 0:
+                ans[i] = ans[i].real
+        return ans
+
+    def lin_divide(
+            self,
+            dividend: List[Tuple[Union[int, float, complex], int]],
+            divisor: List[Tuple[Union[int, float, complex], int]]
+    ) -> List[Tuple[Union[int, float, complex], int]]:
+        """Function does synthetic division of a polynomial. Divisor can only be a linear polynomial."""
+        highest_deg_denom = self.get_highest_deg(divisor)
+        if highest_deg_denom == 1:
+            denom_root = self.basic_algebraic_solving(self.build_node_from_coeff(divisor))
+        elif highest_deg_denom == 2:
+            denom_root = self.quadratic_formula(self.build_node_from_coeff(divisor), verbose=False)
+        elif highest_deg_denom == 3:
+            denom_root = self.cardano(self.build_node_from_coeff(divisor), verbose=False)
+        elif highest_deg_denom == 4:
+            denom_root = self.ferrari(self.build_node_from_coeff(divisor), verbose=False)
+        # else:
+        for root in denom_root:
+            a = root
+            b = 0
+            ans = []
+            for i in range(len(dividend)-1):
+                ans.append((round_complex(dividend[i][0] + b), dividend[i][1]-1))
+                b = round_complex(ans[-1][0] * a)
+            dividend = ans
+        return ans
+
+    def normalize(
+            self,
+            eqn: List[Tuple[Union[int, float, complex], int]]
+    ) -> List[Tuple[Union[int, float, complex], int]]:
+        """Method will normalize a polynomial or divide by the coefficient of the highest order term"""
+        eqn = self.reorder_terms(eqn)
+        c = eqn[0][0]
+        new_eqn = []
+        for i in range(len(eqn)):
+            new_eqn.append((round_complex(eqn[i][0]/c), eqn[i][1]))
+        return new_eqn
+
+    def poly_coeff_derivative(
+            self,
+            eqn: List[Tuple[Union[int, float, complex], int]]
+    ) -> List[Tuple[Union[int, float, complex], int]]:
+        """Method takes derivative of a polynomial in coeff form"""
+        d_eqn = []
+        for i in range(len(eqn)-2):
+            d_eqn.append((round_complex(eqn[i][0]*eqn[i][1]), eqn[i][1]-1))
+        d_eqn.append((0, 0))
+        return d_eqn
+
+    def evaluate(
+            self,
+            eqn: List[Tuple[Union[int, float, complex], int]],
+            value: Union[int, complex, float]
+    ) -> Union[int, complex, float]:
+        """Method evaluates a polynomial in coeff form at a given value"""
+        ans = 0
+        for coeff, deg in eqn:
+            ans += coeff*(value**deg)
+        return ans
+
+    def cauchy_poly(
+            self,
+            eqn: List[Tuple[Union[int, float, complex], int]]
+    ) -> List[Tuple[Union[int, float, complex], int]]:
+        """Normalizes polynomial and takes the absolute value of each coefficient."""
+        cauchy = []
+        norm = self.normalize(eqn)
+        for i in range(len(norm)-2):
+            cauchy.append((abs(norm[i][0]), norm[i][1]))
+
+        cauchy.append((-1 * abs(norm[i + 1][0]), norm[i + 1][1]))
+        return cauchy
+
+    # TODO - Add argument to turn off rounding
+    def real_poly(self, eqn: List[Tuple[Union[int, float, complex], int]]) -> List[Union[int, float, complex]]:
+        """Top level function which calls the rpoly, Jenkins-Traub algorithm."""
+        num_roots = self.get_highest_deg(eqn)
+        ans = []
+        # Fundamental theorem of algebra says number of highest exponent is the number of roots
+        i = 0
+        while i != num_roots:
+            ans.append(self.rpoly(eqn))
+            i += 1
+            last_run = (num_roots - 1 == i)
+            # if not last_run:
+            divisor = [(1, 1), (-ans[-1], 0)]
+            eqn = self.lin_divide(eqn, divisor)
+            del eqn[-1]
+        return ans
+
+    def rpoly(self, eqn: List[Tuple[Union[int, float, complex], int]]) -> Union[int, float, complex]:
+        """RPOLY Jenkins-Traub algorithm for polynomial root finding."""
+        eqn_norm = self.normalize(eqn)
+        # Stage 1: No-shift process. Assuming M = 5
+        K = self.poly_coeff_derivative(eqn_norm)
+        for i in range(0, 5):
+            constant = -1 * self.evaluate(K, 0) / self.evaluate(eqn_norm, 0)
+            P_z = self.foiling(
+                self.build_node_from_coeff(eqn_norm),
+                self.build_node_from_coeff([(constant, 0), (0, 0)]),
+                verbose=False
+            )
+            K_prime = self.poly_add(self.build_node_from_coeff(K), P_z, "+", verbose=False)
+            divisor = [(1, 1), (0, 0)]
+            K = self.lin_divide(self.get_coeff(K_prime), divisor)
+            del K[-1]
+        # Stage 2: Fixed-shift Process
+        t_curr = t_old = t_new = None
+        stage_two_success = False
+        root_found = False
+        while not root_found:
+            while not stage_two_success:
+                s = self.get_random_root(eqn_norm)
+                # print("s",s)
+                for i in range(0, 100):
+                    constant = -1 * self.evaluate(K, s) / self.evaluate(eqn_norm, s)
+                    P_z = self.foiling(
+                        self.build_node_from_coeff(eqn_norm),
+                        self.build_node_from_coeff([(constant, 0), (0, 0)]),
+                        verbose=False
+                    )
+                    K_prime = self.poly_add(self.build_node_from_coeff(K), P_z, "+", verbose=False)
+                    divisor = [(1, 1), (-1 * s, 0)]
+                    new_K = self.lin_divide(self.get_coeff(K_prime), divisor)
+                    del new_K[-1]
+                    K_bar = self.normalize(K)
+                    new_K_bar = self.normalize(new_K)
+                    t_curr = s - (self.evaluate(eqn_norm, s) / self.evaluate(K_bar, s))
+                    t_new = s - (self.evaluate(eqn_norm, s) / self.evaluate(new_K_bar, s))
+                    if i > 0 and abs(t_curr - t_old) <= 0.5 * abs(t_old) and abs(t_new - t_curr) <= 0.5 * abs(t_curr):
+                        stage_two_success = True
+                        break
+                    t_old = t_curr
+                    K = new_K
+                if not stage_two_success:
+                    print("Retrying Stage 2")
+            # Stage 3: Variable-shift process
+            old_err = self.evaluate(eqn_norm, s)
+            curr_err = 1
+            K_bar = self.normalize(K)
+            s = s - (self.evaluate(eqn_norm, s) / self.evaluate(K_bar, s))
+            old_s = 0
+            stage_three_success = False
+            for i in range(0, 10000):
+                if abs(self.evaluate(eqn_norm, s)) < abs(10 ** (-5)):
+                    stage_three_success = True
+                    break
+                constant = -1 * self.evaluate(K, s) / self.evaluate(eqn_norm, s)
+                P_z = self.foiling(
+                    self.build_node_from_coeff(eqn_norm),
+                    self.build_node_from_coeff([(constant, 0), (0, 0)]),
+                    verbose=False
+                )
+                K_prime = self.poly_add(self.build_node_from_coeff(K), P_z, "+", verbose=False)
+                divisor = [(1, 1), (-1 * s, 0)]
+                new_K = self.lin_divide(self.get_coeff(K_prime), divisor)
+                del new_K[-1]
+                new_K_bar = self.normalize(new_K)
+                s = s - (self.evaluate(eqn_norm, s) / self.evaluate(new_K_bar, s))
+                curr_err = self.evaluate(eqn_norm, s)
+                K = new_K
+                if math.isnan(s.imag) and math.isnan(s.real):
+                    stage_three_success = False
+                    break
+            if stage_three_success:
+                # print("Root is",s)
+                root_found = True
+            else:
+                stage_two_success = False
+        return s
+
+    def get_random_root(self, eqn: List[Tuple[Union[int, float, complex], int]]) -> Union[int, float, complex]:
+        """Function for finding random roots."""
+        cauchy_eqn = self.cauchy_poly(eqn)
+        beta = self.newton_raphson(cauchy_eqn)
+        # print("beta",beta)
+        rand = random.uniform(0, 1) * 2 * math.pi
+        root = abs(beta) * cmath.exp(1j * rand)
+        return root
+
+    def newton_raphson(
+            self,
+            eqn: List[Tuple[Union[int, float, complex], int]],
+            err: Union[int, float] = 1e-5
+    ) -> Union[int, float, complex]:
+        """Finds roots of polynomial using Newton-Raphson method."""
+        der = self.poly_coeff_derivative(eqn)
+        x = random.uniform(0, 1)
+        while abs(self.evaluate(eqn, x)) > abs(err):
+            x = x - ((self.evaluate(eqn, x)) / (self.evaluate(der, x)))
+        return x
 
     def get_coeff(self, node: AST) -> List[Tuple[int, int]]:
         """This method will get all coefficients from a polynomial in standard form"""

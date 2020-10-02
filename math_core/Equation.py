@@ -80,25 +80,21 @@ def inference_string(eqn_string: str, var: str) -> str:
     return eqn_string.replace('(' + var + ')', var)
 
 
-def round_complex(num: Any) -> Union[complex, float]:
+def round_complex(num: Any, decimal_place: int = 6) -> Union[complex, float]:
     """Function will take a complex number and round its real and imaginary parts if they're extremely small"""
     if type(num) == complex:
-        if num.real == -0.0 or num.real == 0 or pytest.approx(num.real) == 0.0:
-            if num.imag == -0.0 or num.imag == 0 or pytest.approx(num.imag) == 0.0:
-                return 0.0
+        if round(num.real, decimal_place).is_integer() and not round(num.imag, decimal_place).is_integer():
+            num = int(round(num.real, decimal_place)) + num.imag * 1j
+        elif round(num.real, decimal_place).is_integer() and round(num.imag, decimal_place).is_integer():
+            num = int(round(num.real, decimal_place)) + int(round(num.imag, decimal_place)) * 1j
+        elif not round(num.real, decimal_place).is_integer() and round(num.imag, decimal_place).is_integer():
+            num = num.real + int(round(num.imag, decimal_place)) * 1j
+        if num.real == 0:
             num = num.imag * 1j
-            if num.real == -0 or num.real == -0.0:
-                num = 0 + num.imag * 1j
-            return num
-        elif num.imag == -0.0 or num.imag == 0 or pytest.approx(num.imag) == 0.0:
+        if num.imag == 0:
             num = num.real
-            if num == -0 or num == -0.0:
-                num = 0
-            return num
     if type(num) == float:
-        if num == -0.0:
-            num = 0.0
-        if num.is_integer():
+        if round(num, decimal_place).is_integer():
             num = int(num)
     return num
 
