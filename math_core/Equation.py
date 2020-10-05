@@ -61,11 +61,15 @@ def stringify_node(node: AST, var: str) -> str:
 
 def inference_string(eqn_string: str, var: str) -> str:
     """Method will remove some parts of an equation which are redundant"""
-    regex = r'\-?\(\-?[0-9]+(\.[0-9]*)?\*[a-zA-Z_](\^[0-9]+)?\)'
+    regex = r'\-?\(\(?\-?[0-9]+(\.[0-9]*)?([\-\+][0-9]+(\.[0-9]*)?j)?\)?\*[a-zA-Z_](\^[0-9]+)?\)'
     match = re.search(regex, eqn_string)
     if match is not None:
-        match_wo_br_or_mul = match.group().replace("(", '')
-        match_wo_br_or_mul = match_wo_br_or_mul.replace(")",'')
+        if "((" in match.group():
+            match_wo_br_or_mul = match.group().replace("((", '(')
+            match_wo_br_or_mul = match_wo_br_or_mul.replace(var+")",var)
+        else:
+            match_wo_br_or_mul = match.group().replace("(", '')
+            match_wo_br_or_mul = match_wo_br_or_mul.replace(")",'')
         match_wo_br_or_mul = match_wo_br_or_mul.replace("*", '')
         if "1"+var in match_wo_br_or_mul:
             match_wo_br_or_mul = match_wo_br_or_mul.replace("1", '')

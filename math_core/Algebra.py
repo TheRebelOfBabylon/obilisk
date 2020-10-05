@@ -237,18 +237,18 @@ class Algebra(Equation):
                 return True, name
         return False, None
 
-    def isolate(self, verbose: bool = True):
+    def isolate(self, verbose: bool = True, rounding: bool = True):
         """Method will take the equation in standard polynomial form and solve it"""
         _, template_name = self.check_solvability()
         if template_name is not None:
             if "right" in template_name:
                 self.swap_lhs_and_rhs()
             if "quadratic" in template_name:
-                return self.quadratic_formula(verbose=verbose)
+                return self.quadratic_formula(verbose=verbose, rounding=rounding)
             elif "cubic" in template_name:
-                return self.cardano(verbose=verbose)
+                return self.cardano(verbose=verbose, rounding=rounding)
             elif "quartic" in template_name:
-                return self.ferrari(verbose=verbose)
+                return self.ferrari(verbose=verbose, rounding=rounding)
         else:
             if not self.check_for_x_power_x():
                 self.compute_low_hanging_fruit()
@@ -263,7 +263,7 @@ class Algebra(Equation):
                 if self.tree.right.type == NUMNode and self.tree.right.value in ("0", "0.0"):
                     self.coeff = self.get_coeff(self.tree)
                     if len(self.coeff) >= 7:
-                        self.real_poly(self.coeff)
+                        return self.real_poly(self.coeff)
 
     def swap_lhs_and_rhs(self):
         """This method takes the LHS and RHS of AST and swaps them"""
@@ -1215,7 +1215,7 @@ class Algebra(Equation):
         left_string = "(" + left_string + ")"
         right_string = stringify_node(right_node, self.var)
         right_string = "(" + right_string + ")"
-        print(f"{left_string}*{right_string}")
+        #print(f"{left_string}*{right_string}")
         left_coeff = self.get_coeff(left_node)
         right_coeff = self.get_coeff(right_node)
         ans_coeff = []
@@ -1224,8 +1224,8 @@ class Algebra(Equation):
                 new_coeff = coeff_l*coeff_r
                 if new_coeff != 0:
                     ans_coeff.append((new_coeff, deg_l+deg_r))
-        # if not ans_coeff:
-        #     ans_coeff == [(0, 0)]
+        if not ans_coeff:
+            return NumberNode(Token(("0", NUMBER)))
         highest_deg = ans_coeff[0][1]
         new_ans = []
         for i in range(highest_deg, -1, -1):
@@ -1381,7 +1381,7 @@ class Algebra(Equation):
                     new_coeff.append((coeff[k][0], coeff[k][1]))
         return new_coeff
 
-    def basic_algebraic_solving(self, node: AST = None) -> List[Union[int, float, complex]]:
+    def basic_algebraic_solving(self, node: AST = None, rounding: bool = True) -> List[Union[int, float, complex]]:
         """Method solves equations where the highest degree in the polynomial is one"""
         if node is None:
             coeff = self.get_coeff(self.tree)
@@ -1396,9 +1396,16 @@ class Algebra(Equation):
             b = -coeff[1][0]
         else:
             raise ValueError("Polynomial must be linear")
-        return [round_complex(b/a)]
+        if rounding:
+            return [round_complex(b/a)]
+        return [b/a]
 
-    def quadratic_formula(self, node: AST = None, verbose: bool = True) -> List[Union[int, float, complex]]:
+    def quadratic_formula(
+            self,
+            node: AST = None,
+            verbose: bool = True,
+            rounding: bool = True
+    ) -> List[Union[int, float, complex]]:
         """Method solves a quadratic using the quadratic formula"""
         if node is None:
             coeff = self.get_coeff(self.tree)
@@ -1438,13 +1445,19 @@ class Algebra(Equation):
         if verbose:
             self.solution.append("\nThe final answers are:")
         for i in range(len(ans)):
-            ans[i] = round_complex(ans[i])
+            if rounding:
+                ans[i] = round_complex(ans[i])
             if verbose:
                 self.solution.append(str(ans[i]))
 
         return ans
 
-    def cardano(self, node: AST = None, verbose: bool = True) -> List[Union[int, float, complex]]:
+    def cardano(
+            self,
+            node: AST = None,
+            verbose: bool = True,
+            rounding: bool = True
+    ) -> List[Union[int, float, complex]]:
         """Root finding formula for cubic polynomials."""
         if node is None:
             coeff = self.get_coeff(self.tree)
@@ -1508,12 +1521,18 @@ class Algebra(Equation):
         if verbose:
             self.solution.append("\nThe final answers are:")
         for i in range(len(ans)):
-            ans[i] = round_complex(ans[i])
+            if rounding:
+                ans[i] = round_complex(ans[i])
             if verbose:
                 self.solution.append(str(ans[i]))
         return ans
 
-    def ferrari(self, node: AST = None, verbose: bool = True) -> List[Union[int, float, complex]]:
+    def ferrari(
+            self,
+            node: AST = None,
+            verbose: bool = True,
+            rounding: bool = True,
+    ) -> List[Union[int, float, complex]]:
         """Root finding formula for quartic polynomials."""
         if node is None:
             coeff = self.get_coeff(self.tree)
@@ -1593,7 +1612,7 @@ class Algebra(Equation):
         tree_build = TreeBuilder(tokens, has_var=True)
         tree, _ = tree_build.build_tree()
         cubic = Algebra(resolvent, tokens, tree, lexer.vars[0])
-        cubic_ans = cubic.isolate(verbose=verbose)
+        cubic_ans = cubic.isolate(verbose=verbose, rounding=rounding)
         if verbose:
             for i in cubic.solution:
                 self.solution.append(i)
@@ -1651,7 +1670,8 @@ class Algebra(Equation):
             self.solution.append("x = " + str(y_four) + "-(" + str(b) + "/(4*" + str(a) + "))")
             self.solution.append("\nThe final answers are:")
         for i in range(len(ans)):
-            ans[i] = round_complex(ans[i])
+            if rounding:
+                ans[i] = round_complex(ans[i])
             if verbose:
                 self.solution.append(str(ans[i]))
         return ans
@@ -1735,49 +1755,78 @@ class Algebra(Equation):
     def lin_divide(
             self,
             dividend: List[Tuple[Union[int, float, complex], int]],
-            divisor: List[Tuple[Union[int, float, complex], int]]
+            divisor: List[Tuple[Union[int, float, complex], int]],
+            rounding: bool = True
     ) -> List[Tuple[Union[int, float, complex], int]]:
         """Function does synthetic division of a polynomial. Divisor can only be a linear polynomial."""
+        #print(f"\ndividend is {dividend}")
         highest_deg_denom = self.get_highest_deg(divisor)
         if highest_deg_denom == 1:
-            denom_root = self.basic_algebraic_solving(self.build_node_from_coeff(divisor))
+            denom_root = self.basic_algebraic_solving(self.build_node_from_coeff(divisor), rounding=rounding)
         elif highest_deg_denom == 2:
-            denom_root = self.quadratic_formula(self.build_node_from_coeff(divisor), verbose=False)
+            denom_root = self.quadratic_formula(self.build_node_from_coeff(divisor), verbose=False, rounding=rounding)
         elif highest_deg_denom == 3:
-            denom_root = self.cardano(self.build_node_from_coeff(divisor), verbose=False)
+            denom_root = self.cardano(self.build_node_from_coeff(divisor), verbose=False, rounding=rounding)
         elif highest_deg_denom == 4:
-            denom_root = self.ferrari(self.build_node_from_coeff(divisor), verbose=False)
+            denom_root = self.ferrari(self.build_node_from_coeff(divisor), verbose=False, rounding=rounding)
         # else:
         for root in denom_root:
             a = root
+            #print(f"root is in lin_divide {root}")
             b = 0
             ans = []
-            for i in range(len(dividend)-1):
-                ans.append((round_complex(dividend[i][0] + b), dividend[i][1]-1))
-                b = round_complex(ans[-1][0] * a)
+            rng = 0
+            if len(dividend) == self.get_highest_deg(dividend)+2:
+                rng = 1
+            for i in range(len(dividend)-rng):
+                if rounding:
+                    ans.append((round_complex(dividend[i][0] + b), dividend[i][1]-1))
+                    b = round_complex(ans[-1][0] * a)
+                else:
+                    ans.append((dividend[i][0]+b, dividend[i][1]-1))
+                    b = ans[-1][0] * a
+                #print(f"ans is now {ans} b is now {b}")
             dividend = ans
         return ans
 
     def normalize(
             self,
-            eqn: List[Tuple[Union[int, float, complex], int]]
+            eqn: List[Tuple[Union[int, float, complex], int]],
+            rounding: bool = True
     ) -> List[Tuple[Union[int, float, complex], int]]:
         """Method will normalize a polynomial or divide by the coefficient of the highest order term"""
         eqn = self.reorder_terms(eqn)
+        print(f"eqn to normalze {eqn}")
+        while eqn[0][0] == 0 and len(eqn) > 1:
+            if eqn[0][0] == 0:
+                del eqn[0]
+                print(eqn)
+        if len(eqn) == 1:
+            return eqn
         c = eqn[0][0]
         new_eqn = []
         for i in range(len(eqn)):
-            new_eqn.append((round_complex(eqn[i][0]/c), eqn[i][1]))
+            if rounding:
+                new_eqn.append((round_complex(eqn[i][0]/c), eqn[i][1]))
+            else:
+                new_eqn.append((eqn[i][0]/c, eqn[i][1]))
         return new_eqn
 
     def poly_coeff_derivative(
             self,
-            eqn: List[Tuple[Union[int, float, complex], int]]
+            eqn: List[Tuple[Union[int, float, complex], int]],
+            rounding: bool = True
     ) -> List[Tuple[Union[int, float, complex], int]]:
         """Method takes derivative of a polynomial in coeff form"""
         d_eqn = []
-        for i in range(len(eqn)-2):
-            d_eqn.append((round_complex(eqn[i][0]*eqn[i][1]), eqn[i][1]-1))
+        rng = 1
+        if eqn[-1] == (0, 0):
+            rng = 2
+        for i in range(len(eqn)-rng):
+            if rounding:
+                d_eqn.append((round_complex(eqn[i][0]*eqn[i][1]), eqn[i][1]-1))
+            else:
+                d_eqn.append((eqn[i][0]*eqn[i][1], eqn[i][1]-1))
         d_eqn.append((0, 0))
         return d_eqn
 
@@ -1790,18 +1839,22 @@ class Algebra(Equation):
         ans = 0
         for coeff, deg in eqn:
             ans += coeff*(value**deg)
+        print(f"the answer of {eqn} evaluated at {value} is {ans}")
         return ans
 
     def cauchy_poly(
             self,
-            eqn: List[Tuple[Union[int, float, complex], int]]
+            eqn: List[Tuple[Union[int, float, complex], int]],
+            rounding: bool = True
     ) -> List[Tuple[Union[int, float, complex], int]]:
         """Normalizes polynomial and takes the absolute value of each coefficient."""
         cauchy = []
-        norm = self.normalize(eqn)
-        for i in range(len(norm)-2):
+        norm = self.normalize(eqn, rounding=rounding)
+        rng = 1
+        if norm[-1] == (0, 0):
+            rng = 2
+        for i in range(len(norm)-rng):
             cauchy.append((abs(norm[i][0]), norm[i][1]))
-
         cauchy.append((-1 * abs(norm[i + 1][0]), norm[i + 1][1]))
         return cauchy
 
@@ -1809,36 +1862,47 @@ class Algebra(Equation):
     def real_poly(self, eqn: List[Tuple[Union[int, float, complex], int]]) -> List[Union[int, float, complex]]:
         """Top level function which calls the rpoly, Jenkins-Traub algorithm."""
         num_roots = self.get_highest_deg(eqn)
+        print(f"Num of roots is {num_roots}")
         ans = []
         # Fundamental theorem of algebra says number of highest exponent is the number of roots
         i = 0
-        while i != num_roots:
+        while i != num_roots - 1:
             ans.append(self.rpoly(eqn))
-            i += 1
-            last_run = (num_roots - 1 == i)
-            # if not last_run:
+            #print(f"WE GOT A ROOT IT {ans[-1]}")
             divisor = [(1, 1), (-ans[-1], 0)]
-            eqn = self.lin_divide(eqn, divisor)
-            del eqn[-1]
+            eqn = self.lin_divide(eqn, divisor, rounding=False)
+            if round_complex(eqn[-1][0], decimal_place=8) == 0:
+                del eqn[-1]
+            #print("Now eqn is ", eqn)
+            i += 1
+        ans.append(self.basic_algebraic_solving(self.build_node_from_coeff(eqn)))
         return ans
 
     def rpoly(self, eqn: List[Tuple[Union[int, float, complex], int]]) -> Union[int, float, complex]:
         """RPOLY Jenkins-Traub algorithm for polynomial root finding."""
-        eqn_norm = self.normalize(eqn)
+        eqn_norm = self.normalize(eqn, rounding=False)
+        #print(f"Normalized eqn = {eqn_norm}")
         # Stage 1: No-shift process. Assuming M = 5
-        K = self.poly_coeff_derivative(eqn_norm)
+        K = self.poly_coeff_derivative(eqn_norm, rounding=False)
+        #print(f"Der of norm (K) is {K}")
         for i in range(0, 5):
             constant = -1 * self.evaluate(K, 0) / self.evaluate(eqn_norm, 0)
             P_z = self.foiling(
                 self.build_node_from_coeff(eqn_norm),
-                self.build_node_from_coeff([(constant, 0), (0, 0)]),
+                self.build_node_from_coeff([(constant, 0)]),
                 verbose=False
             )
+            #print(stringify_node(P_z, self.var))
             K_prime = self.poly_add(self.build_node_from_coeff(K), P_z, "+", verbose=False)
+            #print(stringify_node(K_prime, self.var))
             divisor = [(1, 1), (0, 0)]
-            K = self.lin_divide(self.get_coeff(K_prime), divisor)
-            del K[-1]
+            K = self.lin_divide(self.get_coeff(K_prime), divisor, rounding=False)
+            #print(f"K is now {K}")
+            if round_complex(K[-1][0], decimal_place=8) == 0 and K[-1][1] == -1:
+                del K[-1]
+            #print(K)
         # Stage 2: Fixed-shift Process
+        #print("Stage 2 Baby")
         t_curr = t_old = t_new = None
         stage_two_success = False
         root_found = False
@@ -1850,17 +1914,18 @@ class Algebra(Equation):
                     constant = -1 * self.evaluate(K, s) / self.evaluate(eqn_norm, s)
                     P_z = self.foiling(
                         self.build_node_from_coeff(eqn_norm),
-                        self.build_node_from_coeff([(constant, 0), (0, 0)]),
+                        self.build_node_from_coeff([(constant, 0)]),
                         verbose=False
                     )
                     K_prime = self.poly_add(self.build_node_from_coeff(K), P_z, "+", verbose=False)
                     divisor = [(1, 1), (-1 * s, 0)]
-                    new_K = self.lin_divide(self.get_coeff(K_prime), divisor)
-                    del new_K[-1]
-                    K_bar = self.normalize(K)
-                    new_K_bar = self.normalize(new_K)
-                    t_curr = s - (self.evaluate(eqn_norm, s) / self.evaluate(K_bar, s))
-                    t_new = s - (self.evaluate(eqn_norm, s) / self.evaluate(new_K_bar, s))
+                    new_K = self.lin_divide(self.get_coeff(K_prime), divisor, rounding=False)
+                    if round_complex(new_K[-1][0] == 0, decimal_place=8) and new_K[-1][1] == -1:
+                        del new_K[-1]
+                    K_bar = self.normalize(K, rounding=False)
+                    new_K_bar = self.normalize(new_K, rounding=False)
+                    t_curr = s - self.evaluate(eqn_norm, s) / (1.0*self.evaluate(K_bar, s))
+                    t_new = s - self.evaluate(eqn_norm, s) / (1.0*self.evaluate(new_K_bar, s))
                     if i > 0 and abs(t_curr - t_old) <= 0.5 * abs(t_old) and abs(t_new - t_curr) <= 0.5 * abs(t_curr):
                         stage_two_success = True
                         break
@@ -1869,9 +1934,10 @@ class Algebra(Equation):
                 if not stage_two_success:
                     print("Retrying Stage 2")
             # Stage 3: Variable-shift process
+            #print("Stage 3")
             old_err = self.evaluate(eqn_norm, s)
             curr_err = 1
-            K_bar = self.normalize(K)
+            K_bar = self.normalize(K, rounding=False)
             s = s - (self.evaluate(eqn_norm, s) / self.evaluate(K_bar, s))
             old_s = 0
             stage_three_success = False
@@ -1882,14 +1948,15 @@ class Algebra(Equation):
                 constant = -1 * self.evaluate(K, s) / self.evaluate(eqn_norm, s)
                 P_z = self.foiling(
                     self.build_node_from_coeff(eqn_norm),
-                    self.build_node_from_coeff([(constant, 0), (0, 0)]),
+                    self.build_node_from_coeff([(constant, 0)]),
                     verbose=False
                 )
                 K_prime = self.poly_add(self.build_node_from_coeff(K), P_z, "+", verbose=False)
                 divisor = [(1, 1), (-1 * s, 0)]
-                new_K = self.lin_divide(self.get_coeff(K_prime), divisor)
-                del new_K[-1]
-                new_K_bar = self.normalize(new_K)
+                new_K = self.lin_divide(self.get_coeff(K_prime), divisor, rounding=False)
+                if round_complex(new_K[-1][0] == 0, decimal_place=8) and new_K[-1][1] == -1:
+                    del new_K[-1]
+                new_K_bar = self.normalize(new_K, rounding=False)
                 s = s - (self.evaluate(eqn_norm, s) / self.evaluate(new_K_bar, s))
                 curr_err = self.evaluate(eqn_norm, s)
                 K = new_K
@@ -1905,7 +1972,7 @@ class Algebra(Equation):
 
     def get_random_root(self, eqn: List[Tuple[Union[int, float, complex], int]]) -> Union[int, float, complex]:
         """Function for finding random roots."""
-        cauchy_eqn = self.cauchy_poly(eqn)
+        cauchy_eqn = self.cauchy_poly(eqn, rounding=False)
         beta = self.newton_raphson(cauchy_eqn)
         # print("beta",beta)
         rand = random.uniform(0, 1) * 2 * math.pi
@@ -1918,7 +1985,7 @@ class Algebra(Equation):
             err: Union[int, float] = 1e-5
     ) -> Union[int, float, complex]:
         """Finds roots of polynomial using Newton-Raphson method."""
-        der = self.poly_coeff_derivative(eqn)
+        der = self.poly_coeff_derivative(eqn, rounding=False)
         x = random.uniform(0, 1)
         while abs(self.evaluate(eqn, x)) > abs(err):
             x = x - ((self.evaluate(eqn, x)) / (self.evaluate(der, x)))
