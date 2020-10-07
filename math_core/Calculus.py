@@ -4,7 +4,7 @@ from math_core.Algebra import Algebra
 from parser.lexer import Token, EXP, DIV, MUL, MINUS, PLUS, NUMBER, FUNC
 from parser.ast import AST, BINOPNode, FUNCNode, UNIOPNode, VARNode, NUMNode, NumberNode, BinOpNode, UniOpNode, FuncNode
 
-from typing import List, Union
+from typing import List, Union, Tuple
 import functools
 import math
 from copy import deepcopy
@@ -37,6 +37,18 @@ list_of_trig_func = [
     "acoth",
 ]
 
+cos_sine_anti_dict = {
+    "cos" : "sin",
+    "cosh" : "sinh",
+    "sin" : "cos",
+    "sinh": "cosh",
+    "tan": "sec",
+    "tanh": "sech",
+    "csc": "cot",
+    "csch": "coth",
+    "cot": "csc",
+    "coth": "csch",
+}
 
 def rsetattr(obj, attr, val):
     pre, _, post = attr.rpartition('.')
@@ -76,7 +88,8 @@ class Calculus(Algebra):
             self.compute_low_hanging_fruit(ops_flag=False)
             #print(stringify_node(self.tree, self.var))
 
-    def compute_derivative(self, node: AST, temp_tree: AST, verbose: bool = True, tree_path: List[str] = None) -> AST:
+    def compute_derivative(self, node: AST, temp_tree: AST, verbose: bool = True, tree_path: List[str] = None) -> Tuple[
+        AST, List[str]]:
         """Method climbs through AST, finds derivative terms and solves them"""
         if tree_path is None:
             tree_path = []
@@ -103,7 +116,7 @@ class Calculus(Algebra):
                         self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                              + stringify_node(new_node, self.var))
                         self.solution.append("------")
-                        temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+                        temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
                         self.solution.append(stringify_node(temp_tree, self.var))
                         self.solution.append("------")
                     return new_node, temp_tree
@@ -120,7 +133,7 @@ class Calculus(Algebra):
                             self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                                  + stringify_node(new_node, self.var))
                             self.solution.append("------")
-                            temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+                            temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
                             self.solution.append(stringify_node(temp_tree, self.var))
                             self.solution.append("------")
                         return new_node, temp_tree
@@ -136,7 +149,7 @@ class Calculus(Algebra):
                             self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                                  + stringify_node(new_node, self.var))
                             self.solution.append("------")
-                            temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+                            temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
                             self.solution.append(stringify_node(temp_tree, self.var))
                             self.solution.append("------")
                         return new_node, temp_tree
@@ -181,11 +194,13 @@ class Calculus(Algebra):
                 else:
                     if round_complex(visit_NUMNode(der_expr)) != 1:
                         new_node = BinOpNode(new_node, Token(("*", MUL)), der_expr)
+            elif node.op.value.lower() in list_of_trig_func:
+                return self.trig_derive(node, temp_tree=temp_tree, tree_path=tree_path[:], verbose=verbose)
             if verbose:
                 self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                      + stringify_node(new_node, self.var))
                 self.solution.append("------")
-                temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+                temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
                 self.solution.append(stringify_node(temp_tree, self.var))
                 self.solution.append("------")
             return new_node, temp_tree
@@ -195,7 +210,7 @@ class Calculus(Algebra):
                 self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                      + stringify_node(new_node, self.var))
                 self.solution.append("------")
-                temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+                temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
                 self.solution.append(stringify_node(temp_tree, self.var))
                 self.solution.append("------")
             return new_node, temp_tree
@@ -205,12 +220,13 @@ class Calculus(Algebra):
                 self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                      + stringify_node(new_node, self.var))
                 self.solution.append("------")
-                temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+                temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
                 self.solution.append(stringify_node(temp_tree, self.var))
                 self.solution.append("------")
             return new_node, temp_tree
 
-    def quotient_rule(self, node: AST, temp_tree: AST, tree_path: List[str], verbose: bool = True) -> AST:
+    def quotient_rule(self, node: AST, temp_tree: AST, tree_path: List[str], verbose: bool = True) -> Tuple[
+        AST, List[str]]:
         """Computes quotient rule for derivatives"""
         der_top_node, temp_tree = self.compute_derivative(node.left, temp_tree=temp_tree, verbose=False)
         der_bottom_node, temp_tree = self.compute_derivative(node.right, temp_tree=temp_tree, verbose=False)
@@ -239,12 +255,13 @@ class Calculus(Algebra):
             self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                  + stringify_node(new_node, self.var))
             self.solution.append("------")
-            temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+            temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
             self.solution.append(stringify_node(temp_tree, self.var))
             self.solution.append("------")
         return new_node, temp_tree
 
-    def product_rule(self, node: AST, temp_tree: AST, tree_path: List[str], verbose: bool = True) -> AST:
+    def product_rule(self, node: AST, temp_tree: AST, tree_path: List[str], verbose: bool = True) -> Tuple[
+        AST, List[str]]:
         """Compute product rule for derivatives"""
         der_left, temp_tree = self.compute_derivative(node.left, temp_tree=temp_tree, verbose=False)
         der_right, temp_tree = self.compute_derivative(node.right, temp_tree=temp_tree, verbose=False)
@@ -278,14 +295,149 @@ class Calculus(Algebra):
             self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                  + stringify_node(new_node, self.var))
             self.solution.append("------")
-            temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+            temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
             self.solution.append(stringify_node(temp_tree, self.var))
             self.solution.append("------")
         return new_node, temp_tree
 
-    def calc_replace_node(self, tree: AST, old_node_path: List[str], new_node: AST) -> AST:
+    def trig_derive(self, node: AST, temp_tree: AST, tree_path: List[str], verbose: bool = True) -> Tuple[
+        AST, List[str]]:
+        """Method computes derivatives for all trig functions"""
+        der_exprs, temp_tree = self.compute_derivative(node.args[0], temp_tree=temp_tree, verbose=False)
+        if node.op.value.lower() in ("cos", "cosh"):
+            if node.op.value.lower() == "cos":
+                new_node = UniOpNode(Token(("-", MINUS)), FuncNode(Token((cos_sine_anti_dict[node.op.value.lower()], FUNC)), node.args))
+            else:
+                new_node = FuncNode(Token((cos_sine_anti_dict[node.op.value.lower()], FUNC)), node.args)
+        elif node.op.value.lower() in ("sin", "sinh"):
+            new_node = FuncNode(Token((cos_sine_anti_dict[node.op.value.lower()], FUNC)), node.args)
+        elif node.op.value.lower() in ("tan", "tanh"):
+            new_node = BinOpNode(FuncNode(Token((cos_sine_anti_dict[node.op.value.lower()], FUNC)), node.args), Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
+        elif node.op.value.lower() == "sec":
+            new_node = BinOpNode(FuncNode(Token(("tan", FUNC)), node.args), Token(("*", MUL)), FuncNode(Token(("sec", FUNC)), node.args))
+        elif node.op.value.lower() in ("csc", "csch"):
+            new_node = BinOpNode(UniOpNode(Token(("-", MINUS)), FuncNode(Token((cos_sine_anti_dict[node.op.value.lower()], FUNC)), node.args)), Token(("*", MUL)),
+                                 FuncNode(Token((node.op.value.lower(), FUNC)), node.args))
+        elif node.op.value.lower() in ("cot", "coth"):
+            new_node = UniOpNode(Token(("-", MINUS)), BinOpNode(FuncNode(Token((cos_sine_anti_dict[node.op.value.lower()], FUNC)), node.args), Token(("^", EXP)),
+                                 NumberNode(Token(("2", NUMBER)))))
+        elif node.op.value.lower() == "acos":
+            if node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].right.type == NUMNode:
+                exp = round_complex(visit_NUMNode(node.args[0])*2)
+                squared_term = BinOpNode(node.args[0].left, Token(("^", EXP)), NumberNode(Token((str(exp), NUMBER))))
+            else:
+                squared_term = BinOpNode(node.args[0], Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
+            denom = FuncNode(Token(("sqrt", FUNC)), [BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("-", MINUS)), squared_term)])
+            new_node = UniOpNode(Token(("-", MINUS)), BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), denom))
+        elif node.op.value.lower() == "asin":
+            if node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].right.type == NUMNode:
+                exp = round_complex(visit_NUMNode(node.args[0])*2)
+                squared_term = BinOpNode(node.args[0].left, Token(("^", EXP)), NumberNode(Token((str(exp), NUMBER))))
+            else:
+                squared_term = BinOpNode(node.args[0], Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
+            denom = FuncNode(Token(("sqrt", FUNC)), [BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("-", MINUS)), squared_term)])
+            new_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), denom)
+        elif node.op.value.lower() == "atan":
+            if node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].right.type == NUMNode:
+                exp = round_complex(visit_NUMNode(node.args[0])*2)
+                squared_term = BinOpNode(node.args[0].left, Token(("^", EXP)), NumberNode(Token((str(exp), NUMBER))))
+            else:
+                squared_term = BinOpNode(node.args[0], Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
+            denom = BinOpNode(squared_term, Token(("+", PLUS)), NumberNode(Token(("1", NUMBER))))
+            new_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), denom)
+        elif node.op.value.lower() == "asec":
+            if node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].right.type == NUMNode:
+                exp = round_complex(visit_NUMNode(node.args[0])*2)
+                squared_term = BinOpNode(node.args[0].left, Token(("^", EXP)), NumberNode(Token((str(exp), NUMBER))))
+            else:
+                squared_term = BinOpNode(node.args[0], Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
+            denom = FuncNode(Token(("sqrt", FUNC)), [BinOpNode(squared_term, Token(("-", MINUS)), NumberNode(Token(("1", NUMBER))))])
+            denom = BinOpNode(FuncNode(Token(("abs", FUNC)), node.args), Token(("*", MUL)), denom)
+            new_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), denom)
+        elif node.op.value.lower() == "acsc":
+            if node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].right.type == NUMNode:
+                exp = round_complex(visit_NUMNode(node.args[0])*2)
+                squared_term = BinOpNode(node.args[0].left, Token(("^", EXP)), NumberNode(Token((str(exp), NUMBER))))
+            else:
+                squared_term = BinOpNode(node.args[0], Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
+            denom = FuncNode(Token(("sqrt", FUNC)), [BinOpNode(squared_term, Token(("-", MINUS)), NumberNode(Token(("1", NUMBER))))])
+            denom = BinOpNode(FuncNode(Token(("abs", FUNC)), node.args), Token(("*", MUL)), denom)
+            new_node = UniOpNode(Token(("-", MINUS)), BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), denom))
+        elif node.op.value.lower() == "acot":
+            if node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].right.type == NUMNode:
+                exp = round_complex(visit_NUMNode(node.args[0])*2)
+                squared_term = BinOpNode(node.args[0].left, Token(("^", EXP)), NumberNode(Token((str(exp), NUMBER))))
+            else:
+                squared_term = BinOpNode(node.args[0], Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
+            denom = BinOpNode(squared_term, Token(("+", PLUS)), NumberNode(Token(("1", NUMBER))))
+            new_node = UniOpNode(Token(("-", MINUS)), BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), denom))
+        elif node.op.value.lower() == "sech":
+            new_node = BinOpNode(FuncNode(Token(("tanh", FUNC)), node.args), Token(("*", MUL)),
+                                 UniOpNode(Token(("-", MINUS)), FuncNode(Token(("sech", FUNC)), node.args)))
+        elif node.op.value.lower() == "acosh":
+            denom_left = FuncNode(Token(("sqrt", FUNC)), [BinOpNode(node.args[0], Token(("-", MINUS)), NumberNode(Token(("1", NUMBER))))])
+            denom_right = FuncNode(Token(("sqrt", FUNC)),
+                                  [BinOpNode(node.args[0], Token(("+", PLUS)), NumberNode(Token(("1", NUMBER))))])
+            denom = BinOpNode(denom_left, Token(("*", MUL)), denom_right)
+            new_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), denom)
+        elif node.op.value.lower() == "asinh":
+            if node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].right.type == NUMNode:
+                exp = round_complex(visit_NUMNode(node.args[0])*2)
+                squared_term = BinOpNode(node.args[0].left, Token(("^", EXP)), NumberNode(Token((str(exp), NUMBER))))
+            else:
+                squared_term = BinOpNode(node.args[0], Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
+            denom = FuncNode(Token(("sqrt", FUNC)), [BinOpNode(squared_term, Token(("+", PLUS)), NumberNode(Token(("1", NUMBER))))])
+            new_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), denom)
+        elif node.op.value.lower() == "atanh":
+            if node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].right.type == NUMNode:
+                exp = round_complex(visit_NUMNode(node.args[0])*2)
+                squared_term = BinOpNode(node.args[0].left, Token(("^", EXP)), NumberNode(Token((str(exp), NUMBER))))
+            else:
+                squared_term = BinOpNode(node.args[0], Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
+            denom = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("-", MINUS)), squared_term)
+            new_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), denom)
+        elif node.op.value.lower() == "asech":
+            if node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].right.type == NUMNode:
+                exp = round_complex(visit_NUMNode(node.args[0])*2)
+                squared_term = BinOpNode(node.args[0].left, Token(("^", EXP)), NumberNode(Token((str(exp), NUMBER))))
+            else:
+                squared_term = BinOpNode(node.args[0], Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
+            denom = FuncNode(Token(("sqrt", FUNC)), [BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("-", MINUS)), squared_term)])
+            denom = BinOpNode(node.args[0], Token(("*", MUL)), denom)
+            new_node = UniOpNode(Token(("-", MINUS)), BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), denom))
+        elif node.op.value.lower() == "acsch":
+            if node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].right.type == NUMNode:
+                exp = round_complex(visit_NUMNode(node.args[0])*2)
+                squared_term = BinOpNode(node.args[0].left, Token(("^", EXP)), NumberNode(Token((str(exp), NUMBER))))
+            else:
+                squared_term = BinOpNode(node.args[0], Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
+            denom = FuncNode(Token(("sqrt", FUNC)), [BinOpNode(squared_term, Token(("+", PLUS)), NumberNode(Token(("1", NUMBER))))])
+            denom = BinOpNode(node.args[0], Token(("*", MUL)), denom)
+            new_node = UniOpNode(Token(("-", MINUS)), BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), denom))
+        elif node.op.value.lower() == "acoth":
+            if node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].right.type == NUMNode:
+                exp = round_complex(visit_NUMNode(node.args[0]) * 2)
+                squared_term = BinOpNode(node.args[0].left, Token(("^", EXP)), NumberNode(Token((str(exp), NUMBER))))
+            else:
+                squared_term = BinOpNode(node.args[0], Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
+            denom = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("-", MINUS)), squared_term)
+            new_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), denom)
+        if der_exprs.type != NUMNode:
+            new_node = BinOpNode(new_node, Token(("*", MUL)), der_exprs)
+        else:
+            if round_complex(visit_NUMNode(der_exprs)) != 1:
+                new_node = BinOpNode(new_node, Token(("*", MUL)), der_exprs)
+        if verbose:
+            self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
+                                 + stringify_node(new_node, self.var))
+            self.solution.append("------")
+            temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
+            self.solution.append(stringify_node(temp_tree, self.var))
+            self.solution.append("------")
+        return new_node, temp_tree
+
+    def precisely_replace_node(self, tree: AST, old_node_path: List[str], new_node: AST) -> AST:
         """Method replaces a specific node based on a given path to it"""
-        # TODO - Fix this method
         path = old_node_path[0]
         del old_node_path[0]
         for branch in old_node_path:
