@@ -205,28 +205,13 @@ class Algebra(Equation):
                  var: str = None, exprs: List[AST] = None):
         Equation.__init__(self, eqn_string, tokens, tree)  # should this be super()?
         self.var = var
-        self.lhs = None
-        self.rhs = None
         self.coeff = []
         self.exprs = exprs
         self.subs = None
         self.divisors = None
-        self.seperate_lhs_rhs()
 
     def __repr__(self):
-        return 'Algebra(%s, %s)' % (self.lhs, self.rhs)
-
-    def seperate_lhs_rhs(self):
-        """Method takes the lhs and rhs of the AST and splits them"""
-        if self.tree.type == BINOPNode:
-            if self.tree.op.tag == EQUAL:
-                self.lhs = deepcopy(self.tree.left)
-                self.rhs = deepcopy(self.tree.right)
-        elif self.tree.type == FUNCNode:
-            if self.tree.op.value in ("solve", "isolate", "roots"):
-                self.tree = deepcopy(self.tree.args[0])
-                self.lhs = deepcopy(self.tree.left)
-                self.rhs = deepcopy(self.tree.right)
+        return 'Algebra(%s)' % (self.eqn_string)
 
     def check_solvability(self) -> Tuple[bool, str]:
         """Method checks if the equation is already in a solvable format"""
@@ -313,12 +298,12 @@ class Algebra(Equation):
                 return self.check_for_variable(node.right)
             return True
 
-    def compute_low_hanging_fruit(self):
+    def compute_low_hanging_fruit(self, ops_flag: bool = True):
         """Method finds any operator with a number of the left and right side and computes it"""
-        while self.find_operator(self.tree):
+        while self.find_operator(self.tree, ops_flag=ops_flag):
             continue
 
-    def find_operator(self, node: AST) -> bool:
+    def find_operator(self, node: AST, ops_flag: bool = True) -> bool:
         """Method climbs through AST and finds operators"""
         if node.type == BINOPNode:
             if node.left.type == NUMNode and node.op.tag != DIV:
@@ -629,11 +614,11 @@ class Algebra(Equation):
                         raise Exception("{} was not replaced by {}.".format(node, ans_node))
                     self.tree = deepcopy(new_tree)
                     return True
-            chk = self.find_operator(node.left)
+            chk = self.find_operator(node.left, ops_flag=ops_flag)
             if not chk:
-                chk = self.find_operator(node.right)
+                chk = self.find_operator(node.right, ops_flag=ops_flag)
             return chk
-        elif node.type == FUNCNode and node.op.value.lower() in list_of_func:
+        elif node.type == FUNCNode and node.op.value.lower() in list_of_func and ops_flag:
             if node.op.value.lower() == "sqrt" and node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].right.type == NUMNode:
                 num = visit_NUMNode(node.args[0].right)
                 if round_complex(num) == 2:
@@ -727,7 +712,7 @@ class Algebra(Equation):
                 self.tree = deepcopy(new_tree)
                 return True
             for arg in node.args:
-                chk = self.find_operator(arg)
+                chk = self.find_operator(arg, ops_flag=ops_flag)
                 if chk:
                     break
             return chk
@@ -744,7 +729,7 @@ class Algebra(Equation):
                     raise Exception("{} was not replaced by {}.".format(node, ans_node))
                 self.tree = deepcopy(new_tree)
                 return True
-            return self.find_operator(node.right)
+            return self.find_operator(node.right, ops_flag=ops_flag)
         else:
             return False
 
