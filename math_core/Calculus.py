@@ -4,9 +4,21 @@ from math_core.Algebra import Algebra
 from parser.lexer import Token, EXP, DIV, MUL, MINUS, PLUS, NUMBER, FUNC
 from parser.ast import AST, BINOPNode, FUNCNode, UNIOPNode, VARNode, NUMNode, NumberNode, BinOpNode, UniOpNode, FuncNode
 
-from typing import List, Tuple, Union
+from typing import List, Union
+import functools
 import math
 from copy import deepcopy
+
+
+def rsetattr(obj, attr, val):
+    pre, _, post = attr.rpartition('.')
+    return setattr(rgetattr(obj, pre) if pre else obj, post, val)
+
+
+def rgetattr(obj, attr, *args):
+    def _getattr(obj, attr):
+        return getattr(obj, attr, *args)
+    return functools.reduce(_getattr, [obj] + attr.split('.'))
 
 
 class Calculus(Algebra):
@@ -30,13 +42,16 @@ class Calculus(Algebra):
         """Method solves calculus problems"""
         self.compute_low_hanging_fruit()
         if self.type == "derivative":
-            new_tree = self.compute_derivative(self.tree)
+            new_tree, _ = self.compute_derivative(self.tree, temp_tree=deepcopy(self.tree))
             self.tree = deepcopy(new_tree)
+            self.eqn_string = stringify_node(self.tree, self.var)
             self.compute_low_hanging_fruit(ops_flag=False)
             print(stringify_node(self.tree, self.var))
 
-    def compute_derivative(self, node: AST, verbose: bool = True) -> AST:
+    def compute_derivative(self, node: AST, temp_tree: AST, verbose: bool = True, tree_path: List[str] = None) -> AST:
         """Method climbs through AST, finds derivative terms and solves them"""
+        if tree_path is None:
+            tree_path = []
         if node.type == BINOPNode:
             if node.op.tag == EXP:
                 if node.right.type == NUMNode:
@@ -46,8 +61,10 @@ class Calculus(Algebra):
                         coeff_node = UniOpNode(Token(("-", MINUS)), coeff_node)
                     new_exp = round_complex(visit_NUMNode(node.right) - 1)
                     new_exp_node = NumberNode(Token((str(new_exp), NUMBER)))
-                    der_expr_node = self.compute_derivative(node.left, verbose=verbose)
-                    if der_expr_node.type == NUMNode and round_complex(visit_NUMNode(der_expr_node)) == 1:
+                    der_expr_node, temp_tree = self.compute_derivative(node.left, verbose=False, temp_tree=temp_tree)
+                    if new_exp == 1:
+                        new_node = BinOpNode(coeff_node, Token(("*", MUL)), node.left)
+                    elif der_expr_node.type == NUMNode and round_complex(visit_NUMNode(der_expr_node)) == 1:
                         new_node = BinOpNode(coeff_node, Token(("*", MUL)),
                                              BinOpNode(node.left, Token(("^", EXP)), new_exp_node))
                     else:
@@ -57,11 +74,15 @@ class Calculus(Algebra):
                     if verbose:
                         self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                              + stringify_node(new_node, self.var))
-                        #self.update_eqn_string(stringify_node(node, self.var), stringify_node(new_node, self.var))
-                    return new_node
+                        self.solution.append("------")
+                        print(f"tree_path is {tree_path} and node is {stringify_node(node, self.var)}")
+                        temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+                        self.solution.append(stringify_node(temp_tree, self.var))
+                        self.solution.append("------")
+                    return new_node, temp_tree
                 elif node.left.type == NUMNode:
                     if round_complex(visit_NUMNode(node.left)) == math.e:
-                        der_expr = self.compute_derivative(node.right)
+                        der_expr, temp_tree = self.compute_derivative(node.right, temp_tree=temp_tree, verbose=False)
                         new_node = node
                         if der_expr.type != NUMNode:
                             new_node = BinOpNode(der_expr, Token(("*", MUL)), new_node)
@@ -71,10 +92,14 @@ class Calculus(Algebra):
                         if verbose:
                             self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                                  + stringify_node(new_node, self.var))
-                            self.update_eqn_string(stringify_node(node, self.var), stringify_node(new_node, self.var))
-                        return new_node
+                            self.solution.append("------")
+                            print(f"tree_path is {tree_path} and node is {stringify_node(node, self.var)}")
+                            temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+                            self.solution.append(stringify_node(temp_tree, self.var))
+                            self.solution.append("------")
+                        return new_node, temp_tree
                     elif node.right.type == VARNode or check_mono(node.right):
-                        der_expr = self.compute_derivative(node.right)
+                        der_expr, temp_tree = self.compute_derivative(node.right, temp_tree=temp_tree, verbose=False)
                         new_node = BinOpNode(node, Token(("*", MUL)), FuncNode(Token(("ln", FUNC)), [node.left]))
                         if der_expr.type != NUMNode:
                             new_node = BinOpNode(new_node, Token(("*", MUL)), der_expr)
@@ -84,20 +109,29 @@ class Calculus(Algebra):
                         if verbose:
                             self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                                  + stringify_node(new_node, self.var))
-                            self.update_eqn_string(stringify_node(node, self.var), stringify_node(new_node, self.var))
-                        return new_node
+                            self.solution.append("------")
+                            print(f"tree_path is {tree_path} and node is {stringify_node(node, self.var)}")
+                            temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+                            self.solution.append(stringify_node(temp_tree, self.var))
+                            self.solution.append("------")
+                        return new_node, temp_tree
             elif node.op.tag == DIV:
-                return self.quotient_rule(node, verbose=verbose)
+                return self.quotient_rule(node, temp_tree=temp_tree, tree_path=tree_path, verbose=verbose)
             elif node.op.tag == MUL:
-                return self.product_rule(node, verbose=verbose)
-            new_left = self.compute_derivative(node.left, verbose=verbose)
-            new_right = self.compute_derivative(node.right, verbose=verbose)
-            return BinOpNode(new_left, node.op, new_right)
+                return self.product_rule(node, temp_tree=temp_tree, tree_path=tree_path, verbose=verbose)
+            tree_path.append("left")
+            new_left, temp_tree = self.compute_derivative(node.left, temp_tree=temp_tree, verbose=verbose, tree_path=tree_path)
+            if tree_path:
+                tree_path[-1] = "right"
+            else:
+                tree_path.append("right")
+            new_right, temp_tree = self.compute_derivative(node.right, temp_tree=temp_tree, verbose=verbose, tree_path=tree_path)
+            return BinOpNode(new_left, node.op, new_right), temp_tree
         elif node.type == UNIOPNode:
-            return UniOpNode(node.op, self.compute_derivative(node.right))
+            return UniOpNode(node.op, self.compute_derivative(node.right, temp_tree=temp_tree, verbose=verbose))
         elif node.type == FUNCNode:
             if node.op.value.lower() in "ln":
-                der_expr = self.compute_derivative(node.args[0])
+                der_expr, temp_tree = self.compute_derivative(node.args[0], temp_tree=temp_tree, verbose=False)
                 new_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), node.args[0])
                 if der_expr.type != NUMNode:
                     new_node = BinOpNode(new_node, Token(("*", MUL)), der_expr)
@@ -105,7 +139,7 @@ class Calculus(Algebra):
                     if round_complex(visit_NUMNode(der_expr)) == 1:
                         new_node = BinOpNode(new_node, Token(("*", MUL)), der_expr)
             elif node.op.value.lower() in "log":
-                der_expr = self.compute_derivative(node.args[0])
+                der_expr, temp_tree = self.compute_derivative(node.args[0], temp_tree=temp_tree, verbose=False)
                 denom_node = BinOpNode(node.args[0], Token(("*", MUL)), FuncNode(Token(("ln", FUNC)), [node.args[1]]))
                 new_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), denom_node)
                 if der_expr.type != NUMNode:
@@ -115,21 +149,43 @@ class Calculus(Algebra):
                         new_node = BinOpNode(new_node, Token(("*", MUL)), der_expr)
             elif node.op.value.lower() in "sqrt":
                 inter_node = BinOpNode(node.args[0], Token(("^", EXP)), NumberNode(Token(("0.5", NUMBER))))
-                new_node = self.compute_derivative(inter_node, verbose=False)
+                new_node, temp_tree = self.compute_derivative(inter_node, temp_tree=temp_tree, verbose=False)
             if verbose:
                 self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                      + stringify_node(new_node, self.var))
-                self.update_eqn_string(stringify_node(node, self.var), stringify_node(new_node, self.var))
-            return new_node
+                self.solution.append("------")
+                print(f"tree_path is {tree_path} and node is {stringify_node(node, self.var)}")
+                temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+                self.solution.append(stringify_node(temp_tree, self.var))
+                self.solution.append("------")
+            return new_node, temp_tree
         elif node.type == VARNode:
-            return NumberNode(Token(("1", NUMBER)))
+            new_node = NumberNode(Token(("1", NUMBER)))
+            if verbose:
+                self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
+                                     + stringify_node(new_node, self.var))
+                self.solution.append("------")
+                print(f"tree_path is {tree_path} and node is {stringify_node(node, self.var)}")
+                temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+                self.solution.append(stringify_node(temp_tree, self.var))
+                self.solution.append("------")
+            return new_node, temp_tree
         else:
-            return NumberNode(Token(("0", NUMBER)))
+            new_node = NumberNode(Token(("0", NUMBER)))
+            if verbose:
+                self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
+                                     + stringify_node(new_node, self.var))
+                self.solution.append("------")
+                print(f"tree_path is {tree_path} and node is {stringify_node(node, self.var)}")
+                temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+                self.solution.append(stringify_node(temp_tree, self.var))
+                self.solution.append("------")
+            return new_node, temp_tree
 
-    def quotient_rule(self, node: AST, verbose: bool = True) -> AST:
+    def quotient_rule(self, node: AST, temp_tree: AST, tree_path: List[str], verbose: bool = True) -> AST:
         """Computes quotient rule for derivatives"""
-        der_top_node = self.compute_derivative(node.left)
-        der_bottom_node = self.compute_derivative(node.right)
+        der_top_node, temp_tree = self.compute_derivative(node.left, temp_tree=temp_tree, verbose=False)
+        der_bottom_node, temp_tree = self.compute_derivative(node.right, temp_tree=temp_tree, verbose=False)
         if der_top_node.type == NUMNode and round_complex(
                 visit_NUMNode(der_top_node)) == 1 and der_bottom_node.type == NUMNode and round_complex(
                 visit_NUMNode(der_bottom_node)) == 1:
@@ -154,30 +210,58 @@ class Calculus(Algebra):
         if verbose:
             self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                  + stringify_node(new_node, self.var))
-            self.update_eqn_string(stringify_node(node, self.var), stringify_node(new_node, self.var))
-        return new_node
+            self.solution.append("------")
+            temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+            self.solution.append(stringify_node(temp_tree, self.var))
+            self.solution.append("------")
+        return new_node, temp_tree
 
-    def product_rule(self, node: AST, verbose: bool = True) -> AST:
+    def product_rule(self, node: AST, temp_tree: AST, tree_path: List[str], verbose: bool = True) -> AST:
         """Compute product rule for derivatives"""
-        der_left = self.compute_derivative(node.left)
-        der_right = self.compute_derivative(node.right)
+        der_left, temp_tree = self.compute_derivative(node.left, temp_tree=temp_tree, verbose=False)
+        der_right, temp_tree = self.compute_derivative(node.right, temp_tree=temp_tree, verbose=False)
         if der_left.type == NUMNode and round_complex(
                 visit_NUMNode(der_left)) == 1 and der_right.type == NUMNode and round_complex(
             visit_NUMNode(der_right)) == 1:
             new_node_left = NumberNode(Token(("1", NUMBER)))
             new_node_right = NumberNode(Token(("1", NUMBER)))
+            new_node = BinOpNode(new_node_left, Token(("+", PLUS)), new_node_right)
         elif der_left.type == NUMNode and round_complex(visit_NUMNode(der_left)) == 1:
             new_node_left = node.right
             new_node_right = BinOpNode(der_right, Token(("*", MUL)), node.left)
+            new_node = BinOpNode(new_node_left, Token(("+", PLUS)), new_node_right)
+        elif der_left.type == NUMNode and round_complex(visit_NUMNode(der_left)) == 0:
+            new_node = BinOpNode(der_right, Token(("*", MUL)), node.left)
         elif der_right.type == NUMNode and round_complex(visit_NUMNode(der_right)) == 1:
             new_node_left = BinOpNode(der_left, Token(("*", MUL)), node.right)
             new_node_right = node.left
+            new_node = BinOpNode(new_node_left, Token(("+", PLUS)), new_node_right)
+        elif der_right.type == NUMNode and round_complex(visit_NUMNode(der_right)) == 0:
+            new_node = BinOpNode(der_left, Token(("*", MUL)), node.right)
         else:
             new_node_left = BinOpNode(der_left, Token(("*", MUL)), node.right)
             new_node_right = BinOpNode(der_right, Token(("*", MUL)), node.left)
-        new_node = BinOpNode(new_node_left, Token(("+", PLUS)), new_node_right)
+            new_node = BinOpNode(new_node_left, Token(("+", PLUS)), new_node_right)
+        if new_node.left.type == NUMNode and round_complex(visit_NUMNode(new_node.left)) == 1:
+            new_node = new_node.right
+        elif new_node.right.type == NUMNode and round_complex(visit_NUMNode(new_node.right)) == 1:
+            new_node = new_node.left
         if verbose:
             self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                  + stringify_node(new_node, self.var))
-            self.update_eqn_string(stringify_node(node, self.var), stringify_node(new_node, self.var))
-        return new_node
+            self.solution.append("------")
+            temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
+            self.solution.append(stringify_node(temp_tree, self.var))
+            self.solution.append("------")
+        return new_node, temp_tree
+
+    def calc_replace_node(self, tree: AST, old_node_path: List[str], new_node: AST) -> AST:
+        """Method replaces a specific node based on a given path to it"""
+        # TODO - Fix this method
+        path = old_node_path[0]
+        del old_node_path[0]
+        for branch in old_node_path:
+            path += "."+branch
+        rsetattr(tree, path, new_node)
+        print(stringify_node(tree, self.var))
+        return tree

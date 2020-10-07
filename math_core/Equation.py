@@ -24,12 +24,12 @@ def stringify_node(node: AST, var: str) -> str:
         temp = node.op.value
         if node.op.tag != EQUAL:
             if node.left.type == BINOPNode and node.left.op.tag != EXP:
-                if node.op.tag not in (PLUS, MINUS) or node.left.op.tag not in (PLUS, MINUS):
+                if node.op.tag not in (PLUS, MINUS) or node.left.op.tag not in (PLUS, MINUS) and not check_mono(node.left):
                     temp = ")" + temp
-            elif node.op.tag == EXP and node.left.type == BINOPNode and node.left.op.tag == EXP:
+            elif node.op.tag == EXP and node.left.type == BINOPNode and node.left.op.tag == EXP and check_mono(node.right):
                 temp = ")" + temp
             if node.right.type == BINOPNode and node.right.op.tag != EXP:
-                if node.op.tag not in (PLUS, MINUS) or node.right.op.tag not in (PLUS, MINUS):
+                if node.op.tag not in (PLUS, MINUS) or node.right.op.tag not in (PLUS, MINUS) and not check_mono(node.right):
                     temp += "("
         left = stringify_node(node.left, var)
         if ")"+node.op.value in temp:
@@ -80,7 +80,9 @@ def inference_string(eqn_string: str, var: str) -> str:
     if match is not None:
         return inference_string(eqn_string, var)
     if eqn_string in "1*"+var:
-        eqn_string = eqn_string.replace("1*"+var, var)
+        eqn_string = eqn_string.replace("1*", var)
+    elif eqn_string in "-1*"+var:
+        eqn_string = eqn_string.replace("-1*", "-"+var)
     if "#" in eqn_string:
         eqn_string = eqn_string.replace("#", "")
     return eqn_string.replace('(' + var + ')', var)
@@ -142,10 +144,10 @@ def check_mono(node: AST):
 
 class Equation:
     def __init__(self, eqn_string: str = None, tokens: List[Token] = None, tree: List[Union[AST, Token]] = None):
+        self.solution = ["The inputted equation is " + eqn_string]
         self.eqn_string = eqn_string.replace(" ", "")
         self.eqn_tokens = tokens
         self.tree = tree
-        self.solution = ["The inputted equation is "+self.eqn_string]
 
     def update_eqn_string(self, section_to_replace: str, new_section: str, br_override: bool = False):
         """Method which updates the eqn string based on recent ops"""
