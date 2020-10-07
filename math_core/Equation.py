@@ -8,6 +8,38 @@ import pytest
 import math
 
 
+list_of_func = [
+    "cos",
+    "sin",
+    "tan",
+    "abs",
+    "log",
+    "ln",
+    "sqrt",
+    "sec",
+    "csc",
+    "cot",
+    "acos",
+    "asin",
+    "atan",
+    "asec",
+    "acsc",
+    "acot",
+    "cosh",
+    "sinh",
+    "tanh",
+    "sech",
+    "csch",
+    "coth",
+    "acosh",
+    "asinh",
+    "atanh",
+    "asech",
+    "acsch",
+    "acoth",
+]
+
+
 class Colors:
     RED = "\033[1;31m"
     BLUE = "\033[1;34m"
@@ -47,13 +79,18 @@ def stringify_node(node: AST, var: str) -> str:
             right += ")"
         return inference_string(temp+right, var)
     elif node.type == FUNCNode:
-        temp = node.op.value+"("
-        for i in range(len(node.args)):
-            if i < 1:
-                temp += stringify_node(node.args[i], var)
-            else:
-                temp += ","+stringify_node(node.args[i], var)
-        temp += ")"
+        if node.op.value.lower() != "abs":
+            temp = node.op.value.lower()+"("
+            for i in range(len(node.args)):
+                if i < 1:
+                    temp += stringify_node(node.args[i], var)
+                else:
+                    temp += ","+stringify_node(node.args[i], var)
+            temp += ")"
+        else:
+            temp = "|"
+            temp += stringify_node(node.args[0], var)
+            temp += "|"
         return inference_string(temp, var)
     elif node.type in (VARNode, NUMNode):
         return inference_string(node.value, var)
@@ -85,7 +122,15 @@ def inference_string(eqn_string: str, var: str) -> str:
         eqn_string = eqn_string.replace("-1*", "-"+var)
     if "#" in eqn_string:
         eqn_string = eqn_string.replace("#", "")
-    return eqn_string.replace('(' + var + ')', var)
+    return eqn_string.replace('(' + var + ')', var) if not check_for_func(eqn_string) else eqn_string
+
+
+def check_for_func(eqn: str):
+    """Method checks if there are functions in the string"""
+    for func in list_of_func:
+        if func in eqn:
+            return True
+    return False
 
 
 def round_complex(num: Any, decimal_place: int = 6) -> Union[complex, float]:

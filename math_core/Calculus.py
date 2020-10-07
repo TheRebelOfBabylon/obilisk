@@ -10,6 +10,34 @@ import math
 from copy import deepcopy
 
 
+list_of_trig_func = [
+    "cos",
+    "sin",
+    "tan",
+    "sec",
+    "csc",
+    "cot",
+    "acos",
+    "asin",
+    "atan",
+    "asec",
+    "acsc",
+    "acot",
+    "cosh",
+    "sinh",
+    "tanh",
+    "sech",
+    "csch",
+    "coth",
+    "acosh",
+    "asinh",
+    "atanh",
+    "asech",
+    "acsch",
+    "acoth",
+]
+
+
 def rsetattr(obj, attr, val):
     pre, _, post = attr.rpartition('.')
     return setattr(rgetattr(obj, pre) if pre else obj, post, val)
@@ -46,7 +74,7 @@ class Calculus(Algebra):
             self.tree = deepcopy(new_tree)
             self.eqn_string = stringify_node(self.tree, self.var)
             self.compute_low_hanging_fruit(ops_flag=False)
-            print(stringify_node(self.tree, self.var))
+            #print(stringify_node(self.tree, self.var))
 
     def compute_derivative(self, node: AST, temp_tree: AST, verbose: bool = True, tree_path: List[str] = None) -> AST:
         """Method climbs through AST, finds derivative terms and solves them"""
@@ -75,7 +103,6 @@ class Calculus(Algebra):
                         self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                              + stringify_node(new_node, self.var))
                         self.solution.append("------")
-                        print(f"tree_path is {tree_path} and node is {stringify_node(node, self.var)}")
                         temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
                         self.solution.append(stringify_node(temp_tree, self.var))
                         self.solution.append("------")
@@ -93,7 +120,6 @@ class Calculus(Algebra):
                             self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                                  + stringify_node(new_node, self.var))
                             self.solution.append("------")
-                            print(f"tree_path is {tree_path} and node is {stringify_node(node, self.var)}")
                             temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
                             self.solution.append(stringify_node(temp_tree, self.var))
                             self.solution.append("------")
@@ -110,25 +136,22 @@ class Calculus(Algebra):
                             self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                                  + stringify_node(new_node, self.var))
                             self.solution.append("------")
-                            print(f"tree_path is {tree_path} and node is {stringify_node(node, self.var)}")
                             temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
                             self.solution.append(stringify_node(temp_tree, self.var))
                             self.solution.append("------")
                         return new_node, temp_tree
             elif node.op.tag == DIV:
-                return self.quotient_rule(node, temp_tree=temp_tree, tree_path=tree_path, verbose=verbose)
+                return self.quotient_rule(node, temp_tree=temp_tree, tree_path=tree_path[:], verbose=verbose)
             elif node.op.tag == MUL:
-                return self.product_rule(node, temp_tree=temp_tree, tree_path=tree_path, verbose=verbose)
+                return self.product_rule(node, temp_tree=temp_tree, tree_path=tree_path[:], verbose=verbose)
             tree_path.append("left")
-            new_left, temp_tree = self.compute_derivative(node.left, temp_tree=temp_tree, verbose=verbose, tree_path=tree_path)
-            if tree_path:
-                tree_path[-1] = "right"
-            else:
-                tree_path.append("right")
-            new_right, temp_tree = self.compute_derivative(node.right, temp_tree=temp_tree, verbose=verbose, tree_path=tree_path)
+            new_left, temp_tree = self.compute_derivative(node.left, temp_tree=temp_tree, verbose=verbose, tree_path=tree_path[:])
+            tree_path[-1] = "right"
+            new_right, temp_tree = self.compute_derivative(node.right, temp_tree=temp_tree, verbose=verbose, tree_path=tree_path[:])
             return BinOpNode(new_left, node.op, new_right), temp_tree
         elif node.type == UNIOPNode:
-            return UniOpNode(node.op, self.compute_derivative(node.right, temp_tree=temp_tree, verbose=verbose))
+            tree_path.append("right")
+            return UniOpNode(node.op, self.compute_derivative(node.right, tree_path=tree_path[:], temp_tree=temp_tree, verbose=verbose))
         elif node.type == FUNCNode:
             if node.op.value.lower() in "ln":
                 der_expr, temp_tree = self.compute_derivative(node.args[0], temp_tree=temp_tree, verbose=False)
@@ -136,7 +159,7 @@ class Calculus(Algebra):
                 if der_expr.type != NUMNode:
                     new_node = BinOpNode(new_node, Token(("*", MUL)), der_expr)
                 else:
-                    if round_complex(visit_NUMNode(der_expr)) == 1:
+                    if round_complex(visit_NUMNode(der_expr)) != 1:
                         new_node = BinOpNode(new_node, Token(("*", MUL)), der_expr)
             elif node.op.value.lower() in "log":
                 der_expr, temp_tree = self.compute_derivative(node.args[0], temp_tree=temp_tree, verbose=False)
@@ -145,16 +168,23 @@ class Calculus(Algebra):
                 if der_expr.type != NUMNode:
                     new_node = BinOpNode(new_node, Token(("*", MUL)), der_expr)
                 else:
-                    if round_complex(visit_NUMNode(der_expr)) == 1:
+                    if round_complex(visit_NUMNode(der_expr)) != 1:
                         new_node = BinOpNode(new_node, Token(("*", MUL)), der_expr)
             elif node.op.value.lower() in "sqrt":
                 inter_node = BinOpNode(node.args[0], Token(("^", EXP)), NumberNode(Token(("0.5", NUMBER))))
                 new_node, temp_tree = self.compute_derivative(inter_node, temp_tree=temp_tree, verbose=False)
+            elif node.op.value.lower() in "abs":
+                der_expr, temp_tree = self.compute_derivative(node.args[0], temp_tree=temp_tree, verbose=False)
+                new_node = BinOpNode(node.args[0], Token(("/", DIV)), node)
+                if der_expr.type != NUMNode:
+                    new_node = BinOpNode(new_node, Token(("*", MUL)), der_expr)
+                else:
+                    if round_complex(visit_NUMNode(der_expr)) != 1:
+                        new_node = BinOpNode(new_node, Token(("*", MUL)), der_expr)
             if verbose:
                 self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                      + stringify_node(new_node, self.var))
                 self.solution.append("------")
-                print(f"tree_path is {tree_path} and node is {stringify_node(node, self.var)}")
                 temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
                 self.solution.append(stringify_node(temp_tree, self.var))
                 self.solution.append("------")
@@ -165,7 +195,6 @@ class Calculus(Algebra):
                 self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                      + stringify_node(new_node, self.var))
                 self.solution.append("------")
-                print(f"tree_path is {tree_path} and node is {stringify_node(node, self.var)}")
                 temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
                 self.solution.append(stringify_node(temp_tree, self.var))
                 self.solution.append("------")
@@ -176,7 +205,6 @@ class Calculus(Algebra):
                 self.solution.append("d/d" + self.var + "(" + stringify_node(node, self.var) + ") = "
                                      + stringify_node(new_node, self.var))
                 self.solution.append("------")
-                print(f"tree_path is {tree_path} and node is {stringify_node(node, self.var)}")
                 temp_tree = self.calc_replace_node(temp_tree, tree_path, new_node)
                 self.solution.append(stringify_node(temp_tree, self.var))
                 self.solution.append("------")
@@ -263,5 +291,4 @@ class Calculus(Algebra):
         for branch in old_node_path:
             path += "."+branch
         rsetattr(tree, path, new_node)
-        print(stringify_node(tree, self.var))
         return tree

@@ -1,4 +1,4 @@
-from math_core.Equation import Equation, visit_NUMNode
+from math_core.Equation import Equation, visit_NUMNode, list_of_func
 from parser.ast import FuncNode, BinOpNode, AST, UniOpNode, NumberNode
 from parser.ast import FUNCNode, BINOPNode, NUMNode, VARNode, UNIOPNode
 from parser.lexer import MUL, MINUS, PLUS, EXP, DIV, NUMBER, CONSTANT
@@ -6,37 +6,6 @@ from parser.lexer import MUL, MINUS, PLUS, EXP, DIV, NUMBER, CONSTANT
 import math
 import cmath
 from typing import Union
-
-list_of_func = [
-    "cos",
-    "sin",
-    "tan",
-    "abs",
-    "log",
-    "ln",
-    "sqrt",
-    "sec",
-    "csc",
-    "cot",
-    "acos",
-    "asin",
-    "atan",
-    "asec",
-    "acsc",
-    "acot",
-    "cosh",
-    "sinh",
-    "tanh",
-    "sech",
-    "csch",
-    "coth",
-    "acosh",
-    "asinh",
-    "atanh",
-    "asech",
-    "acsch",
-    "acoth",
-]
 
 
 def stringify(num: Union[int, float, complex]) -> str:

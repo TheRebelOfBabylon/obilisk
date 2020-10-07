@@ -1,5 +1,5 @@
 from parser.ast import MatrixNode, BinOpNode, VariableNode, NumberNode, EquationNode, ExpressionNode, TermNode, FactorNode, ConstantNode, FuncNode, UniOpNode, NUMNode, VARNode
-from parser.lexer import Token, PLUS, MINUS, ENDL, EQUAL, EXP, MUL, DIV, L_MATRIX_BR, L_BRACKET, NUMBER, FUNC, VARIABLE, R_MATRIX_BR, R_BRACKET, COMMA, CONSTANT, EOF
+from parser.lexer import Token, PLUS, MINUS, ENDL, EQUAL, EXP, MUL, DIV, L_MATRIX_BR, L_BRACKET, NUMBER, FUNC, VARIABLE, R_MATRIX_BR, R_BRACKET, COMMA, CONSTANT, EOF, ABS_BRACKET
 from math_core.Equation import stringify_node
 
 from typing import List
@@ -135,7 +135,7 @@ class TreeBuilder():
         return base
 
     def Atom(self):
-        """Atom ::= (+|-)Atom|Matrix|NUMBER|VARIABLE|CONSTANT|L_BRACKET Expression R_BRACKET|FUNC L_BRACKET Expression R_BRACKET|EOF"""
+        """Atom ::= (+|-)Atom|Matrix|NUMBER|VARIABLE|CONSTANT|L_BRACKET Expression R_BRACKET|FUNC L_BRACKET Expression R_BRACKET|ABS_BRACKET Expression ABS_BRACKET|EOF"""
         current_token = self.tokens[self.pos]
         if current_token.tag == PLUS:
             uni_op = current_token
@@ -217,6 +217,21 @@ class TreeBuilder():
                     self.consume_token(R_MATRIX_BR)
                     result.append(row)
                     return MatrixNode(result)
-
+        elif current_token.tag == ABS_BRACKET:
+            self.consume_token(ABS_BRACKET)
+            result = [self.Expression()]  # There's the recursion
+            self.consume_token(ABS_BRACKET)
+            node = FuncNode(Token(("abs", FUNC)), result)
+            if self.has_var:
+                if self.exprs:
+                    chk = False
+                    for expr in self.exprs:
+                        if node.__repr__() == expr.__repr__():
+                            chk = True
+                    if not chk:
+                        self.exprs.append(node)
+                else:
+                    self.exprs.append(node)
+            return node
         elif current_token.tag == EOF:
             return None

@@ -431,6 +431,28 @@ class Algebra(Equation):
                             raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
+                    elif node.left.type == BINOPNode and node.left.op.tag == DIV and node.left.left.type == NUMNode \
+                        and round_complex(visit_NUMNode(node.left.left)) == 1:
+                        node_string = stringify_node(node, self.var)
+                        ans_node = BinOpNode(node.right, Token(("/", DIV)), node.left.right)
+                        self.solution.append(node_string + " = " + stringify_node(ans_node, self.var))
+                        self.update_eqn_string(node_string, "("+stringify_node(ans_node, self.var)+")")
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                        self.tree = deepcopy(new_tree)
+                        return True
+                    elif node.right.type == BINOPNode and node.right.op.tag == DIV and node.right.left.type == NUMNode \
+                        and round_complex(visit_NUMNode(node.right.left)) == 1:
+                        node_string = stringify_node(node, self.var)
+                        ans_node = BinOpNode(node.left, Token(("/", DIV)), node.right.right)
+                        self.solution.append(node_string + " = " + stringify_node(ans_node, self.var))
+                        self.update_eqn_string(node_string, "("+stringify_node(ans_node, self.var)+")")
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                        self.tree = deepcopy(new_tree)
+                        return True
             elif node.op.tag in (PLUS, MINUS):
                 if node.left.type == NUMNode:
                     num = visit_NUMNode(node.left)

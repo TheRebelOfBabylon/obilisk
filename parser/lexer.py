@@ -16,6 +16,7 @@ L_BRACKET = 'L_BRACKET'
 R_BRACKET = 'R_BRACKET'
 L_MATRIX_BR = 'L_MATRIX_BR'
 R_MATRIX_BR = 'R_MATRIX_BR'
+ABS_BRACKET = 'ABS_BRACKET'
 ENDL = 'ENDL'
 COMMA = 'COMMA'
 CONSTANT = 'CONSTANT'
@@ -36,6 +37,7 @@ token_exprs = [
     (r'\)', R_BRACKET),
     (r'\[', L_MATRIX_BR),
     (r'\]', R_MATRIX_BR),
+    (r'\|', ABS_BRACKET),
     (r'\;', ENDL),
     (r'(sqrt|SQRT)', FUNC),
     (r'\,', COMMA),
