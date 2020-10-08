@@ -1,4 +1,4 @@
-from parser.lexer import Token, EXP, EQUAL, PLUS, MINUS, NUMBER, CONSTANT, MUL
+from parser.lexer import Token, EXP, EQUAL, PLUS, MINUS, NUMBER, CONSTANT, MUL, DIV
 from parser.ast import AST, BINOPNode, FUNCNode, UNIOPNode, VARNode, NUMNode, NumberNode
 from math_core.algebra_formats import monomial_x_power, monomial_x, build_monomial_template
 
@@ -56,7 +56,7 @@ def stringify_node(node: AST, var: str) -> str:
         temp = node.op.value
         if node.op.tag != EQUAL:
             if node.left.type == BINOPNode and node.left.op.tag != EXP:
-                if node.op.tag not in (PLUS, MINUS) or node.left.op.tag not in (PLUS, MINUS) and not check_mono(node.left):
+                if node.op.tag not in (EXP, DIV, PLUS, MINUS) or node.left.op.tag not in (PLUS, MINUS) and not check_mono(node.left):
                     temp = ")" + temp
             elif node.op.tag == EXP and node.left.type == BINOPNode and node.left.op.tag == EXP and check_mono(node.right):
                 temp = ")" + temp
@@ -166,7 +166,7 @@ def visit_NUMNode(node: NumberNode):
         elif node.value in ("#e", "#E"):
             return math.e
         else:
-            raise ValueError("Constant {} is not recognized".format(node.value))
+            raise ValueError(f"Constant {node.value} is not recognized")
 
 
 def check_mono(node: AST):

@@ -1,5 +1,5 @@
 from parser.ast import MatrixNode, BinOpNode, VariableNode, NumberNode, EquationNode, ExpressionNode, TermNode, FactorNode, ConstantNode, FuncNode, UniOpNode, NUMNode, VARNode
-from parser.lexer import Token, PLUS, MINUS, ENDL, EQUAL, EXP, MUL, DIV, L_MATRIX_BR, L_BRACKET, NUMBER, FUNC, VARIABLE, R_MATRIX_BR, R_BRACKET, COMMA, CONSTANT, EOF, ABS_BRACKET
+from parser.lexer import Token, PLUS, MINUS, ENDL, EQUAL, EXP, MUL, DIV, L_MATRIX_BR, L_BRACKET, NUMBER, FUNC, VARIABLE, R_MATRIX_BR, R_BRACKET, COMMA, CONSTANT, EOF, ABS_BRACKET, COMP_OP
 from math_core.Equation import stringify_node
 
 from typing import List
@@ -49,9 +49,20 @@ class TreeBuilder():
     def Equation(self):
         """Equation ::= FUNC Equation|Expression|Expression EQUAL Expression"""
         current_token = self.tokens[self.pos]
-        if current_token.tag == FUNC and current_token.value in ("derivative", "integral", "solve", "isolate", "roots"):
+        if current_token.tag == FUNC and current_token.value.lower() in ("derivative", "integral", "solve", "isolate", "roots"):
             op = current_token
             self.consume_token(FUNC)
+            current_token = self.tokens[self.pos]
+            if current_token.tag in (COMP_OP, COMMA):
+                self.consume_token(current_token.tag)
+                result = [self.Equation()]
+                current_token = self.tokens[self.pos]
+                if current_token.tag in (COMP_OP, COMMA):
+                    while current_token.tag in (COMP_OP, COMMA):
+                        self.consume_token(current_token.tag)
+                        result.append(self.Equation())
+                        current_token = self.tokens[self.pos]
+                return FuncNode(op, result)
             return FuncNode(op, [self.Equation()])
         else:
             LHS = self.Expression()

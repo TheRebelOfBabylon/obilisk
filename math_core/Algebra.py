@@ -470,7 +470,7 @@ class Algebra(Equation):
                             raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
-                elif node.right.type == NUMNode:
+                elif node.right.type == NUMNode and node.right.value != "#C":
                     num = visit_NUMNode(node.right)
                     if round_complex(num) == 0:
                         node_string = stringify_node(node.left, self.var)
@@ -740,7 +740,18 @@ class Algebra(Equation):
             return chk
         elif node.type == UNIOPNode:
             right = None
-            if node.right.type == NUMNode:
+            if node.right.type == UNIOPNode:
+                minus_cnt, ans_node = self.reduce_uni_ops(node)
+                if minus_cnt % 2 != 0:
+                    ans_node = UniOpNode(Token(("-", MINUS)), ans_node)
+                self.solution.append(stringify_node(node, self.var) + " = " + stringify_node(ans_node, self.var))
+                self.update_eqn_string(stringify_node(node, self.var), stringify_node(ans_node, self.var))
+                new_tree = self.replace_node(self.tree, node, ans_node)
+                if new_tree is None:
+                    raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                self.tree = deepcopy(new_tree)
+                return True
+            elif node.right.type == NUMNode:
                 right = stringify(visit_NUMNode(node.right))
             if is_number(right):
                 ans = self.compute(node.op.value+right)
@@ -754,6 +765,14 @@ class Algebra(Equation):
             return self.find_operator(node.right, ops_flag=ops_flag)
         else:
             return False
+
+    def reduce_uni_ops(self, node: AST, minus_cnt : int = 0) -> Tuple[int, AST]:
+        """Method is meant to reduce the amount of uniops in an equation"""
+        if node.type == UNIOPNode:
+            if node.op.tag == "-":
+                return self.reduce_uni_ops(node.right, minus_cnt=minus_cnt+1)
+            return self.reduce_uni_ops(node.right, minus_cnt=minus_cnt)
+        return minus_cnt, node
 
     def compute(self, eqn_string: str) -> Union[int, complex, float]:
         """Method computes values using Arithmetic class and returns answer"""

@@ -12,6 +12,7 @@ DIV = 'DIV'
 EXP = 'EXP'
 FUNC = 'FUNC'
 EQUAL = 'EQUAL'
+COMP_OP = 'COMP_OP'
 L_BRACKET = 'L_BRACKET'
 R_BRACKET = 'R_BRACKET'
 L_MATRIX_BR = 'L_MATRIX_BR'
@@ -25,7 +26,7 @@ VARIABLE = 'VARIABLE'
 EOF = 'EOF'
 
 token_exprs = [
-    (r'of', None),
+    (r'of|OF', COMMA),
     (r'[\s]+', None),
     (r'=', EQUAL),
     (r'\+', PLUS),
@@ -33,6 +34,8 @@ token_exprs = [
     (r'\*', MUL),
     (r'/', DIV),
     (r'\^', EXP),
+    (r'from|FROM', COMP_OP),
+    (r'to|TO', COMP_OP),
     (r'\(', L_BRACKET),
     (r'\)', R_BRACKET),
     (r'\[', L_MATRIX_BR),
@@ -42,8 +45,8 @@ token_exprs = [
     (r'(sqrt|SQRT)', FUNC),
     (r'\,', COMMA),
     (r'\#(pi|PI|e|E)', CONSTANT),
-    (r'derivative|integral', FUNC),
-    (r'solve|isolate|roots', FUNC),
+    (r'derivative|integral|DERIVATIVE|INTEGRAL', FUNC),
+    (r'solve|isolate|roots|SOLVE|ISOLATE|ROOTS', FUNC),
     (r'd/d[a-zA-Z_]', FUNC),
     (r'abs|ABS', FUNC),
     (r'(sinh|cosh|tanh)|(SINH|COSH|TANH)', FUNC),
@@ -112,9 +115,13 @@ class Lexer():
             tokens.insert(0, mul_token)
             tokens.insert(0, one_token)
         while i != len(tokens):
-            if tokens[i-1].tag in (NUMBER, R_BRACKET, CONSTANT) and tokens[i].tag in (VARIABLE, CONSTANT, L_BRACKET, FUNC):
+            if tokens[i-1].tag in (NUMBER, R_BRACKET, CONSTANT) and tokens[i].tag in (CONSTANT, L_BRACKET, FUNC):
                 tokens.insert(i, mul_token)
-            elif tokens[i-1].tag in (PLUS, MINUS, EQUAL, DIV, EXP, L_BRACKET) and tokens[i].tag == VARIABLE:
+            elif tokens[i-1].tag in (NUMBER, CONSTANT) and tokens[i].tag == VARIABLE:
+                tokens.insert(i-1, l_brack_token)
+                tokens.insert(i+1, mul_token)
+                tokens.insert(i+3, r_brack_token)
+            elif tokens[i-1].tag in (PLUS, MINUS, EQUAL, DIV, EXP, L_BRACKET, COMMA) and tokens[i].tag == VARIABLE:
                 tokens.insert(i + 1, r_brack_token)
                 tokens.insert(i, mul_token)
                 tokens.insert(i, one_token)

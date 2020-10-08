@@ -40,12 +40,12 @@ class Obilisk:
         list_of_alg_funcs = ["solve", "isolate", "roots"]
         list_of_calc_funcs = ["integral", "derivative", "limit"]
         if self.tree.type == FUNCNode:
-            if self.tree.op.value in list_of_alg_funcs:
-                self.tree = deepcopy(self.tree.args[0])
-                return ALGEBRA
-            elif self.tree.op.value in list_of_calc_funcs:
+            if self.tree.op.value.lower() in list_of_alg_funcs:
                 self.type = self.tree.op.value
                 self.tree = deepcopy(self.tree.args[0])
+                return ALGEBRA
+            elif self.tree.op.value.lower() in list_of_calc_funcs:
+                self.type = self.tree.op.value
                 return CALCULUS
         if self.check_for_ddx(self.tree):
             return CALCULUS
