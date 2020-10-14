@@ -79,7 +79,7 @@ def stringify_node(node: AST, var: str) -> str:
             right += ")"
         return inference_string(temp+right, var)
     elif node.type == FUNCNode:
-        if node.op.value.lower() != "abs":
+        if node.op.value.lower() not in ("abs", "abs_ln"):
             temp = node.op.value.lower()+"("
             for i in range(len(node.args)):
                 if i < 1:
@@ -89,6 +89,8 @@ def stringify_node(node: AST, var: str) -> str:
             temp += ")"
         else:
             temp = "|"
+            if node.op.value.lower() == "abs_ln":
+                temp = "ln" + temp
             temp += stringify_node(node.args[0], var)
             temp += "|"
         return inference_string(temp, var)
@@ -165,6 +167,8 @@ def visit_NUMNode(node: NumberNode):
             return math.pi
         elif node.value in ("#e", "#E"):
             return math.e
+        elif node.value == "#C":
+            return 1
         else:
             raise ValueError(f"Constant {node.value} is not recognized")
 

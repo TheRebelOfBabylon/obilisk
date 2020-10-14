@@ -553,6 +553,16 @@ class Algebra(Equation):
                             raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
+                    elif round_complex(num) == math.e and node.right.type == FUNCNode and node.right.op.value.lower() == "abs_ln":
+                        node_string = stringify_node(node.right.args[0], self.var)
+                        self.solution.append("#e^ln|" + node_string + "| = " + node_string)
+                        self.update_eqn_string("#e^ln|" + node_string + "|", node_string)
+                        ans_node = node.right.args[0]
+                        new_tree = self.replace_node(self.tree, node, ans_node)
+                        if new_tree is None:
+                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                        self.tree = deepcopy(new_tree)
+                        return True
                 elif node.left.type == BINOPNode and node.left.op.tag == EXP and node.left.right.type == NUMNode and node.right.type == BINOPNode and node.right.op.tag == DIV and node.right.left.type == NUMNode and node.right.right.type == NUMNode:
                     numerator = visit_NUMNode(node.right.left)
                     denom = visit_NUMNode(node.right.right)
@@ -677,6 +687,22 @@ class Algebra(Equation):
                     else:
                         self.solution.append("ln(#e^" + node_string + ") = " + node_string)
                         self.update_eqn_string("ln(#e^" + node_string + ")", node_string)
+                    ans_node = node.args[0].right
+                    new_tree = self.replace_node(self.tree, node, ans_node)
+                    if new_tree is None:
+                        raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                    self.tree = deepcopy(new_tree)
+                    return True
+            elif node.op.value.lower() == "abs_ln" and node.args[0].type == BINOPNode and node.args[0].op.tag == EXP and node.args[0].left.type == NUMNode:
+                num = visit_NUMNode(node.args[0].left)
+                if round_complex(num) == math.e:
+                    node_string = stringify_node(node.args[0].right, self.var)
+                    if "ln|#e^(" + node_string + ")|" in stringify_node(node, self.var):
+                        self.solution.append("ln|#e^(" + node_string + ")| = " + node_string)
+                        self.update_eqn_string("ln|#e^(" + node_string + ")|", node_string)
+                    else:
+                        self.solution.append("ln|#e^" + node_string + "| = " + node_string)
+                        self.update_eqn_string("ln|#e^" + node_string + "|", node_string)
                     ans_node = node.args[0].right
                     new_tree = self.replace_node(self.tree, node, ans_node)
                     if new_tree is None:
@@ -2085,6 +2111,8 @@ class Algebra(Equation):
                 num = math.pi
             elif node.value in ("#e", "#E"):
                 num = math.e
+            elif node.value == "#C":
+                num = 1
             else:
                 raise ValueError("Constant {} is not recognized".format(node.value))
         if type(num) == float:

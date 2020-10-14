@@ -100,6 +100,14 @@ class Arithmetic(Equation):
                     self.update_eqn_string(node.op.value+"("+stringify(exponent)+")", stringify(ans))
                     return ans
                 return ValueError("Too few or too many arguments for ln function. Args = {}".format(node.args))
+            elif node.op.value == "abs_ln":
+                if len(node.args) == 1:
+                    exponent = self.climb_tree(node.args[0])
+                    ans = math.log(abs(exponent))
+                    self.solution.append(node.op.value+"|"+stringify(exponent)+"| = "+stringify(ans))
+                    self.update_eqn_string(node.op.value+"|"+stringify(exponent)+"|", stringify(ans))
+                    return ans
+                return ValueError("Too few or too many arguments for ln function. Args = {}".format(node.args))
             elif node.op.value in ("sqrt", "SQRT"):
                 if len(node.args) == 1:
                     num = self.climb_tree(node.args[0])

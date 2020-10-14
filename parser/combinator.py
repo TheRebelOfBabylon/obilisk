@@ -192,6 +192,22 @@ class TreeBuilder():
                         else:
                             self.exprs.append(node)
                     return node
+            elif current_token.tag == ABS_BRACKET and funcToken.value.lower == "ln":
+                self.consume_token(ABS_BRACKET)
+                result = [self.Expression()]  # There's the recursion
+                self.consume_token(ABS_BRACKET)
+                node = FuncNode(Token(("abs_ln", FUNC)), result)
+                if self.has_var:
+                    if self.exprs:
+                        chk = False
+                        for expr in self.exprs:
+                            if node.__repr__() == expr.__repr__():
+                                chk = True
+                        if not chk:
+                            self.exprs.append(node)
+                    else:
+                        self.exprs.append(node)
+                return node
         elif current_token.tag == L_BRACKET:
             self.consume_token(L_BRACKET)
             result = self.Expression() # There's the recursion

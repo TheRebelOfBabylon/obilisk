@@ -1,8 +1,9 @@
 """All methods related to calculus type problems."""
 from math_core.Equation import Equation, stringify_node, check_mono, visit_NUMNode, round_complex
-from math_core.Algebra import Algebra
+from math_core.Algebra import Algebra, sub_var_dict
 from parser.lexer import Token, EXP, DIV, MUL, MINUS, PLUS, NUMBER, FUNC, CONSTANT, VARIABLE
 from parser.ast import AST, BINOPNode, FUNCNode, UNIOPNode, VARNode, NUMNode, NumberNode, BinOpNode, UniOpNode, FuncNode, VariableNode
+from math_core.algebra_formats import monomial_x
 
 from typing import List, Union, Tuple
 import functools
@@ -94,6 +95,7 @@ class Calculus(Algebra):
                 if len(self.tree.args) == 1:
                     self.tree = deepcopy(self.tree.args[0])
                     new_tree, _ = self.compute_integral(self.tree, temp_tree=deepcopy(self.tree))
+                    new_tree = BinOpNode(new_tree, Token(("+", PLUS)), NumberNode(Token(("#C", CONSTANT))))
                     self.tree = deepcopy(new_tree)
                     self.eqn_string = stringify_node(self.tree, self.var)
                     self.compute_low_hanging_fruit(ops_flag=False)
@@ -206,7 +208,7 @@ class Calculus(Algebra):
                                                           verbose=verbose)
             return UniOpNode(node.op, new_node), temp_tree
         elif node.type == FUNCNode:
-            if node.op.value.lower() in "ln":
+            if node.op.value.lower() in ("ln", "abs_ln"):
                 der_expr, temp_tree = self.compute_derivative(node.args[0], temp_tree=temp_tree, verbose=False)
                 new_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), node.args[0])
                 if der_expr.type != NUMNode:
@@ -505,101 +507,303 @@ class Calculus(Algebra):
             self.solution.append("------")
         return new_node, temp_tree
 
-    def compute_integral(self, node: AST, temp_tree: AST, verbose: bool = True, tree_path: List[str] = None) -> Tuple[
-        AST, List[str]]:
+    def compute_integral(self, node: AST, temp_tree: AST, var: str = None, verbose: bool = True, tree_path: List[str] = None) -> Tuple[
+        AST, AST]:
         """Method climbs through AST, finds integral terms and solves them"""
+        if var is None:
+            var = self.var
         if tree_path is None:
             tree_path = []
         if node.type == BINOPNode:
             if node.op.tag == EXP:
                 if node.right.type == NUMNode:
-                    # ∫ ()^a dx = (1/(a+1))*()^(a+1)
-                    new_exp = round_complex(visit_NUMNode(node.right) + 1)
-                    coeff = 1
-                    if node.left.type == BINOPNode:
-                        if node.left.op.tag == MUL and node.left.left.type == NUMNode:
-                            coeff = round_complex(visit_NUMNode(node.left.left))
-                            int_node = node.left.right
-                        elif node.left.op.tag == DIV and node.left.right.type == NUMNode:
-                            coeff = round_complex(1 / visit_NUMNode(node.left.right))
-                            int_node = node.left.left
-                    coeff = round_complex(coeff*1 / new_exp)
+                    current_exp = round_complex(visit_NUMNode(node.right))
+                    if current_exp != -1:
+                        # ∫ ()^a dx = (1/(a+1))*()^(a+1)
+                        new_exp = round_complex(current_exp + 1)
+                        coeff = 1
+                        inter_node = node.left
+                        if node.left.type == BINOPNode:
+                            if node.left.op.tag == MUL and node.left.left.type == NUMNode:
+                                coeff = round_complex(visit_NUMNode(node.left.left))
+                                inter_node = node.left.right
+                            elif node.left.op.tag == DIV and node.left.right.type == NUMNode:
+                                coeff = round_complex(1 / visit_NUMNode(node.left.right))
+                                inter_node = node.left.left
+                        coeff = round_complex(coeff*1 / new_exp)
+                        if coeff < 0:
+                            coeff_node = UniOpNode(Token(("-", MINUS)), NumberNode(Token((str(abs(coeff)), NUMBER))))
+                        else:
+                            coeff_node = NumberNode(Token((str(coeff), NUMBER)))
+                        new_exp_node = NumberNode(Token((str(new_exp), NUMBER)))
+                        if new_exp == 1:
+                            new_node = BinOpNode(coeff_node, Token(("*", MUL)), inter_node)
+                        else:
+                            new_node = BinOpNode(coeff_node, Token(("*", MUL)), BinOpNode(inter_node, Token(("^", EXP)), new_exp_node))
+
+                        if verbose:
+                            self.solution.append("∫ " + stringify_node(node, var) + " d" + var + " = "
+                                                 + stringify_node(new_node, var) + "+C")
+                            self.solution.append("------")
+                            temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
+                            self.solution.append(stringify_node(temp_tree, var) + "+C")
+                            self.solution.append("------")
+                        return new_node, temp_tree
+            elif node.op.tag == MUL:
+                if node.left.type == NUMNode:
+                    new_exp = 2
+                    coeff = round_complex(visit_NUMNode(node.left) / new_exp)
+                    var_node = node.right
                     if coeff < 0:
                         coeff_node = UniOpNode(Token(("-", MINUS)), NumberNode(Token((str(abs(coeff)), NUMBER))))
                     else:
                         coeff_node = NumberNode(Token((str(coeff), NUMBER)))
                     new_exp_node = NumberNode(Token((str(new_exp), NUMBER)))
-                    if new_exp == 1:
-                        new_node = BinOpNode(coeff_node, Token(("*", MUL)), int_node)
-                    else:
-                        new_node = BinOpNode(BinOpNode(coeff_node, Token(("*", MUL)),
-                                                       BinOpNode(int_node, Token(("^", EXP)), new_exp_node)),
-                                             Token(("+", PLUS)), NumberNode(Token(("#C", CONSTANT))))
+                    new_node = BinOpNode(coeff_node, Token(("*", MUL)),
+                                         BinOpNode(var_node, Token(("^", EXP)), new_exp_node))
                     if verbose:
-                        self.solution.append("∫" + stringify_node(node, self.var) + " d" + self.var + " = "
-                                             + stringify_node(new_node, self.var))
+                        self.solution.append("∫ " + stringify_node(node, var) + " d" + var + " = "
+                                             + stringify_node(new_node, var) + "+C")
                         self.solution.append("------")
                         temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
-                        self.solution.append(stringify_node(temp_tree, self.var))
+                        self.solution.append(stringify_node(temp_tree, var) + "+C")
                         self.solution.append("------")
                     return new_node, temp_tree
-            elif node.op.tag == MUL:
-                if node.left.type == NUMNode:
-                    new_exp = 2
-                    coeff = round_complex(visit_NUMNode(node.left) / new_exp)
                 elif node.right.type == NUMNode:
                     new_exp = 2
                     coeff = round_complex(visit_NUMNode(node.right) / new_exp)
-                if coeff < 0:
-                    coeff_node = UniOpNode(Token(("-", MINUS)), NumberNode(Token((str(abs(coeff)), NUMBER))))
-                else:
-                    coeff_node = NumberNode(Token((str(coeff), NUMBER)))
-                new_exp_node = NumberNode(Token((str(new_exp), NUMBER)))
-                new_node = BinOpNode(BinOpNode(coeff_node, Token(("*", MUL)),
-                                               BinOpNode(node.left, Token(("^", EXP)), new_exp_node)),
-                                     Token(("+", PLUS)), NumberNode(Token(("#C", CONSTANT))))
-                if verbose:
-                    self.solution.append("∫" + stringify_node(node, self.var) + " d" + self.var + " = "
-                                         + stringify_node(new_node, self.var))
-                    self.solution.append("------")
-                    temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
-                    self.solution.append(stringify_node(temp_tree, self.var))
-                    self.solution.append("------")
-                return new_node, temp_tree
-
+                    var_node = node.left
+                    if coeff < 0:
+                        coeff_node = UniOpNode(Token(("-", MINUS)), NumberNode(Token((str(abs(coeff)), NUMBER))))
+                    else:
+                        coeff_node = NumberNode(Token((str(coeff), NUMBER)))
+                    new_exp_node = NumberNode(Token((str(new_exp), NUMBER)))
+                    new_node = BinOpNode(coeff_node, Token(("*", MUL)),
+                                         BinOpNode(var_node, Token(("^", EXP)), new_exp_node))
+                    if verbose:
+                        self.solution.append("∫ " + stringify_node(node, var) + " d" + var + " = "
+                                             + stringify_node(new_node, var) + "+C")
+                        self.solution.append("------")
+                        temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
+                        self.solution.append(stringify_node(temp_tree, var) + "+C")
+                        self.solution.append("------")
+                    return new_node, temp_tree
+            elif node.op.tag == DIV:
+                if node.left.type == NUMNode and round_complex(visit_NUMNode(node.left)) == 1:
+                    if node.right.type == BINOPNode and node.right.op.tag == MUL and node.right.left.type == NUMNode and node.right.right.type == VARNode:
+                        # ∫ 1/a*x dx = 1/a*ln(x)+c
+                        print("Step 3.5.2", node)
+                        coeff = round_complex(visit_NUMNode(node.right.left))
+                        new_node = FuncNode(Token(("abs_ln", FUNC)), [node.right])
+                        if coeff != 1:
+                            if coeff == -1:
+                                new_node = UniOpNode(Token(("-", MINUS)), new_node)
+                            else:
+                                coeff_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), NumberNode(Token((str(abs(coeff))))))
+                                if coeff < 0:
+                                    coeff_node = UniOpNode(Token(("-", MINUS)), coeff_node)
+                                new_node = BinOpNode(coeff_node, Token(("*", MUL)), new_node)
+                        if verbose:
+                            self.solution.append("∫ " + stringify_node(node, var) + " d" + var + " = "
+                                                 + stringify_node(new_node, var) + "+C")
+                            self.solution.append("------")
+                            temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
+                            self.solution.append(stringify_node(temp_tree, var) + "+C")
+                            self.solution.append("------")
+                        return new_node, temp_tree
+                new_node, new_var = self.integral_substitution(node, verbose=verbose)
+                print("Step 3", new_node)
+                if new_node is not None:
+                    new_node, _ = self.compute_integral(
+                        new_node,
+                        var=new_var,
+                        temp_tree=deepcopy(new_node),
+                        verbose=verbose)
+                    print("Step 4", new_node)
+                    new_node = self.resub_og_node(new_node)
+                    print("Step 5", new_node)
+                    if verbose:
+                        self.solution.append("∫ " + stringify_node(node, var) + " d" + var + " = "
+                                             + stringify_node(new_node, var) + "+C")
+                        self.solution.append("------")
+                        temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
+                        self.solution.append(stringify_node(temp_tree, var) + "+C")
+                        self.solution.append("------")
+                    return new_node, temp_tree
             tree_path.append("left")
-            new_left, temp_tree = self.compute_integral(node.left, temp_tree=temp_tree, verbose=verbose,
+            new_left, temp_tree = self.compute_integral(node.left, var=var, temp_tree=temp_tree, verbose=verbose,
                                                         tree_path=tree_path[:])
             tree_path[-1] = "right"
-            new_right, temp_tree = self.compute_integral(node.right, temp_tree=temp_tree, verbose=verbose,
+            new_right, temp_tree = self.compute_integral(node.right, var=var, temp_tree=temp_tree, verbose=verbose,
                                                          tree_path=tree_path[:])
             return BinOpNode(new_left, node.op, new_right), temp_tree
+        elif node.type == FUNCNode:
+            if node.op.value.lower() == "sin" and hash(node.args[0]) == hash(monomial_x[0]):
+                coeff = round_complex(visit_NUMNode(node.args[0].left))
+                new_node = FuncNode(Token(("cos", FUNC)), node.args)
+                if coeff != -1:
+                    if coeff == 1:
+                        new_node = UniOpNode(Token(("-", MINUS)), new_node)
+                    else:
+                        coeff_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), NumberNode(Token((str(abs(coeff))))))
+                        if coeff > 0:
+                            coeff_node = UniOpNode(Token(("-", MINUS)), coeff_node)
+                        new_node = BinOpNode(coeff_node, Token(("*", MUL)), new_node)
+            elif node.op.value.lower() == "cos" and hash(node.args[0]) == hash(monomial_x[0]):
+                coeff = round_complex(visit_NUMNode(node.args[0].left))
+                new_node = FuncNode(Token(("sin", FUNC)), node.args)
+                if coeff != 1:
+                    if coeff == -1:
+                        new_node = UniOpNode(Token(("-", MINUS)), new_node)
+                    else:
+                        coeff_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)),
+                                               NumberNode(Token((str(abs(coeff)), NUMBER))))
+                        if coeff < 0:
+                            coeff_node = UniOpNode(Token(("-", MINUS)), coeff_node)
+                        new_node = BinOpNode(coeff_node, Token(("*", MUL)), new_node)
+            elif node.op.value.lower() == "tan" and hash(node.args[0]) == hash(monomial_x[0]):
+                new_node = self.trig_identity(node)
+                print("Step 1", new_node)
+                if verbose:
+                    self.solution.append(stringify_node(node, var) + " = " + stringify_node(new_node, var))
+                    self.solution.append("------")
+                    temp_tree = self.precisely_replace_node(temp_tree, tree_path[:], new_node)
+                    self.solution.append(stringify_node(temp_tree, var) + "+C")
+                    self.solution.append("------")
+                    node = new_node
+                print("Step 2", new_node)
+                new_node, _ = self.compute_integral(new_node, var=var, temp_tree=temp_tree, tree_path=tree_path[:], verbose=verbose)
+                print("YEET", new_node, "\n\n", temp_tree)
+                verbose = False
+            elif node.op.value.lower() == "sec" and hash(node.args[0]) == hash(monomial_x[0]):
+                dummy_node = BinOpNode(deepcopy(node), Token(("+", PLUS)), FuncNode(Token(("tan", FUNC)), deepcopy(node.args)))
+                dummy_node = BinOpNode(dummy_node, Token(("/", DIV)), dummy_node)
+                new_node_num_right = BinOpNode(deepcopy(node), Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
+                new_node_num_left = BinOpNode(FuncNode(Token(("tan", FUNC)), deepcopy(node.args)), Token(("*", MUL)), deepcopy(node))
+                new_node_num = BinOpNode(new_node_num_left, Token(("+", PLUS)), new_node_num_right)
+                new_node = BinOpNode(new_node_num, Token(("/", DIV)), dummy_node.right)
+                if verbose:
+                    self.solution.append("Multiplying " + stringify_node(node, var) + " by " + stringify_node(dummy_node, var)
+                                          + " gives " + stringify_node(new_node, var))
+                    self.solution.append("------")
+                    temp_tree = self.precisely_replace_node(temp_tree, tree_path[:], new_node)
+                    self.solution.append(stringify_node(temp_tree, var) + "+C")
+                    self.solution.append("------")
+                    node = new_node
+                new_node, _ = self.compute_integral(new_node, var=var, temp_tree=temp_tree, tree_path=tree_path[:],
+                                                    verbose=verbose)
+                verbose = False
+            if verbose:
+                self.solution.append("∫ " + stringify_node(node, var) + " d" + var + " = "
+                                     + stringify_node(new_node, var) + "+C")
+                self.solution.append("------")
+                temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
+                print(stringify_node(temp_tree, var), var, tree_path)
+                self.solution.append(stringify_node(temp_tree, var) + "+C")
+                self.solution.append("------")
+            return new_node, temp_tree
+        elif node.type == UNIOPNode:
+            print("Step 3.5.1")
+            tree_path.append("right")
+            new_right, temp_tree = self.compute_integral(node.right, var=var, temp_tree=temp_tree, tree_path=tree_path[:], verbose=False)
+            del tree_path[-1]
+            new_node = UniOpNode(node.op, new_right)
+            if new_right.type == UNIOPNode and new_right.op.tag == MINUS:
+                new_node = new_right
+            print("Step 3.5.3")
+            if verbose:
+                self.solution.append("∫ " + stringify_node(node, var) + " d" + var + " = "
+                                     + stringify_node(new_node, var) + "+C")
+                self.solution.append("------")
+                temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
+                self.solution.append(stringify_node(temp_tree, var) + "+C")
+                self.solution.append("------")
+            return new_node, temp_tree
         elif node.type == VARNode:
             new_exp = 2
             coeff = new_exp
             coeff_node = NumberNode(Token((str(coeff), NUMBER)))
             new_exp_node = NumberNode(Token((str(new_exp), NUMBER)))
-            new_node = BinOpNode(BinOpNode(BinOpNode(node.left, Token(("^", EXP)), new_exp_node)), Token(("/", DIV)),
-                                 coeff_node, Token(("+", PLUS)), NumberNode(Token(("#C", CONSTANT))))
+            new_node = BinOpNode(BinOpNode(node.left, Token(("^", EXP)), new_exp_node), Token(("/", DIV)), coeff_node)
             if verbose:
-                self.solution.append("∫" + stringify_node(node, self.var) + " d" + self.var + " = "
-                                     + stringify_node(new_node, self.var))
+                self.solution.append("∫ " + stringify_node(node, var) + " d" + var + " = "
+                                     + stringify_node(new_node, var) + "+C")
                 self.solution.append("------")
                 temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
-                self.solution.append(stringify_node(temp_tree, self.var))
+                self.solution.append(stringify_node(temp_tree, var) + "+C")
                 self.solution.append("------")
             return new_node, temp_tree
         elif node.type == NUMNode:
-            var_node = VariableNode(Token((self.var, VARIABLE)))
-            new_node = BinOpNode(BinOpNode(node, Token(("*", MUL)), var_node), Token(("+", MUL)), NumberNode(Token(("#C", CONSTANT))))
+            var_node = VariableNode(Token((var, VARIABLE)))
+            new_node = BinOpNode(node, Token(("*", MUL)), var_node)
             if verbose:
-                self.solution.append("∫" + stringify_node(node, self.var) + " d" + self.var + " = "
-                                     + stringify_node(new_node, self.var))
+                self.solution.append("∫ " + stringify_node(node, var) + " d" + var + " = "
+                                     + stringify_node(new_node, var) + "+C")
                 self.solution.append("------")
                 temp_tree = self.precisely_replace_node(temp_tree, tree_path, new_node)
-                self.solution.append(stringify_node(temp_tree, self.var))
+                self.solution.append(stringify_node(temp_tree, var) + "+C")
                 self.solution.append("------")
             return new_node, temp_tree
+
+    def trig_identity(self, node: AST) -> AST:
+        """Method will replace the node based on trigonometric identities"""
+        if node.op.value.lower() == "tan":
+            return BinOpNode(FuncNode(Token(("sin", FUNC)), node.args), Token(("/", DIV)), FuncNode(Token(("cos", FUNC)), node.args))
+
+    def integral_substitution(self, node: AST, verbose: bool = True) -> Tuple[Union[AST, None], str]:
+        """Method will perform substitution to try and solve the integral"""
+        if node.type == BINOPNode and node.op.tag == DIV:
+            sub_chk = False
+            sub_var = "u"
+            if self.var == sub_var:
+                sub_var = sub_var_dict[self.var]
+            der, _ = self.compute_derivative(node.right, temp_tree=deepcopy(node), verbose=False)
+            var_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("*", MUL)), VariableNode(Token((sub_var, VARIABLE))))
+            if stringify_node(der, self.var) == stringify_node(node.left, self.var):
+                sub_chk = True
+                new_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), var_node)
+            elif der.type == UNIOPNode:
+                if stringify_node(der.right, self.var) == stringify_node(node.left, self.var):
+                    sub_chk = True
+                    new_node = UniOpNode(Token(("-", MINUS)), BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), var_node))
+            elif der.type == BINOPNode:
+                if der.op.tag == MUL and der.left.type == NUMNode:
+                    if stringify_node(der.right, self.var) == stringify_node(node.left, self.var):
+                        sub_chk = True
+                        new_node = BinOpNode(der.left, Token(("/", DIV)), var_node)
+            if sub_chk:
+                if verbose:
+                    self.solution.append("Substituting " + stringify_node(node.right, self.var) + " for " + sub_var)
+                    self.solution.append("------")
+                    self.solution.append(sub_var + " = " + stringify_node(node.right, self.var))
+                    self.solution.append("------")
+                    self.solution.append("d"+sub_var+"/d"+self.var+" = "+stringify_node(der, self.var))
+                    self.solution.append("------")
+                    self.solution.append("d" + self.var + " = d" + sub_var + "/" + stringify_node(der, self.var) + " -> "
+                                         + "∫ " + stringify_node(node.left, self.var) + "/" + stringify_node(der, self.var) + "*1/"
+                                         + sub_var + " du")
+                    self.solution.append("------")
+                    if self.subs is None:
+                        self.subs = {var_node: node.right}
+                    else:
+                        self.subs[var_node] = node.right
+                return new_node, sub_var
+            return None, self.var
+
+    def resub_og_node(self, node: AST) -> AST:
+        """Method will climb through tree and resubstitute based on expressions in self.subs"""
+        if node in self.subs:
+            return self.subs[node]
+        if node.type == BINOPNode:
+            return BinOpNode(self.resub_og_node(node.left), node.op, self.resub_og_node(node.right))
+        elif node.type == UNIOPNode:
+            return UniOpNode(node.op, self.resub_og_node(node.right))
+        elif node.type == FUNCNode:
+            new_args = []
+            for arg in node.args:
+                new_args.append(self.resub_og_node(arg))
+            return FuncNode(node.op, new_args)
+        return node
 
     def precisely_replace_node(self, tree: AST, old_node_path: List[str], new_node: AST) -> AST:
         """Method replaces a specific node based on a given path to it"""
