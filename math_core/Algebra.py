@@ -500,6 +500,18 @@ class Algebra(Equation):
                             raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
+                    if node.right.type == UNIOPNode:
+                        minus_cnt, right_node = self.reduce_uni_ops(node.right)
+                        if minus_cnt % 2 != 0:
+                            ans_node = BinOpNode(node.left, Token(("-", MINUS)), right_node)
+                            self.solution.append(
+                                stringify_node(node, self.var) + " = " + stringify_node(ans_node, self.var))
+                            self.update_eqn_string(stringify_node(node, self.var), stringify_node(ans_node, self.var))
+                            new_tree = self.replace_node(self.tree, node, ans_node)
+                            if new_tree is None:
+                                raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                            self.tree = deepcopy(new_tree)
+                            return True
                 elif node.op.tag == MINUS:
                     if hash(node.left) == hash(node.right) and node.left.__repr__() == node.right.__repr__():
                         node_string = stringify_node(node, self.var)
@@ -529,6 +541,18 @@ class Algebra(Equation):
                             raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
+                    if node.right.type == UNIOPNode:
+                        minus_cnt, right_node = self.reduce_uni_ops(node.right)
+                        if minus_cnt % 2 != 0:
+                            ans_node = BinOpNode(node.left, Token(("+", MINUS)), right_node)
+                            self.solution.append(
+                                stringify_node(node, self.var) + " = " + stringify_node(ans_node, self.var))
+                            self.update_eqn_string(stringify_node(node, self.var), stringify_node(ans_node, self.var))
+                            new_tree = self.replace_node(self.tree, node, ans_node)
+                            if new_tree is None:
+                                raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                            self.tree = deepcopy(new_tree)
+                            return True
             elif node.op.tag == EXP:
                 if node.left.type == NUMNode:
                     num = visit_NUMNode(node.left)
@@ -795,7 +819,7 @@ class Algebra(Equation):
     def reduce_uni_ops(self, node: AST, minus_cnt : int = 0) -> Tuple[int, AST]:
         """Method is meant to reduce the amount of uniops in an equation"""
         if node.type == UNIOPNode:
-            if node.op.tag == "-":
+            if node.op.tag == MINUS:
                 return self.reduce_uni_ops(node.right, minus_cnt=minus_cnt+1)
             return self.reduce_uni_ops(node.right, minus_cnt=minus_cnt)
         return minus_cnt, node

@@ -4,6 +4,7 @@ from math_core.algebra_formats import monomial_x_power, monomial_x, build_monomi
 
 from typing import List, Union, Any
 import re
+from fractions import Fraction
 import pytest
 import math
 
@@ -94,7 +95,11 @@ def stringify_node(node: AST, var: str) -> str:
             temp += stringify_node(node.args[0], var)
             temp += "|"
         return inference_string(temp, var)
-    elif node.type in (VARNode, NUMNode):
+    elif node.type == VARNode:
+        return inference_string(node.value, var)
+    elif node.type == NUMNode:
+        if type(round_complex(visit_NUMNode(node))) == float:
+            return inference_string(str(Fraction(node.value).limit_denominator(1000)), var)
         return inference_string(node.value, var)
 
 
