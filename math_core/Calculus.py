@@ -2,7 +2,8 @@
 from math_core.Equation import Equation, stringify_node, check_mono, visit_NUMNode, round_complex
 from math_core.Algebra import Algebra, sub_var_dict
 from parser.lexer import Token, EXP, DIV, MUL, MINUS, PLUS, NUMBER, FUNC, CONSTANT, VARIABLE
-from parser.ast import AST, BINOPNode, FUNCNode, UNIOPNode, VARNode, NUMNode, NumberNode, BinOpNode, UniOpNode, FuncNode, VariableNode
+from parser.ast import AST, BINOPNode, FUNCNode, UNIOPNode, VARNode, NUMNode, NumberNode, BinOpNode, UniOpNode, \
+    FuncNode, VariableNode
 from math_core.algebra_formats import monomial_x
 
 from typing import List, Union, Tuple
@@ -10,7 +11,6 @@ import functools
 import math
 from copy import deepcopy
 from fractions import Fraction
-
 
 list_of_trig_func = [
     "cos",
@@ -116,12 +116,12 @@ class Calculus(Algebra):
                     # d/dx()^a = a*()^(a-1)
                     coeff = round_complex(visit_NUMNode(node.right))
                     if node.left.type == BINOPNode and node.left.op.tag == MUL and node.left.left.type == NUMNode:
-                        coeff = round_complex(coeff*visit_NUMNode(node.left.left))
+                        coeff = round_complex(coeff * visit_NUMNode(node.left.left))
                         inter_node = node.left.right
                         der_expr_node, temp_tree = self.compute_derivative(node.left.right, verbose=False,
                                                                            temp_tree=temp_tree)
                     elif node.left.type == BINOPNode and node.left.op.tag == DIV and node.left.right.type == NUMNode:
-                        coeff = round_complex(coeff/visit_NUMNode(node.left.right))
+                        coeff = round_complex(coeff / visit_NUMNode(node.left.right))
                         inter_node = node.left.left
                         der_expr_node, temp_tree = self.compute_derivative(node.left.left, verbose=False,
                                                                            temp_tree=temp_tree)
@@ -145,7 +145,9 @@ class Calculus(Algebra):
                                                  BinOpNode(inter_node, Token(("^", EXP)), new_exp_node))
                     else:
                         new_node = BinOpNode(der_expr_node, Token(("*", MUL)), BinOpNode(coeff_node, Token(("*", MUL)),
-                                                       BinOpNode(inter_node, Token(("^", EXP)), new_exp_node)))
+                                                                                         BinOpNode(inter_node,
+                                                                                                   Token(("^", EXP)),
+                                                                                                   new_exp_node)))
                     if coeff < 0:
                         new_node = UniOpNode(Token(("-", MINUS)), new_node)
                     if verbose:
@@ -370,7 +372,7 @@ class Calculus(Algebra):
         elif node.op.value.lower() in ("csc", "csch"):
             neg = True
             new_node = BinOpNode(FuncNode(Token((cos_sine_anti_dict[node.op.value.lower()], FUNC)),
-                                                    node.args), Token(("*", MUL)),
+                                          node.args), Token(("*", MUL)),
                                  FuncNode(Token((node.op.value.lower(), FUNC)), node.args))
         elif node.op.value.lower() in ("cot", "coth"):
             neg = True
@@ -493,7 +495,8 @@ class Calculus(Algebra):
         if neg:
             if der_exprs.type == NUMNode:
                 der_coeff = round_complex(visit_NUMNode(der_exprs))
-                new_node = BinOpNode(NumberNode(Token((str(abs(der_coeff)), NUMBER))), Token(("*", MUL)), new_node)
+                if der_coeff != 1:
+                    new_node = BinOpNode(NumberNode(Token((str(abs(der_coeff)), NUMBER))), Token(("*", MUL)), new_node)
                 if der_coeff > 0:
                     new_node = UniOpNode(Token(("-", MINUS)), new_node)
             elif der_exprs.type != UNIOPNode:
@@ -501,7 +504,8 @@ class Calculus(Algebra):
         else:
             if der_exprs.type == NUMNode:
                 der_coeff = round_complex(visit_NUMNode(der_exprs))
-                new_node = BinOpNode(NumberNode(Token((str(abs(der_coeff)), NUMBER))), Token(("*", MUL)), new_node)
+                if der_coeff != 1:
+                    new_node = BinOpNode(NumberNode(Token((str(abs(der_coeff)), NUMBER))), Token(("*", MUL)), new_node)
                 if der_coeff < 0:
                     new_node = UniOpNode(Token(("-", MINUS)), new_node)
             else:
@@ -518,7 +522,8 @@ class Calculus(Algebra):
             self.solution.append("------")
         return new_node, temp_tree
 
-    def compute_integral(self, node: AST, temp_tree: AST, var: str = None, verbose: bool = True, tree_path: List[str] = None) -> Tuple[
+    def compute_integral(self, node: AST, temp_tree: AST, var: str = None, verbose: bool = True,
+                         tree_path: List[str] = None) -> Tuple[
         AST, AST]:
         """Method climbs through AST, finds integral terms and solves them"""
         if var is None:
@@ -541,7 +546,7 @@ class Calculus(Algebra):
                             elif node.left.op.tag == DIV and node.left.right.type == NUMNode:
                                 coeff = round_complex(1 / visit_NUMNode(node.left.right))
                                 inter_node = node.left.left
-                        coeff = round_complex(coeff*1 / new_exp)
+                        coeff = round_complex(coeff * 1 / new_exp)
                         if coeff < 0:
                             coeff_node = UniOpNode(Token(("-", MINUS)), NumberNode(Token((str(abs(coeff)), NUMBER))))
                         else:
@@ -550,7 +555,8 @@ class Calculus(Algebra):
                         if new_exp == 1:
                             new_node = BinOpNode(coeff_node, Token(("*", MUL)), inter_node)
                         else:
-                            new_node = BinOpNode(coeff_node, Token(("*", MUL)), BinOpNode(inter_node, Token(("^", EXP)), new_exp_node))
+                            new_node = BinOpNode(coeff_node, Token(("*", MUL)),
+                                                 BinOpNode(inter_node, Token(("^", EXP)), new_exp_node))
 
                         if verbose:
                             self.solution.append("∫ " + stringify_node(node, var) + " d" + var + " = "
@@ -605,12 +611,13 @@ class Calculus(Algebra):
                         # ∫ 1/a*x dx = 1/a*ln(x)+c
                         top_coeff = round_complex(visit_NUMNode(node.left))
                         print("Step 3.5.2", node)
-                        coeff = round_complex(top_coeff*1/visit_NUMNode(node.right.left))
+                        coeff = round_complex(top_coeff * 1 / visit_NUMNode(node.right.left))
                         bottom_coeff = round_complex(visit_NUMNode(node.right.left))
                         new_node = FuncNode(Token(("abs_ln", FUNC)), [node.right])
                         if coeff != 1:
                             if 1 > abs(coeff) > 0 and bottom_coeff != 1:
-                                coeff_node = BinOpNode(NumberNode(Token((str(abs(top_coeff)), NUMBER))), Token(("/", DIV)),
+                                coeff_node = BinOpNode(NumberNode(Token((str(abs(top_coeff)), NUMBER))),
+                                                       Token(("/", DIV)),
                                                        NumberNode(Token((str(abs(bottom_coeff)), NUMBER))))
                             else:
                                 coeff_node = NumberNode(Token((str(abs(coeff)), NUMBER)))
@@ -639,11 +646,12 @@ class Calculus(Algebra):
                     coeff_string = str(new_coeff)
                     if type(new_coeff) == float:
                         coeff_string = str(Fraction(str(new_coeff)).limit_denominator(1000))
-                    new_node = BinOpNode(NumberNode(Token((str(new_coeff), NUMBER))), Token(("*", MUL)), new_node)
-                    if new_node.right.type == UNIOPNode:
-                        new_node = UniOpNode(Token(("-", MINUS)),
-                                             BinOpNode(NumberNode(Token((str(new_coeff), NUMBER))), Token(("*", MUL)),
-                                                       new_node.right.right))
+                    if new_coeff != 1:
+                        new_node = BinOpNode(NumberNode(Token((str(new_coeff), NUMBER))), Token(("*", MUL)), new_node)
+                        if new_node.right.type == UNIOPNode:
+                            new_node = UniOpNode(Token(("-", MINUS)),
+                                                 BinOpNode(NumberNode(Token((str(new_coeff), NUMBER))), Token(("*", MUL)),
+                                                           new_node.right.right))
                     if verbose:
                         self.solution.append("∫ " + stringify_node(node, var) + " d" + var + " = "
                                              + stringify_node(new_node, var) + "+C")
@@ -668,7 +676,8 @@ class Calculus(Algebra):
                     if coeff == 1:
                         new_node = UniOpNode(Token(("-", MINUS)), new_node)
                     else:
-                        coeff_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), NumberNode(Token((str(abs(coeff)), NUMBER))))
+                        coeff_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)),
+                                               NumberNode(Token((str(abs(coeff)), NUMBER))))
                         new_node = BinOpNode(coeff_node, Token(("*", MUL)), new_node)
                         if coeff > 0:
                             new_node = UniOpNode(Token(("-", MINUS)), new_node)
@@ -695,19 +704,23 @@ class Calculus(Algebra):
                     self.solution.append("------")
                     node = new_node
                 print("Step 2", new_node)
-                new_node, _ = self.compute_integral(new_node, var=var, temp_tree=temp_tree, tree_path=tree_path[:], verbose=verbose)
+                new_node, _ = self.compute_integral(new_node, var=var, temp_tree=temp_tree, tree_path=tree_path[:],
+                                                    verbose=verbose)
                 print("YEET", new_node, "\n\n", temp_tree)
                 verbose = False
             elif node.op.value.lower() == "sec" and hash(node.args[0]) == hash(monomial_x[0]):
-                dummy_node = BinOpNode(deepcopy(node), Token(("+", PLUS)), FuncNode(Token(("tan", FUNC)), deepcopy(node.args)))
+                dummy_node = BinOpNode(deepcopy(node), Token(("+", PLUS)),
+                                       FuncNode(Token(("tan", FUNC)), deepcopy(node.args)))
                 dummy_node = BinOpNode(dummy_node, Token(("/", DIV)), dummy_node)
                 new_node_num_right = BinOpNode(deepcopy(node), Token(("^", EXP)), NumberNode(Token(("2", NUMBER))))
-                new_node_num_left = BinOpNode(FuncNode(Token(("tan", FUNC)), deepcopy(node.args)), Token(("*", MUL)), deepcopy(node))
+                new_node_num_left = BinOpNode(FuncNode(Token(("tan", FUNC)), deepcopy(node.args)), Token(("*", MUL)),
+                                              deepcopy(node))
                 new_node_num = BinOpNode(new_node_num_left, Token(("+", PLUS)), new_node_num_right)
                 new_node = BinOpNode(new_node_num, Token(("/", DIV)), dummy_node.right)
                 if verbose:
-                    self.solution.append("Multiplying " + stringify_node(node, var) + " by " + stringify_node(dummy_node, var)
-                                          + " gives " + stringify_node(new_node, var))
+                    self.solution.append(
+                        "Multiplying " + stringify_node(node, var) + " by " + stringify_node(dummy_node, var)
+                        + " gives " + stringify_node(new_node, var))
                     self.solution.append("------")
                     temp_tree = self.precisely_replace_node(temp_tree, tree_path[:], new_node)
                     self.solution.append(stringify_node(temp_tree, var) + "+C")
@@ -717,15 +730,19 @@ class Calculus(Algebra):
                                                     verbose=verbose)
                 verbose = False
             elif node.op.value.lower() == "csc" and hash(node.args[0]) == hash(monomial_x[0]):
-                dummy_node = BinOpNode(deepcopy(node), Token(("+", PLUS)), FuncNode(Token(("cot", FUNC)), deepcopy(node.args)))
+                dummy_node = BinOpNode(deepcopy(node), Token(("+", PLUS)),
+                                       FuncNode(Token(("cot", FUNC)), deepcopy(node.args)))
                 dummy_node = BinOpNode(dummy_node, Token(("/", DIV)), dummy_node)
-                new_node_num_right = UniOpNode(Token(("-", MINUS)), BinOpNode(deepcopy(node), Token(("^", EXP)), NumberNode(Token(("2", NUMBER)))))
-                new_node_num_left = BinOpNode(UniOpNode(Token(("-", MINUS)), FuncNode(Token(("cot", FUNC)), deepcopy(node.args))), Token(("*", MUL)), deepcopy(node))
+                new_node_num_right = UniOpNode(Token(("-", MINUS)), BinOpNode(deepcopy(node), Token(("^", EXP)),
+                                                                              NumberNode(Token(("2", NUMBER)))))
+                new_node_num_left = UniOpNode(Token(("-", MINUS)), BinOpNode(FuncNode(Token(("cot", FUNC)),
+                                                            deepcopy(node.args)), Token(("*", MUL)), deepcopy(node)))
                 new_node_num = BinOpNode(new_node_num_left, Token(("+", PLUS)), new_node_num_right)
                 new_node = UniOpNode(Token(("-", MINUS)), BinOpNode(new_node_num, Token(("/", DIV)), dummy_node.right))
                 if verbose:
-                    self.solution.append("Multiplying " + stringify_node(node, var) + " by " + stringify_node(dummy_node, var)
-                                          + " gives " + stringify_node(new_node, var))
+                    self.solution.append(
+                        "Multiplying " + stringify_node(node, var) + " by " + stringify_node(dummy_node, var)
+                        + " gives " + stringify_node(new_node, var))
                     self.solution.append("------")
                     temp_tree = self.precisely_replace_node(temp_tree, tree_path[:], new_node)
                     self.solution.append(stringify_node(temp_tree, var) + "+C")
@@ -756,7 +773,8 @@ class Calculus(Algebra):
                     if coeff == -1:
                         new_node = UniOpNode(Token(("-", MINUS)), new_node)
                     else:
-                        coeff_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), NumberNode(Token((str(abs(coeff)), NUMBER))))
+                        coeff_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)),
+                                               NumberNode(Token((str(abs(coeff)), NUMBER))))
                         new_node = BinOpNode(coeff_node, Token(("*", MUL)), new_node)
                         if coeff < 0:
                             new_node = UniOpNode(Token(("-", MINUS)), new_node)
@@ -772,7 +790,8 @@ class Calculus(Algebra):
         elif node.type == UNIOPNode:
             print("Step 3.5.1")
             tree_path.append("right")
-            new_right, temp_tree = self.compute_integral(node.right, var=var, temp_tree=temp_tree, tree_path=tree_path[:], verbose=verbose)
+            new_right, temp_tree = self.compute_integral(node.right, var=var, temp_tree=temp_tree,
+                                                         tree_path=tree_path[:], verbose=verbose)
             del tree_path[-1]
             new_node = UniOpNode(node.op, new_right)
             if new_right.type == UNIOPNode and new_right.op.tag == MINUS:
@@ -815,13 +834,17 @@ class Calculus(Algebra):
     def trig_identity(self, node: AST) -> AST:
         """Method will replace the node based on trigonometric identities"""
         if node.op.value.lower() == "tan":
-            return BinOpNode(FuncNode(Token(("sin", FUNC)), node.args), Token(("/", DIV)), FuncNode(Token(("cos", FUNC)), node.args))
+            return BinOpNode(FuncNode(Token(("sin", FUNC)), node.args), Token(("/", DIV)),
+                             FuncNode(Token(("cos", FUNC)), node.args))
         elif node.op.value.lower() == "cot":
-            return BinOpNode(FuncNode(Token(("cos", FUNC)), node.args), Token(("/", DIV)), FuncNode(Token(("sin", FUNC)), node.args))
+            return BinOpNode(FuncNode(Token(("cos", FUNC)), node.args), Token(("/", DIV)),
+                             FuncNode(Token(("sin", FUNC)), node.args))
         elif node.op.value.lower() == "tanh":
-            return BinOpNode(FuncNode(Token(("sinh", FUNC)), node.args), Token(("/", DIV)), FuncNode(Token(("cosh", FUNC)), node.args))
+            return BinOpNode(FuncNode(Token(("sinh", FUNC)), node.args), Token(("/", DIV)),
+                             FuncNode(Token(("cosh", FUNC)), node.args))
 
-    def integral_substitution(self, node: AST, verbose: bool = True) -> Tuple[Union[AST, None], str, Union[int, float, complex]]:
+    def integral_substitution(self, node: AST, verbose: bool = True) -> Tuple[
+        Union[AST, None], str, Union[int, float, complex]]:
         """Method will perform substitution to try and solve the integral"""
         if node.type == BINOPNode and node.op.tag == DIV:
             sub_chk = False
@@ -829,7 +852,9 @@ class Calculus(Algebra):
             if self.var == sub_var:
                 sub_var = sub_var_dict[self.var]
             der, _ = self.compute_derivative(node.right, temp_tree=deepcopy(node), verbose=False)
-            var_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("*", MUL)), VariableNode(Token((sub_var, VARIABLE))))
+            der = self.factor_coefficients(der)
+            var_node = BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("*", MUL)),
+                                 VariableNode(Token((sub_var, VARIABLE))))
             coeff = 1
             if stringify_node(der, self.var) == stringify_node(node.left, self.var):
                 sub_chk = True
@@ -838,15 +863,17 @@ class Calculus(Algebra):
                 if der.right.type == BINOPNode and der.right.op.tag == MUL and der.right.left.type == NUMNode:
                     if stringify_node(der.right.right, self.var) == stringify_node(node.left, self.var):
                         sub_chk = True
-                        coeff = round_complex(1/visit_NUMNode(der.right.left))
-                        new_node = UniOpNode(der.op, BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), var_node))
+                        coeff = round_complex(1 / visit_NUMNode(der.right.left))
+                        new_node = UniOpNode(der.op,
+                                             BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), var_node))
                 elif stringify_node(der.right, self.var) == stringify_node(node, self.var):
                     sub_chk = True
                     new_node = UniOpNode(Token(("-", MINUS)),
                                          BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), var_node))
                 elif stringify_node(der.right, self.var) == stringify_node(node.left, self.var):
                     sub_chk = True
-                    new_node = UniOpNode(Token(("-", MINUS)), BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), var_node))
+                    new_node = UniOpNode(Token(("-", MINUS)),
+                                         BinOpNode(NumberNode(Token(("1", NUMBER))), Token(("/", DIV)), var_node))
             elif der.type == BINOPNode:
                 if der.op.tag == MUL and der.left.type == NUMNode:
                     if stringify_node(der.right, self.var) == stringify_node(node.left, self.var):
@@ -864,7 +891,7 @@ class Calculus(Algebra):
                     self.solution.append("------")
                     self.solution.append(sub_var + " = " + stringify_node(node.right, self.var))
                     self.solution.append("------")
-                    self.solution.append("d"+sub_var+"/d"+self.var+" = "+stringify_node(der, self.var))
+                    self.solution.append("d" + sub_var + "/d" + self.var + " = " + stringify_node(der, self.var))
                     self.solution.append("------")
                     if coeff == 1:
                         self.solution.append(
@@ -884,7 +911,7 @@ class Calculus(Algebra):
                         elif der.type == UNIOPNode:
                             if der.right.type == BINOPNode and der.right.op.tag == MUL:
                                 if der.right.left.type == NUMNode:
-                                    coeff_string = "-"+coeff_string
+                                    coeff_string = "-" + coeff_string
                                     der_string = stringify_node(der.right.right, self.var)
                                 elif der.right.right.type == NUMNode:
                                     coeff_string = "-" + coeff_string
@@ -915,6 +942,68 @@ class Calculus(Algebra):
                 new_args.append(self.resub_og_node(arg))
             return FuncNode(node.op, new_args)
         return node
+
+    def factor_coefficients(self, node: AST) -> AST:
+        """Method factors out coefficients"""
+        list_of_coeff = self.extract_coefficients(node)
+        for coeff in list_of_coeff:
+            chk = self.coeff_check(node, coeff)
+            if chk:
+                return BinOpNode(coeff, Token(("*", MUL)), self.factor_out_coeff(node, coeff))
+        return node
+
+    def factor_out_coeff(self, node: AST, coeff: AST) -> AST:
+        if node.type == BINOPNode:
+            if node.op.tag == MUL:
+                if stringify_node(node.left, self.var) == stringify_node(coeff, self.var):
+                    return node.right
+                elif stringify_node(node.right, self.var) == stringify_node(coeff, self.var):
+                    return node.left
+            new_left = self.factor_out_coeff(node.left, coeff)
+            new_right = self.factor_out_coeff(node.right, coeff)
+            return BinOpNode(new_left, node.op, new_right)
+        elif node.type == UNIOPNode:
+            return UniOpNode(node.op, self.factor_out_coeff(node.right, coeff))
+        elif stringify_node(node, self.var) == stringify_node(coeff, self.var):
+            return NumberNode(Token(("1", NUMBER)))
+        return node
+
+    def coeff_check(self, node: AST, coeff: AST) -> bool:
+        if node.type == BINOPNode:
+            if node.op.tag == MUL:
+                if stringify_node(node.left, self.var) == stringify_node(coeff, self.var):
+                    return True
+                elif stringify_node(node.right, self.var) == stringify_node(coeff, self.var):
+                    return True
+            elif node.op.tag in (PLUS, MINUS):
+                return self.coeff_check(node.left, coeff) and self.coeff_check(node.right, coeff)
+        elif node.type == UNIOPNode:
+            return self.coeff_check(node.right, coeff)
+        elif stringify_node(node, self.var) == stringify_node(coeff, self.var):
+            return True
+        return False
+
+    def extract_coefficients(self, node: AST, list_of_coeff=None) -> List[AST]:
+        """Method extracts monomial or numeric coefficients that are common to all terms"""
+        if list_of_coeff is None:
+            list_of_coeff = []
+        if node.type == BINOPNode:
+            if node.op.tag == MUL:
+                if node.left.type == NUMNode or check_mono(node.left):
+                    if node.left not in list_of_coeff:
+                        list_of_coeff.append(node.left)
+                elif node.right.type == NUMNode or check_mono(node.right):
+                    if node.right not in list_of_coeff:
+                        list_of_coeff.append(node.right)
+            elif node.op.tag in (PLUS, MINUS):
+                list_of_coeff = self.extract_coefficients(node.left, list_of_coeff[:])
+                return self.extract_coefficients(node.left, list_of_coeff[:])
+        elif node.type == UNIOPNode:
+            return self.extract_coefficients(node.right, list_of_coeff[:])
+        elif node == NUMNode or check_mono(node):
+            if node not in list_of_coeff:
+                list_of_coeff.append(node)
+        return list_of_coeff
 
     def precisely_replace_node(self, tree: AST, old_node_path: List[str], new_node: AST) -> AST:
         """Method replaces a specific node based on a given path to it"""
