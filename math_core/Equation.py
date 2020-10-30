@@ -1,1631 +1,224 @@
-from typing import List, Tuple, Union
-import math, cmath
-
-var_dict = {
-
-    "a": "b",
-    "b": "c",
-    "c": "d",
-    "d": "e",
-    "e": "f",
-    "f": "g",
-    "g": "h",
-    "h": "i",
-    "i": "j",
-    "j": "k",
-    "k": "l",
-    "l": "m",
-    "m": "n",
-    "n": "o",
-    "o": "p",
-    "p": "q",
-    "q": "r",
-    "r": "s",
-    "s": "t",
-    "t": "u",
-    "u": "v",
-    "v": "w",
-    "w": "x",
-    "x": "y",
-    "y": "z",
-    "z": "a"
-
-}
-
-oper_dict = {
-
-    0: "SIN",
-    1: "COS",
-    2: "TAN",
-    3: "SEC",
-    4: "CSC",
-    5: "COT",
-    6: "ASIN",
-    7: "ACOS",
-    8: "ATAN",
-    9: "ASEC",
-    10: "ACSC",
-    11: "ACOT",
-    12: "SINH",
-    13: "COSH",
-    14: "TANH",
-    15: "SECH",
-    16: "CSCH",
-    17: "COTH",
-    18: "ASINH",
-    19: "ACOSH",
-    20: "ATANH",
-    21: "ASECH",
-    22: "ACSCH",
-    23: "ACOTH",
-    24: "LN",
-    25: "LOG",
-    26: "SQRT"
-
-}
-
-def is_number(s: str) -> bool:
-    """Function tests if a string is a number."""
-    try:
-
-        float(s)
-        return True
-
-    except ValueError:
-
-        try:
-
-            complex(s)
-            return True
-
-        except ValueError:
-
-            return False
-
-def bracketify(a: str) -> Tuple[List[str], List[str]]:
-    "Takes equation in string format and transforms into list of strings."
-    # Gotta add a check for imaginary numbers
-
-    if "derivative of " in a:
-
-        calculus_chk = True
-        a = a.replace("derivative of ", '')
-
-    elif "derivative " in a:
-
-        calculus_chk = True
-        a = a.replace("derivative ", '')
-
-    elif "d/d" in a:
-
-        calculus_chk = True
-
-    master = []
-    numtemp = []
-    var_type = []
-    a = "(" + a + ")00000"
-
-    i = 0
-    j = 0  # walk the master array
-    b = 0
-    k = 0
-    temp = ""
-    s = 0
-    var_num = 0
-    # Transform input string array into code-readable format
-    while s != len(a) - 5:
-
-        # print(master, a[s], s)
-        if a[s] == "(":
-
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        elif a[s] == "^":
-
-            master.insert(j, "^")
-            j = j + 1
-
-        elif a[s] == "/":
-
-            master.insert(j, "/")
-            j = j + 1
-
-        elif a[s] == "*":
-
-            master.insert(j, "*")
-            j = j + 1
-
-        elif a[s] == "+":
-
-            master.insert(j, "+")
-            j = j + 1
-
-        # checks if previous digit is a number so that it doesn't mistake a negative number for an operation
-        elif (a[s] == "-") & ((a[s - 1] == ")") or (a[s - 1].isdigit() == True) or (a[s - 1].isalpha() == True)):
-
-            master.insert(j, "-")
-            j = j + 1
-
-        # Sine
-        elif (a[s] == "s") & (a[s + 1] == "i") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "SIN")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Cosine
-        elif (a[s] == "c") & (a[s + 1] == "o") & (a[s + 2] == "s") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "COS")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Tangent
-        elif (a[s] == "t") & (a[s + 1] == "a") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "TAN")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Secant
-        elif (a[s] == "s") & (a[s + 1] == "e") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "SEC")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Cosecant
-        elif (a[s] == "c") & (a[s + 1] == "s") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "CSC")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Cotangent
-        elif (a[s] == "c") & (a[s + 1] == "o") & (a[s + 2] == "t") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "COT")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Arc Sine
-        elif (a[s] == "a") & (a[s + 1] == "s") & (a[s + 2] == "i") & (a[s + 4] != "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ASIN")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Arc Cosine
-        elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "o") & (a[s + 3] == "s") & (a[s + 4] != "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ACOS")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Arc Tangent
-        elif (a[s] == "a") & (a[s + 1] == "t") & (a[s + 4] != "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ATAN")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Arc Secant
-        elif (a[s] == "a") & (a[s + 1] == "s") & (a[s + 2] == "e") & (a[s + 4] != "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ASEC")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Arc Cosecant
-        elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "s") & (a[s + 4] != "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ACSC")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Arc Cotangent
-        elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "o") & (a[s + 3] == "t") & (a[s + 4] != "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ACOT")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Sine
-        elif (a[s] == "s") & (a[s + 1] == "i") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "SINH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Cosine
-        elif (a[s] == "c") & (a[s + 1] == "o") & (a[s + 2] == "s") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "COSH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Tangent
-        elif (a[s] == "t") & (a[s + 1] == "a") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "TANH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Secant
-        elif (a[s] == "s") & (a[s + 1] == "e") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "SECH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Cosecant
-        elif (a[s] == "c") & (a[s + 1] == "s") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "CSCH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Cotangent
-        elif (a[s] == "c") & (a[s + 1] == "o") & (a[s + 2] == "t") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "COTH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Arc Sine
-        elif (a[s] == "a") & (a[s + 1] == "s") & (a[s + 2] == "i") & (a[s + 4] == "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ASINH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Arc Cosine
-        elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "o") & (a[s + 3] == "s") & (a[s + 4] == "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ACOSH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Arc Tangent
-        elif (a[s] == "a") & (a[s + 1] == "t") & (a[s + 2] == "a") & (a[s + 4] == "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ATANH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Arc Secant
-        elif (a[s] == "a") & (a[s + 1] == "s") & (a[s + 2] == "e") & (a[s + 4] == "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ASECH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Arc Cosecant
-        elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "s") & (a[s + 4] == "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ACSCH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Hyperbolic Arc Cotangent
-        elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "o") & (a[s + 3] == "t") & (a[s + 4] == "h"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "ACOTH")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Natural Logarithm
-        elif (a[s] == "l") & (a[s + 1] == "n"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "LN")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Logarithm
-        elif (a[s] == "l") & (a[s + 1] == "o"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "LOG")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        elif a[s] == ",":
-
-            master.insert(j, ")" + str(b))
-            b = b - 1
-            j = j + 1
-            b = b + 1
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # Square Root
-        elif (a[s] == "s") & (a[s + 1] == "q"):
-
-            while a[s] != "(":
-                s = s + 1
-
-            master.insert(j, "SQRT")
-            j = j + 1
-            b = b + 1  # system has knowledge of current amount of open brackets
-            master.insert(j, "(" + str(b))
-            j = j + 1
-
-        # PI
-        elif (a[s] == "P") & (a[s + 1] == "I"):
-
-            master.insert(j, str(math.pi))
-            s = s + 1
-            j = j + 1
-
-        # Euler's number
-        elif a[s] == "E":
-
-            master.insert(j, str(math.e))
-            j = j + 1
-
-        elif a[s] == ")":
-
-            master.insert(j, ")" + str(b))
-            b = b - 1
-            j = j + 1
-
-        elif a[s] == "=":
-
-            master.insert(j, "=")
-            j = j + 1
-
-        # The following code is for single character variables
-        elif (a[s].isalpha() == True) & (a[s - 1].isalpha() == False) & (a[s + 1].isalpha() == False) & (a[s] != "d"):
-
-            master.insert(j, str(a[s]))
-            if str(a[s]) not in var_type:
-                var_type.insert(var_num, str(a[s]))
-                var_num = var_num + 1
-
-            j = j + 1
-
-        # the following code is for handling large numbers and decimals
-        else:
-
-            numtemp.insert(i, a[s])
-
-            if (a[s + 1].isdigit() == True) or (a[s + 1] == "."):  # if the next index is a number or a period or j
-
-                i = i + 1
-
-            elif (a[s + 1] == "e") and (a[s + 2] in "+-") and (a[s + 3].isdigit() == True):
-
-                # print(a[s],str(s)+" out of "+str(len(a)-1))
-
-                i += 1
-                s += 1
-                numtemp.insert(i, a[s])
-                # print(numtemp)
-                i += 1
-                s += 1
-                numtemp.insert(i, a[s])
-                # print(numtemp)
-                i += 1
-
-            elif (a[s] == "-") & (a[s - 1].isdigit() == False):
-
-                master.insert(j, "-1")
-                j = j + 1
-                master.insert(j, "*")
-                j = j + 1
-                numtemp.clear()
-
-            else:
-
-                for k in range(0, i + 1):
-                    temp = str(temp) + str(numtemp[k])
-
-                master.insert(j, str(float(temp)))
-                j = j + 1
-                i = 0
-                numtemp.clear()
-                temp = ""  # clear up temp
-
-        s = s + 1
-    # print("now for inference")
-    master = inference(master)
-    # print(master)
-    # print("now for imaginary_num")
-    master = imaginary_num(master)
-    # print(master)
-
-    if not var_type:
-        var_type.append("")
-
-    return master, var_type
-
-def stringify(l: List[str]) -> str:
-    """Takes equation in format List of strings and returns human-readable string."""
-    temp = ""
-    for s in range(1, len(l) - 1):
-
-        if ("(" in str(l[s])) and ("j" not in str(l[s])):
-
+from parser.lexer import Token, EXP, EQUAL, PLUS, MINUS, NUMBER, CONSTANT, MUL, DIV
+from parser.ast import AST, BINOPNode, FUNCNode, UNIOPNode, VARNode, NUMNode, NumberNode
+from math_core.algebra_formats import monomial_x_power, monomial_x, build_monomial_template
+
+from typing import List, Union, Any
+import re
+from fractions import Fraction
+import pytest
+import math
+
+
+list_of_func = [
+    "cos",
+    "sin",
+    "tan",
+    "abs",
+    "log",
+    "ln",
+    "sqrt",
+    "sec",
+    "csc",
+    "cot",
+    "acos",
+    "asin",
+    "atan",
+    "asec",
+    "acsc",
+    "acot",
+    "cosh",
+    "sinh",
+    "tanh",
+    "sech",
+    "csch",
+    "coth",
+    "acosh",
+    "asinh",
+    "atanh",
+    "asech",
+    "acsch",
+    "acoth",
+]
+
+
+class Colors:
+    RED = "\033[1;31m"
+    BLUE = "\033[1;34m"
+    CYAN = "\033[1;36m"
+    GREEN = "\033[0;32m"
+    RESET = "\033[0;0m"
+    BOLD = "\033[;1m"
+    REVERSE = "\033[;7m"
+
+
+def stringify_node(node: AST, var: Union[str, List[str]]) -> str:
+    """Function will take a node and turn it into a string"""
+    if node.type == BINOPNode:
+        temp = node.op.value
+        if node.op.tag != EQUAL:
+            if node.left.type == BINOPNode and node.left.op.tag != EXP:
+                if node.op.tag not in (EXP, DIV, PLUS, MINUS) or node.left.op.tag not in (PLUS, MINUS) and not check_mono(node.left):
+                    temp = ")" + temp
+            elif node.op.tag == EXP and node.left.type == BINOPNode and node.left.op.tag == EXP and check_mono(node.right):
+                temp = ")" + temp
+            if node.right.type == BINOPNode and node.right.op.tag != EXP:
+                if node.op.tag not in (PLUS, MINUS) or node.right.op.tag not in (PLUS, MINUS) and not check_mono(node.right):
+                    temp += "("
+        left = stringify_node(node.left, var)
+        if ")"+node.op.value in temp:
+            left = "("+left
+        right = stringify_node(node.right, var)
+        if node.op.value+"(" in temp:
+            right += ")"
+        return inference_string(left+temp+right, var)
+    elif node.type == UNIOPNode:
+        temp = node.op.value
+        if node.right.type == BINOPNode:
             temp += "("
-
-        elif (")" in str(l[s])) and ("j" not in str(l[s])):
-
+        right = stringify_node(node.right, var)
+        if "(" in temp:
+            right += ")"
+        return inference_string(temp+right, var)
+    elif node.type == FUNCNode:
+        if node.op.value.lower() not in ("abs", "abs_ln"):
+            temp = node.op.value.lower()+"("
+            for i in range(len(node.args)):
+                if i < 1:
+                    temp += stringify_node(node.args[i], var)
+                else:
+                    temp += ","+stringify_node(node.args[i], var)
             temp += ")"
-
         else:
-
-            temp = temp + str(l[s])
-
-    for i in oper_dict.values():
-
-        if i in temp:
-
-            temp = temp.replace(i, i.lower())
-
-    return temp
-
-def inference(eqn: List[str]) -> List[str]:
-    """Equation adds * symbol between constants and brackets or constants and complex math operations."""
-    master = []
-    s = 0
-    for i in range(0, len(eqn)):
-
-        if ("(" in eqn[i]) and (is_number(eqn[i - 1]) == True):
-
-            master.append("*")
-            master.append(eqn[i])
-
-        elif (eqn[i] in oper_dict.values()) and (is_number(eqn[i - 1]) == True):
-
-            master.append("*")
-            master.append(eqn[i])
-
-        elif ("(" in eqn[i]) and (")" in eqn[i - 1]) and (s != 0):
-
-            master.append("*")
-            master.append(eqn[i])
-
-        else:
-
-            master.append(eqn[i])
-
-    # print(master)
-    return master
-
-def imaginary_num(br: List[str]) -> List[str]:
-    """Removes brackets around complex numbers."""
-    #First combine complex numbers into a single index
-    i = 0
-    mod_chk = False
-    br_copy = br[:]
-    while i != len(br_copy):
-        if ("j" in br_copy[i]) and (br_copy[i-1] in "+-") and (is_number(br_copy[i-2])):
-            temp = br_copy[i-2]+br_copy[i-1]+br_copy[i]
-            br_copy[i-2] = temp
-            del br_copy[i-1:i+1]
-            print(br_copy)
-            i -= 1
-            mod_chk = True
-        i += 1
-
-    i = 0
-    while i != len(br_copy):
-
-        if (")" in br_copy[i]) and (br_copy[i] != ")1") and (br_copy[i - 1] == "j") and (
-                is_number(br_copy[i - 2]) == True):
-
-            b = br_copy[i]
-            b = b.replace(')', '')
-            b = int(b)
-            k = i - 1
-            temp = []
-            while br_copy[k] != "(" + str(b):
-                temp.insert(0, br_copy[k])
-                k -= 1
-
-            temp_string = ""
-            for s in temp:
-                temp_string += s
-
-            temp = temp_string
-
-            # print("temp = "+temp, is_number(temp))
-            # let's double check it is an imaginary number
-            if is_number(temp) == True:
-
-                # print("It's a number")
-                if isinstance(complex(temp), complex) == True:
-                    del br_copy[k:i]
-                    br_copy[k] = temp
-                    mod_chk = True
-                    i = -1
-
-        if (")" in br_copy[i]) and (br_copy[i] == ")1") and (br_copy[i - 1] == "j") and (
-                is_number(br_copy[i - 2]) == True):
-
-            b = br_copy[i]
-            b = b.replace(')', '')
-            b = int(b)
-            k = i - 1
-            temp = []
-            while br_copy[k] != "(" + str(b):
-
-                if ")" in br_copy[k]:
-
-                    temp.insert(0, ")")
-
-                else:
-
-                    temp.insert(0, br_copy[k])
-
-                k -= 1
-
-            temp_string = ""
-            for s in temp:
-                temp_string += s
-
-            temp = temp_string
-
-            # print("temp = "+temp, is_number(temp))
-            # let's double check it is an imaginary number
-            if is_number(temp) == True:
-
-                # print("It's a number")
-                if isinstance(complex(temp), complex) == True:
-                    del br_copy[k + 1:i]
-                    br_copy.insert(k + 1, temp)
-                    mod_chk = True
-                    i = -1
-
-        i += 1
-
-    if mod_chk:
-        br = br_copy[:]
-
-    return br
-
-class Equation():
-
-    def __init__(self, eqn_string: str = None):
-
-        if not eqn_string:
-            self.eqn_string = ""
-            self.eqn = []
-            self.deg = []
-            self.var_type = []
-            self.solution = []
-        else:
-            self.eqn_string = eqn_string
-            self.eqn = []
-            self.deg = []
-            self.var_type = []
-            self.solution = []
-            self.solution.append("The inputted equation is "+eqn_string)
-            self.bracketify()
-            if self.var_type[0] != "":
-                self.grouping()
-
-    def bracketify(self) -> Tuple[List[str], List[str]]:
-        "Takes equation in string format and transforms into list of strings."
-        master = []
-        numtemp = []
-        var_type = []
-        a = self.eqn_string
-        if "derivative of " in a:
-
-            calculus_chk = True
-            a = a.replace("derivative of ", '')
-
-        elif "derivative " in a:
-
-            calculus_chk = True
-            a = a.replace("derivative ", '')
-        else:
-            calculus_chk = False
-        a = "(" + a + ")00000"
-
-        i = 0
-        j = 0  # walk the master array
-        b = 0
-        k = 0
-        temp = ""
-        s = 0
-        var_num = 0
-        # Transform input string array into code-readable format
-        while s != len(a) - 5:
-
-            # print(master, a[s], s)
-            if a[s] == "(":
-
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            elif a[s] == "^":
-
-                master.insert(j, "^")
-                j = j + 1
-
-            elif (a[s] == "/" and a[s-1] == "d") or (a[s] == "/" and a[s-2] == "d"):
-                s += 1
-                continue
-
-            elif (a[s] == "/" and a[s-1] != "d") or (a[s] == "/" and a[s-2] != "d"):
-                print(s, a, s-1, a[s-1], s-2, a[s-2])
-                master.insert(j, "/")
-                j = j + 1
-
-            elif a[s] == "*":
-
-                master.insert(j, "*")
-                j = j + 1
-
-            elif a[s] == "+":
-
-                master.insert(j, "+")
-                j = j + 1
-
-            # checks if previous digit is a number so that it doesn't mistake a negative number for an operation
-            elif (a[s] == "-") & ((a[s - 1] == ")") or (a[s - 1].isdigit() == True) or (a[s - 1].isalpha() == True)):
-
-                master.insert(j, "-")
-                j = j + 1
-
-            # Sine
-            elif (a[s] == "s") & (a[s + 1] == "i") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "SIN")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Cosine
-            elif (a[s] == "c") & (a[s + 1] == "o") & (a[s + 2] == "s") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "COS")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Tangent
-            elif (a[s] == "t") & (a[s + 1] == "a") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "TAN")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Secant
-            elif (a[s] == "s") & (a[s + 1] == "e") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "SEC")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Cosecant
-            elif (a[s] == "c") & (a[s + 1] == "s") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "CSC")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Cotangent
-            elif (a[s] == "c") & (a[s + 1] == "o") & (a[s + 2] == "t") & (a[s + 3] != "h") & (a[s - 1] != "a"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "COT")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Arc Sine
-            elif (a[s] == "a") & (a[s + 1] == "s") & (a[s + 2] == "i") & (a[s + 4] != "h"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "ASIN")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Arc Cosine
-            elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "o") & (a[s + 3] == "s") & (a[s + 4] != "h"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "ACOS")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Arc Tangent
-            elif (a[s] == "a") & (a[s + 1] == "t") & (a[s + 4] != "h"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "ATAN")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Arc Secant
-            elif (a[s] == "a") & (a[s + 1] == "s") & (a[s + 2] == "e") & (a[s + 4] != "h"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "ASEC")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Arc Cosecant
-            elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "s") & (a[s + 4] != "h"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "ACSC")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Arc Cotangent
-            elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "o") & (a[s + 3] == "t") & (a[s + 4] != "h"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "ACOT")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Hyperbolic Sine
-            elif (a[s] == "s") & (a[s + 1] == "i") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "SINH")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Hyperbolic Cosine
-            elif (a[s] == "c") & (a[s + 1] == "o") & (a[s + 2] == "s") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "COSH")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Hyperbolic Tangent
-            elif (a[s] == "t") & (a[s + 1] == "a") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "TANH")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Hyperbolic Secant
-            elif (a[s] == "s") & (a[s + 1] == "e") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "SECH")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Hyperbolic Cosecant
-            elif (a[s] == "c") & (a[s + 1] == "s") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "CSCH")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Hyperbolic Cotangent
-            elif (a[s] == "c") & (a[s + 1] == "o") & (a[s + 2] == "t") & (a[s + 3] == "h") & (a[s - 1] != "a"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "COTH")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Hyperbolic Arc Sine
-            elif (a[s] == "a") & (a[s + 1] == "s") & (a[s + 2] == "i") & (a[s + 4] == "h"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "ASINH")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Hyperbolic Arc Cosine
-            elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "o") & (a[s + 3] == "s") & (a[s + 4] == "h"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "ACOSH")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Hyperbolic Arc Tangent
-            elif (a[s] == "a") & (a[s + 1] == "t") & (a[s + 2] == "a") & (a[s + 4] == "h"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "ATANH")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Hyperbolic Arc Secant
-            elif (a[s] == "a") & (a[s + 1] == "s") & (a[s + 2] == "e") & (a[s + 4] == "h"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "ASECH")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Hyperbolic Arc Cosecant
-            elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "s") & (a[s + 4] == "h"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "ACSCH")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Hyperbolic Arc Cotangent
-            elif (a[s] == "a") & (a[s + 1] == "c") & (a[s + 2] == "o") & (a[s + 3] == "t") & (a[s + 4] == "h"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "ACOTH")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Natural Logarithm
-            elif (a[s] == "l") & (a[s + 1] == "n"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "LN")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Logarithm
-            elif (a[s] == "l") & (a[s + 1] == "o"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "LOG")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            elif a[s] == ",":
-
-                master.insert(j, ")" + str(b))
-                b = b - 1
-                j = j + 1
-                b = b + 1
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # Square Root
-            elif (a[s] == "s") & (a[s + 1] == "q"):
-
-                while a[s] != "(":
-                    s = s + 1
-
-                master.insert(j, "SQRT")
-                j = j + 1
-                b = b + 1  # system has knowledge of current amount of open brackets
-                master.insert(j, "(" + str(b))
-                j = j + 1
-
-            # PI
-            elif (a[s] == "P") & (a[s + 1] == "I"):
-
-                master.insert(j, str(math.pi))
-                s = s + 1
-                j = j + 1
-
-            # Euler's number
-            elif a[s] == "E":
-
-                master.insert(j, str(math.e))
-                j = j + 1
-
-            elif a[s] == ")":
-
-                master.insert(j, ")" + str(b))
-                b = b - 1
-                j = j + 1
-
-            elif a[s] == "=":
-
-                master.insert(j, "=")
-                j = j + 1
-
-            # The following code is for single character variables
-            elif (a[s].isalpha() == True) and (a[s - 1].isalpha() == False) and (a[s + 1].isalpha() == False) and (
-                    a[s] != "d") and (a[s] != "j"):
-
-                master.insert(j, str(a[s]))
-                if str(a[s]) not in var_type:
-                    var_type.insert(var_num, str(a[s]))
-                    var_num = var_num + 1
-
-                j = j + 1
-
-            elif a[s].isalpha() and a[s-1] == "d" and a[s-2] == "/" and a[s-3].isalpha() and a[s-4] == "d":
-                #print("bingo")
-                master.insert(j, "d"+str(a[s-3])+"/d"+str(a[s]))
-                if str(a[s]) not in var_type:
-                    var_type.insert(var_num, str(a[s]))
-                    var_num += 1
-                j += 1
-
-            elif a[s].isalpha() and a[s-1] == "d" and a[s-2] == "/" and a[s-3] == "d":
-                #print("bingo")
-                master.insert(j, "d/d"+str(a[s]))
-                if str(a[s]) not in var_type:
-                    var_type.insert(var_num, str(a[s]))
-                    var_num += 1
-                j += 1
-
-            elif a[s] == "d" or (a[s] == "/" and a[s-1] == "d") or (a[s].isalpha() and a[s-1] == "d" and a[s] not in var_type):
-                s += 1
-                continue
-            # the following code is for handling large numbers and decimals
+            temp = "|"
+            if node.op.value.lower() == "abs_ln":
+                temp = "ln" + temp
+            temp += stringify_node(node.args[0], var)
+            temp += "|"
+        return inference_string(temp, var)
+    elif node.type == VARNode:
+        return inference_string(node.value, var)
+    elif node.type == NUMNode:
+        if type(round_complex(visit_NUMNode(node))) == float and node.tag == NUMBER:
+            return inference_string(str(Fraction(node.value).limit_denominator(1000)), var)
+        return inference_string(node.value, var)
+
+
+def inference_string(eqn_string: str, var: Union[str, List[str]]) -> str:
+    """Method will remove some parts of an equation which are redundant"""
+    regex = r'\-?\(?\(?\-?[0-9]+(\.[0-9]*)?([\-\+][0-9]+(\.[0-9]*)?j)?\)?\*[a-zA-Z_](\^[-]?[0-9]+(\.[0-9]*)?)?\)?'
+    if isinstance(var, str):
+        var = [var]
+    for var in var:
+        match = re.search(regex, eqn_string)
+        if match is not None:
+            if "((" in match.group():
+                match_wo_br_or_mul = match.group().replace("((", '(')
+                match_wo_br_or_mul = match_wo_br_or_mul.replace(var+")",var)
             else:
+                match_wo_br_or_mul = match.group().replace("(", '')
+                match_wo_br_or_mul = match_wo_br_or_mul.replace(")",'')
+            match_wo_br_or_mul = match_wo_br_or_mul.replace("*", '')
+            if "1"+var in match_wo_br_or_mul:
+                match_wo_br_or_mul = match_wo_br_or_mul.replace("1", '')
+            elif "-1"+var in match_wo_br_or_mul:
+                match_wo_br_or_mul = match_wo_br_or_mul.replace("-1", '-')
+            eqn_string = eqn_string.replace(match.group(), match_wo_br_or_mul)
+            match = re.search(regex, eqn_string)
+        if match is not None:
+            return inference_string(eqn_string, var)
+        if eqn_string in "1*"+var:
+            eqn_string = eqn_string.replace("1*"+var, var)
+        elif eqn_string in "-1*"+var:
+            eqn_string = eqn_string.replace("-1*"+var, "-"+var)
+        if eqn_string in "1"+var:
+            eqn_string = eqn_string.replace("1"+var, var)
+        elif eqn_string in "-1" + var:
+            eqn_string = eqn_string.replace("-1"+var, "-"+var)
+        if "#" in eqn_string:
+            eqn_string = eqn_string.replace("#", "")
+    return eqn_string.replace('(' + var + ')', var) if not check_for_func(eqn_string) else eqn_string
 
-                numtemp.insert(i, a[s])
 
-                if (a[s + 1].isdigit()) or (a[s + 1] == ".") or (a[s+1] == "j"):  # if the next index is a number or a period or j
+def check_for_func(eqn: str):
+    """Method checks if there are functions in the string"""
+    for func in list_of_func:
+        if func in eqn:
+            return True
+    return False
 
-                    i = i + 1
 
-                elif (a[s + 1] == "e") and (a[s + 2] in "+-") and (a[s + 3].isdigit()):
+def round_complex(num: Any, decimal_place: int = 6) -> Union[complex, float]:
+    """Function will take a complex number and round its real and imaginary parts if they're extremely small"""
+    if type(num) == complex:
+        if round(num.real, decimal_place).is_integer() and not round(num.imag, decimal_place).is_integer():
+            num = int(round(num.real, decimal_place)) + num.imag * 1j
+        elif round(num.real, decimal_place).is_integer() and round(num.imag, decimal_place).is_integer():
+            num = int(round(num.real, decimal_place)) + int(round(num.imag, decimal_place)) * 1j
+        elif not round(num.real, decimal_place).is_integer() and round(num.imag, decimal_place).is_integer():
+            num = num.real + int(round(num.imag, decimal_place)) * 1j
+        if num.real == 0:
+            num = num.imag * 1j
+        if num.imag == 0:
+            num = num.real
+    if type(num) == float:
+        if round(num, decimal_place).is_integer():
+            num = int(num)
+    return num
 
-                    # print(a[s],str(s)+" out of "+str(len(a)-1))
 
-                    i += 1
-                    s += 1
-                    numtemp.insert(i, a[s])
-                    # print(numtemp)
-                    i += 1
-                    s += 1
-                    numtemp.insert(i, a[s])
-                    # print(numtemp)
-                    i += 1
+def visit_NUMNode(node: NumberNode):
+    """This method takes a CONSTNode and returns the constant if it exits"""
+    if node.tag == NUMBER:
+        try:
+            num = float(node.value)
+        except ValueError:
+            num = complex(node.value)
+        return num
+    elif node.tag == CONSTANT:
+        if node.value in ("#pi", "#PI"):
+            return math.pi
+        elif node.value in ("#e", "#E"):
+            return math.e
+        elif node.value == "#C":
+            return 1
+        else:
+            raise ValueError(f"Constant {node.value} is not recognized")
 
-                elif (a[s] == "-") and (not a[s - 1].isdigit()):
 
-                    master.insert(j, "-1")
-                    j = j + 1
-                    master.insert(j, "*")
-                    j = j + 1
-                    numtemp.clear()
+def check_mono(node: AST):
+    """This method checks if a node is a monomial that isn't part of the standard templates"""
+    if hash(node) == hash(monomial_x[0]) or hash(node) == hash(monomial_x_power[0]):
+        return True
+    if node.type == BINOPNode:
+        mono_template = None
+        if node.op.tag == EXP and node.right.type == NUMNode:
+            exponent = round_complex(visit_NUMNode(node.right))
+            mono_template = build_monomial_template(exponent, EXP)
+        elif node.op.tag == MUL and node.right.type == BINOPNode and node.right.op.tag == EXP and node.right.right.type == NUMNode:
+            exponent = round_complex(visit_NUMNode(node.right.right))
+            mono_template = build_monomial_template(exponent, MUL)
+        if mono_template is not None:
+            if hash(node) == hash(mono_template[0]):
+                return True
+    return False
 
-                else:
 
-                    for k in range(0, i + 1):
-                        temp = str(temp) + str(numtemp[k])
+class Equation:
+    def __init__(self, eqn_string: str = None, tokens: List[Token] = None, tree: List[Union[AST, Token]] = None):
+        self.solution = ["The inputted equation is " + eqn_string]
+        self.eqn_string = eqn_string.replace(" ", "")
+        self.eqn_tokens = tokens
+        self.tree = tree
 
-                    if complex(temp).imag != 0:
-
-                        if complex(temp).real == 0:
-
-                            master.insert(j, str(complex(temp).imag*1j))
-                            j = j + 1
-                            i = 0
-                            numtemp.clear()
-                            temp = ""  # clear up temp
-
-                        else:
-
-                            master.insert(j, str(complex(temp)))
-                            j = j + 1
-                            i = 0
-                            numtemp.clear()
-                            temp = ""  # clear up temp
-
-                    elif temp == "0j":
-
-                        master.insert(j, str(complex(temp)))
-                        j = j + 1
-                        i = 0
-                        numtemp.clear()
-                        temp = ""  # clear up temp
-
-                    else:
-
-                        master.insert(j, str(float(temp)))
-                        j = j + 1
-                        i = 0
-                        numtemp.clear()
-                        temp = ""  # clear up temp
-
-            s += 1
-        #print("YEEEHAW", master)
-        # print("now for inference")
-        master = inference(master)
-        # print(master)
-        # print("now for imaginary_num")
-        master = imaginary_num(master)
-        #print("After imaginary_num", master)
-
-        if not var_type:
-            var_type.append("")
-
-        if calculus_chk:
-
-            master.insert(1, "d/d"+str(var_type[0]))
-            master.insert(1, "=")
-            if var_type[0] != "y":
-                master.insert(1, "dy/d"+str(var_type[0]))
+    def update_eqn_string(self, section_to_replace: str, new_section: str, br_override: bool = False):
+        """Method which updates the eqn string based on recent ops"""
+        self.solution.append("------")
+        if not br_override:
+            if "("+section_to_replace+")" in self.eqn_string and "("+section_to_replace+")^" not in self.eqn_string:
+                self.eqn_string = self.eqn_string.replace("("+section_to_replace+")", new_section)
             else:
-                master.insert(1, "d"+var_dict[var_type[0]]+"/d"+str(var_type[0]))
-            master.insert(4, "(2")
-            master.insert(-1, ")2")
-
-        self.eqn = master
-        self.var_type = var_type
-
-    def grouping(self):
-        """This function groups terms around variables into a single index."""
-
-        # print("Inside grouping", eqn)
-        # Start with combining with constants and powers into one index
-        i = 0
-        p = 0
-        b = 0
-        p_b = 0
-        var = []
-        b_open = 0
-        b_close = 0
-        b_loc = 0
-        while i != len(self.eqn):
-
-            mod = False
-            # print(eqn)
-            # This index has a variable in it
-            if ("(" in self.eqn[i]) and (self.eqn[i] not in oper_dict.values()):
-
-                b += 1
-                b_open += 1
-                b_loc = i
-
-                for op in oper_dict.values():
-
-                    if op == self.eqn[i - 1]:
-                        p_b = b
-                        p = i
-
-            if (")" in self.eqn[i]) and (self.eqn[i] not in oper_dict.values()):
-
-                if self.eqn[i] == ")" + str(p_b):
-                    p_b = 0
-                    p = 0
-
-                b -= 1
-                b_close += 1
-
-            if (self.eqn[i].isalpha()) and (len(self.eqn[i]) == 1):
-
-                # print("eqn[i]", eqn[i])
-                if self.eqn[i] not in var:
-                    var.append(self.eqn[i])
-
-                if (self.eqn[i + 1] == "^") and (is_number(self.eqn[i + 2])):
-                    self.eqn[i] = self.eqn[i] + "^" + self.eqn[i + 2]
-                    del self.eqn[i + 1:i + 3]
-                    mod = True
-                # print(eqn)
-
-                if (is_number(self.eqn[i - 1])):
-                    self.eqn[i - 1] = self.eqn[i - 1] + self.eqn[i]
-                    del self.eqn[i]
-                    mod = True
-                # print(eqn)
-
-                if (")" in self.eqn[i-1]) and (is_number(self.eqn[i-2])) and ("(" in self.eqn[i-3]):
-                    self.eqn[i-3] = "("+self.eqn[i-2]+")"+self.eqn[i]
-                    del self.eqn[i-2:i+1]
-                    mod = True
-
-                if (self.eqn[i - 1] == "*") and (is_number(self.eqn[i - 2])):
-                    self.eqn[i - 2] = self.eqn[i - 2] + self.eqn[i]
-                    del self.eqn[i - 1:i + 1]
-                    mod = True
-                # print(eqn)
-
-                if ((b_open != b_close) and (self.eqn[b_loc - 1] in oper_dict.values())) or (p != 0):
-
-                    if p != 0:
-                        b_loc = p
-
-                    temp = self.eqn[b_loc - 1]
-                    # print(temp)
-                    j = self.eqn[b_loc]
-                    j = j.replace('(', '')
-                    u = b_loc
-                    while self.eqn[u] != ")" + j:
-
-                        if "(" in self.eqn[u]:
-
-                            temp += "("
-
-                        elif ")" in self.eqn[u]:
-
-                            temp += ")"
-
-                        else:
-
-                            temp += self.eqn[u]
-
-                        u += 1
-
-                    temp += ")"
-                    self.eqn[b_loc - 1] = temp
-                    del self.eqn[b_loc:u + 1]
-                    # print("eqn[b_loc]",eqn[b_loc])
-
-                    if (self.eqn[b_loc] == "^") and (is_number(self.eqn[b_loc + 1]) == True):
-                        temp = self.eqn[b_loc - 1] + "^" + self.eqn[b_loc + 1]
-                        self.eqn[b_loc - 1] = temp
-                        del self.eqn[b_loc:b_loc + 2]
-
-                    mod = True
-                # print(eqn)
-
-                if mod == True:
-                    i = 0
-
-            i += 1
-
-        # This section of code was added because when grouping is fed an equation that is already grouped, it fails
-        # print("Made it here", eqn)
-        if len(var) == 0:
-
-            for i in range(0, len(self.eqn)):
-
-                if ("(" not in self.eqn[i]) and (")" not in self.eqn[i]) and (self.eqn[i] not in "*/+-") and (
-                        is_number(self.eqn[i]) == False):
-
-                    check = False
-                    oper = ""
-                    for op in oper_dict.values():
-
-                        if op in self.eqn[i]:
-                            check == True
-                            oper = op
-
-                    if check == False:
-
-                        if "^" in self.eqn[i]:
-
-                            temp = self.eqn[i]
-                            j = 0
-                            while temp[j] != "^":
-                                j += 1
-
-                            j -= 1
-                            if temp[j] not in var:
-                                var.append(temp[j])
-
-                        else:
-
-                            temp = self.eqn[i]
-                            x = temp[-1]
-
-                            if x not in var:
-                                var.append(x)
-
-                    else:
-
-                        temp = self.eqn[i]
-                        temp = temp.replace(oper, '')
-                        j = 0
-                        x = ""
-                        while j != len(temp):
-
-                            if temp[j].isalpha() == True:
-                                x = temp[j]
-
-                            j += 1
-
-                        if x != "":
-
-                            if x not in var:
-                                var.append(x)
-
-        # print("Now we here", eqn)
-        eqn_deg = []
-        for s in self.eqn:
-
-            for t in var:
-
-                if t in s:
-
-                    if "^" in s:
-
-                        check = False
-                        for op in oper_dict.values():
-
-                            if op in s:
-                                check = True
-
-                        if check == False:
-
-                            q = 0
-                            temp = s
-                            # print("temp",temp)
-
-                            while temp[q] != "^":
-                                q += 1
-
-                            q += 1
-                            pow = ""
-                            while (q != len(temp)):
-
-                                if (is_number(temp[q]) == True) or (temp[q] == "."):
-                                    pow += temp[q]
-                                    # print(pow, "q = "+str(q), "len(temp) = "+str(len(temp)))
-                                    q += 1
-
-                            pow = int(float(pow))
-
-                            if pow not in eqn_deg:
-                                eqn_deg.append(pow)
-                        # print(s, eqn_deg)
-
-                    else:
-
-                        check = False
-                        for op in oper_dict.values():
-
-                            if op in s:
-                                check = True
-
-                        if check == False:
-
-                            if 1 not in eqn_deg:
-                                eqn_deg.append(1)
-
-
-                        # print(s, eqn_deg)
-
-            if is_number(s) == True:
-
-                if 0 not in eqn_deg:
-                    eqn_deg.append(0)
-            # print(s, eqn_deg)
-
-        # print("eqn_deg", eqn_deg, eqn)
-        new_eqn_deg = []
-        s = 0
-        while s != len(eqn_deg):
-
-            k = 0
-
-            for t in eqn_deg:
-
-                if eqn_deg[s] < t:
-                    k = 1
-
-            if k != 1:
-                new_eqn_deg.append(eqn_deg[s])
-                del eqn_deg[s]
-                s = -1
-
-            s += 1
-
-        var_chk = False
-        for s in self.eqn:
-            if self.var_type[0] in s:
-                var_chk = True
-
-        if not var_chk:
-            del new_eqn_deg[0]
-
-        if len(self.eqn) > 1:
-
-            if self.eqn[1] == "-":
-                self.eqn[1] = self.eqn[1] + self.eqn[2]
-                del self.eqn[2]
-
-        # print("new_eqn_deg", new_eqn_deg)
-        self.deg = new_eqn_deg
-        self.eqn_string_update()
-
-    def eqn_string_update(self) -> str:
-        """Takes objects equation in format List of strings and updates eqn_string parameter."""
-        temp = ""
-        s=1
-        while s != len(self.eqn) - 1:
-
-            if ("(" in str(self.eqn[s])) and ("j" not in str(self.eqn[s])):
-
-                temp += "("
-
-            elif (")" in str(self.eqn[s])) and ("j" not in str(self.eqn[s])):
-
-                temp += ")"
-
-            elif self.eqn[s] == "LOG":
-
-                temp += self.eqn[s].lower()
-                i = s+1
-                if "(" in self.eqn[i]:
-                    temp_two = self.eqn[i]
-                    temp_two = temp_two.replace("(",'')
-                    temp += "("
-                    i+=1
-                    while self.eqn[i] != ")"+temp_two:
-                        temp += str(self.eqn[i])
-                        i+=1
-                    i+=1
-                    if "(" in self.eqn[i]:
-                        temp += ","
-                        temp_two = self.eqn[i]
-                        temp_two = temp_two.replace("(", '')
-                        i+=1
-                        while self.eqn[i] != ")"+temp_two:
-                            temp += str(self.eqn[i])
-                            i+=1
-                        temp += ")"
-                        if i+1 >= len(self.eqn)-1:
-                            break
-                        else:
-                            s = i+1
-                else:
-                    temp += "("
-                    temp += str(self.eqn[i])
-                    temp += ","
-                    if "(" in self.eqn[i+1]:
-                        i += 1
-                        temp_two = self.eqn[i]
-                        temp_two = temp_two.replace("(", '')
-                        i+=1
-                        while self.eqn[i] != ")"+temp_two:
-                            temp += str(self.eqn[i])
-                            i+=1
-                        temp += ")"
-                        if i+1 >= len(self.eqn)-1:
-                            break
-                        else:
-                            s = i+1
-                    elif i+3 >= len(self.eqn)-1:
-                        temp += str(self.eqn[i+1])
-                        temp += ")"
-                        break
-                    else:
-                        i+=1
-                        temp += str(self.eqn[i])
-                        temp += ")"
-                        s = i+1
-
-            else:
-
-                temp = temp + str(self.eqn[s])
-
-            s+=1
-
-        for i in oper_dict.values():
-            if i in temp:
-                temp = temp.replace(i, i.lower())
-        self.eqn_string = temp
+                self.eqn_string = self.eqn_string.replace(section_to_replace, new_section)
+        else:
+            self.eqn_string = self.eqn_string.replace(section_to_replace, new_section)
+        self.solution.append(self.eqn_string)
+        self.solution.append("------")
