@@ -454,40 +454,40 @@ class Algebra(Equation):
                         self.tree = deepcopy(new_tree)
                         return True
             elif node.op.tag in (PLUS, MINUS):
-                if node.left.type == NUMNode:
-                    num = visit_NUMNode(node.left)
-                    if round_complex(num) == 0:
-                        node_string = stringify_node(node.right, self.var)
-                        if "0" + node.op.value + "(" + node_string + ")" in stringify_node(node, self.var):
-                            self.solution.append("0" + node.op.value + "(" + node_string + ") = " + node_string)
-                            self.update_eqn_string("0" + node.op.value + "(" + node_string + ")", node_string)
-                        else:
-                            self.solution.append("0" + node.op.value + node_string + " = " + node_string)
-                            self.update_eqn_string("0" + node.op.value + node_string, node_string)
-                        ans_node = node.right
-                        new_tree = self.replace_node(self.tree, node, ans_node)
-                        if new_tree is None:
-                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
-                        self.tree = deepcopy(new_tree)
-                        return True
-                elif node.right.type == NUMNode and node.right.value != "#C":
-                    num = visit_NUMNode(node.right)
-                    if round_complex(num) == 0:
-                        node_string = stringify_node(node.left, self.var)
-                        if "(" + node_string + ")" + node.op.value + "0" in stringify_node(node, self.var):
-                            self.solution.append("(" + node_string + ")" + node.op.value + "0 = " + node_string)
-                            self.update_eqn_string("(" + node_string + ")" + node.op.value + "0", node_string)
-                        else:
-                            self.solution.append(node_string + node.op.value + "0 = " + node_string)
-                            self.update_eqn_string(node_string + node.op.value + "0", node_string)
-                        ans_node = node.left
-                        new_tree = self.replace_node(self.tree, node, ans_node)
-                        if new_tree is None:
-                            raise Exception("{} was not replaced by {}.".format(node, ans_node))
-                        self.tree = deepcopy(new_tree)
-                        return True
                 if node.op.tag == PLUS:
-                    if stringify_node(node.left, self.var) == "-"+stringify_node(node.right, self.var) or \
+                    if node.left.type == NUMNode:
+                        num = visit_NUMNode(node.left)
+                        if round_complex(num) == 0:
+                            node_string = stringify_node(node.right, self.var)
+                            if "0" + node.op.value + "(" + node_string + ")" in stringify_node(node, self.var):
+                                self.solution.append("0" + node.op.value + "(" + node_string + ") = " + node_string)
+                                self.update_eqn_string("0" + node.op.value + "(" + node_string + ")", node_string)
+                            else:
+                                self.solution.append("0" + node.op.value + node_string + " = " + node_string)
+                                self.update_eqn_string("0" + node.op.value + node_string, node_string)
+                            ans_node = node.right
+                            new_tree = self.replace_node(self.tree, node, ans_node)
+                            if new_tree is None:
+                                raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                            self.tree = deepcopy(new_tree)
+                            return True
+                    elif node.right.type == NUMNode and node.right.value != "#C":
+                        num = visit_NUMNode(node.right)
+                        if round_complex(num) == 0:
+                            node_string = stringify_node(node.left, self.var)
+                            if "(" + node_string + ")" + node.op.value + "0" in stringify_node(node, self.var):
+                                self.solution.append("(" + node_string + ")" + node.op.value + "0 = " + node_string)
+                                self.update_eqn_string("(" + node_string + ")" + node.op.value + "0", node_string)
+                            else:
+                                self.solution.append(node_string + node.op.value + "0 = " + node_string)
+                                self.update_eqn_string(node_string + node.op.value + "0", node_string)
+                            ans_node = node.left
+                            new_tree = self.replace_node(self.tree, node, ans_node)
+                            if new_tree is None:
+                                raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                            self.tree = deepcopy(new_tree)
+                            return True
+                    elif stringify_node(node.left, self.var) == "-"+stringify_node(node.right, self.var) or \
                     stringify_node(node.right, self.var) == "-"+stringify_node(node.left, self.var) or \
                     (node.left.type == UNIOPNode and node.left.right.__repr__() == node.right.__repr__()) or (node.right.type == UNIOPNode and node.right.right.__repr__() == node.left.__repr__()):
                         node_string = stringify_node(node, self.var)
@@ -500,7 +500,7 @@ class Algebra(Equation):
                             raise Exception("{} was not replaced by {}.".format(node, ans_node))
                         self.tree = deepcopy(new_tree)
                         return True
-                    if node.right.type == UNIOPNode:
+                    elif node.right.type == UNIOPNode:
                         minus_cnt, right_node = self.reduce_uni_ops(node.right)
                         if minus_cnt % 2 != 0:
                             ans_node = BinOpNode(node.left, Token(("-", MINUS)), right_node)
@@ -513,7 +513,39 @@ class Algebra(Equation):
                             self.tree = deepcopy(new_tree)
                             return True
                 elif node.op.tag == MINUS:
-                    if hash(node.left) == hash(node.right) and node.left.__repr__() == node.right.__repr__():
+                    if node.left.type == NUMNode:
+                        num = visit_NUMNode(node.left)
+                        if round_complex(num) == 0:
+                            node_string = stringify_node(node.right, self.var)
+                            if "0" + node.op.value + "(" + node_string + ")" in stringify_node(node, self.var):
+                                self.solution.append("0" + node.op.value + "(" + node_string + ") = -" + node_string)
+                                self.update_eqn_string("0" + node.op.value + "(" + node_string + ")", "-"+node_string)
+                            else:
+                                self.solution.append("0" + node.op.value + node_string + " = -" + node_string)
+                                self.update_eqn_string("0" + node.op.value + node_string, "-"+node_string)
+                            ans_node = UniOpNode(node.op, node.right)
+                            new_tree = self.replace_node(self.tree, node, ans_node)
+                            if new_tree is None:
+                                raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                            self.tree = deepcopy(new_tree)
+                            return True
+                    elif node.right.type == NUMNode and node.right.value != "#C":
+                        num = visit_NUMNode(node.right)
+                        if round_complex(num) == 0:
+                            node_string = stringify_node(node.left, self.var)
+                            if "(" + node_string + ")" + node.op.value + "0" in stringify_node(node, self.var):
+                                self.solution.append("(" + node_string + ")" + node.op.value + "0 = " + node_string)
+                                self.update_eqn_string("(" + node_string + ")" + node.op.value + "0", node_string)
+                            else:
+                                self.solution.append(node_string + node.op.value + "0 = " + node_string)
+                                self.update_eqn_string(node_string + node.op.value + "0", node_string)
+                            ans_node = node.left
+                            new_tree = self.replace_node(self.tree, node, ans_node)
+                            if new_tree is None:
+                                raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                            self.tree = deepcopy(new_tree)
+                            return True
+                    elif hash(node.left) == hash(node.right) and node.left.__repr__() == node.right.__repr__():
                         node_string = stringify_node(node, self.var)
                         self.solution.append(node_string + " = 0")
                         self.update_eqn_string(node_string, "0")
@@ -803,10 +835,19 @@ class Algebra(Equation):
                 return True
             elif node.right.type == NUMNode:
                 right = stringify(visit_NUMNode(node.right))
-            if is_number(right):
+            if is_number(right) and round_complex(right) != 0:
                 ans = self.compute(node.op.value+right)
                 ans_token = Token((stringify(ans), NUMBER))
                 ans_node = NumberNode(ans_token)
+                new_tree = self.replace_node(self.tree, node, ans_node)
+                if new_tree is None:
+                    raise Exception("{} was not replaced by {}.".format(node, ans_node))
+                self.tree = deepcopy(new_tree)
+                return True
+            elif is_number(right) and round_complex(right) == 0:
+                ans_node = node.right
+                self.solution.append(stringify_node(node, self.var) + " = " + right)
+                self.update_eqn_string(stringify_node(node, self.var), right)
                 new_tree = self.replace_node(self.tree, node, ans_node)
                 if new_tree is None:
                     raise Exception("{} was not replaced by {}.".format(node, ans_node))

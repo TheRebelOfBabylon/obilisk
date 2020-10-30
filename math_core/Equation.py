@@ -51,7 +51,7 @@ class Colors:
     REVERSE = "\033[;7m"
 
 
-def stringify_node(node: AST, var: str) -> str:
+def stringify_node(node: AST, var: Union[str, List[str]]) -> str:
     """Function will take a node and turn it into a string"""
     if node.type == BINOPNode:
         temp = node.op.value
@@ -98,37 +98,44 @@ def stringify_node(node: AST, var: str) -> str:
     elif node.type == VARNode:
         return inference_string(node.value, var)
     elif node.type == NUMNode:
-        if type(round_complex(visit_NUMNode(node))) == float:
+        if type(round_complex(visit_NUMNode(node))) == float and node.tag == NUMBER:
             return inference_string(str(Fraction(node.value).limit_denominator(1000)), var)
         return inference_string(node.value, var)
 
 
-def inference_string(eqn_string: str, var: str) -> str:
+def inference_string(eqn_string: str, var: Union[str, List[str]]) -> str:
     """Method will remove some parts of an equation which are redundant"""
     regex = r'\-?\(?\(?\-?[0-9]+(\.[0-9]*)?([\-\+][0-9]+(\.[0-9]*)?j)?\)?\*[a-zA-Z_](\^[-]?[0-9]+(\.[0-9]*)?)?\)?'
-    match = re.search(regex, eqn_string)
-    if match is not None:
-        if "((" in match.group():
-            match_wo_br_or_mul = match.group().replace("((", '(')
-            match_wo_br_or_mul = match_wo_br_or_mul.replace(var+")",var)
-        else:
-            match_wo_br_or_mul = match.group().replace("(", '')
-            match_wo_br_or_mul = match_wo_br_or_mul.replace(")",'')
-        match_wo_br_or_mul = match_wo_br_or_mul.replace("*", '')
-        if "1"+var in match_wo_br_or_mul:
-            match_wo_br_or_mul = match_wo_br_or_mul.replace("1", '')
-        elif "-1"+var in match_wo_br_or_mul:
-            match_wo_br_or_mul = match_wo_br_or_mul.replace("-1", '-')
-        eqn_string = eqn_string.replace(match.group(), match_wo_br_or_mul)
+    if isinstance(var, str):
+        var = [var]
+    for var in var:
         match = re.search(regex, eqn_string)
-    if match is not None:
-        return inference_string(eqn_string, var)
-    if eqn_string in "1*"+var:
-        eqn_string = eqn_string.replace("1*", var)
-    elif eqn_string in "-1*"+var:
-        eqn_string = eqn_string.replace("-1*", "-"+var)
-    if "#" in eqn_string:
-        eqn_string = eqn_string.replace("#", "")
+        if match is not None:
+            if "((" in match.group():
+                match_wo_br_or_mul = match.group().replace("((", '(')
+                match_wo_br_or_mul = match_wo_br_or_mul.replace(var+")",var)
+            else:
+                match_wo_br_or_mul = match.group().replace("(", '')
+                match_wo_br_or_mul = match_wo_br_or_mul.replace(")",'')
+            match_wo_br_or_mul = match_wo_br_or_mul.replace("*", '')
+            if "1"+var in match_wo_br_or_mul:
+                match_wo_br_or_mul = match_wo_br_or_mul.replace("1", '')
+            elif "-1"+var in match_wo_br_or_mul:
+                match_wo_br_or_mul = match_wo_br_or_mul.replace("-1", '-')
+            eqn_string = eqn_string.replace(match.group(), match_wo_br_or_mul)
+            match = re.search(regex, eqn_string)
+        if match is not None:
+            return inference_string(eqn_string, var)
+        if eqn_string in "1*"+var:
+            eqn_string = eqn_string.replace("1*"+var, var)
+        elif eqn_string in "-1*"+var:
+            eqn_string = eqn_string.replace("-1*"+var, "-"+var)
+        if eqn_string in "1"+var:
+            eqn_string = eqn_string.replace("1"+var, var)
+        elif eqn_string in "-1" + var:
+            eqn_string = eqn_string.replace("-1"+var, "-"+var)
+        if "#" in eqn_string:
+            eqn_string = eqn_string.replace("#", "")
     return eqn_string.replace('(' + var + ')', var) if not check_for_func(eqn_string) else eqn_string
 
 
